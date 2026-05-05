@@ -6,48 +6,70 @@
 <title>BARKODPACKER</title>
 
 <style>
-body { font-family: Arial; margin:0; background:#2d74da; }
-.container { max-width:500px; margin:30px auto; background:#fff; padding:15px; border-radius:12px; }
-button { padding:10px; margin:5px; width:100%; border:0; border-radius:8px; }
-input { width:100%; padding:10px; margin:5px 0; }
+body { margin:0; font-family:Arial; background:#2d74da; }
+.container { max-width:500px; margin:20px auto; background:#fff; padding:15px; border-radius:12px; }
 .hidden { display:none; }
-.menu button { background:#eee; }
+button { width:100%; padding:10px; margin:5px 0; border:0; border-radius:8px; }
+input { width:100%; padding:10px; margin:5px 0; }
 .primary { background:#2d74da; color:#fff; }
 .danger { background:red; color:#fff; }
-ul { padding:0; list-style:none; }
+.menu button { background:#eee; }
+ul { list-style:none; padding:0; }
 li { padding:8px; border-bottom:1px solid #ddd; }
+
 .topbar { display:flex; justify-content:space-between; }
+.blueScreen {
+  background:#2d74da;
+  color:#fff;
+  min-height:100vh;
+  padding:20px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="container" id="home">
-
+<!-- LOGIN -->
+<div class="container" id="login">
   <h2>BARKODPACKER</h2>
 
-  <div class="menu">
-    <button onclick="openPage('stok')">STOK DETAY</button>
-    <button onclick="openPage('cari')">CARİ EKLE</button>
-    <button onclick="openPage('alis')">ALIŞ İRSALİYESİ</button>
-    <button onclick="openPage('satis')">SATIŞ İRSALİYESİ</button>
-    <button onclick="openPage('sayim')">SAYIM FİŞİ</button>
-  </div>
+  <input id="user" placeholder="Kullanıcı">
+  <input id="pass" type="password" placeholder="Şifre">
 
+  <select id="firma">
+    <option>Firma Seçiniz</option>
+    <option>Demo A.Ş</option>
+    <option>Test Ltd</option>
+  </select>
+
+  <button class="primary" onclick="login()">GİRİŞ</button>
+</div>
+
+<!-- HOME -->
+<div class="container hidden" id="home">
+  <h3>ANA PANEL</h3>
+
+  <div class="menu">
+    <button onclick="page('stok')">STOK DETAY</button>
+    <button onclick="page('cari')">CARİ</button>
+    <button onclick="blue('alis')">ALIŞ İRSALİYE</button>
+    <button onclick="blue('satis')">SATIŞ İRSALİYE</button>
+    <button onclick="blue('sayim')">SAYIM FİŞİ</button>
+  </div>
 </div>
 
 <!-- STOK -->
 <div class="container hidden" id="stok">
   <div class="topbar">
-    <button onclick="openPage('home')">🏠</button>
+    <button onclick="page('home')">🏠</button>
     <h3>STOK</h3>
   </div>
 
   <input id="barkod" placeholder="Barkod">
   <input id="urun" placeholder="Ürün adı">
-  <input id="adet" placeholder="Adet">
 
   <button class="primary" onclick="stokEkle()">STOK EKLE</button>
+  <button onclick="barkodOku()">📷 Barkod Oku</button>
 
   <ul id="stokList"></ul>
 </div>
@@ -55,74 +77,111 @@ li { padding:8px; border-bottom:1px solid #ddd; }
 <!-- CARİ -->
 <div class="container hidden" id="cari">
   <div class="topbar">
-    <button onclick="openPage('home')">🏠</button>
-    <h3>Cari</h3>
+    <button onclick="page('home')">🏠</button>
+    <h3>CARİ</h3>
   </div>
 
   <input id="cariInput" placeholder="Cari adı">
+
   <button class="primary" onclick="cariEkle()">EKLE</button>
+  <button class="danger" onclick="cariSilSec()">SİL</button>
 
   <ul id="cariList"></ul>
 </div>
 
-<!-- BASİT JS -->
+<!-- MAVİ EKRAN -->
+<div class="hidden blueScreen" id="blue">
+  <h2 id="blueTitle"></h2>
+  <p>Ev butonu yok</p>
+  <button onclick="page('home')">ÇIKIŞ</button>
+</div>
+
 <script>
 
-let stok = JSON.parse(localStorage.getItem("stok") || "[]");
-let cari = JSON.parse(localStorage.getItem("cari") || "[]");
+let stok = JSON.parse(localStorage.getItem("stok")||"[]");
+let cari = JSON.parse(localStorage.getItem("cari")||"[]");
 
 function save(){
-  localStorage.setItem("stok", JSON.stringify(stok));
-  localStorage.setItem("cari", JSON.stringify(cari));
+  localStorage.setItem("stok",JSON.stringify(stok));
+  localStorage.setItem("cari",JSON.stringify(cari));
+}
+
+/* LOGIN */
+function login(){
+  let u = user.value;
+  let p = pass.value;
+  let f = firma.value;
+
+  if(!u||!p||f=="Firma Seçiniz"){
+    alert("Eksik bilgi");
+    return;
+  }
+
+  if(u==="admin" && p==="1234"){
+    login.classList.add("hidden");
+    home.classList.remove("hidden");
+  } else {
+    alert("Hatalı giriş");
+  }
 }
 
 /* SAYFA */
-function openPage(id){
+function page(id){
   document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
+  document.getElementById("blue").classList.add("hidden");
 
   if(id==="stok") renderStok();
   if(id==="cari") renderCari();
+
+  document.getElementById(id).classList.remove("hidden");
+}
+
+/* MAVİ EKRAN */
+function blue(type){
+  document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
+  blue.classList.remove("hidden");
+
+  blueTitle.innerText = type.toUpperCase();
 }
 
 /* STOK EKLE */
 function stokEkle(){
-  let b = document.getElementById("barkod").value;
-  let u = document.getElementById("urun").value;
-  let a = parseInt(document.getElementById("adet").value || 0);
+  let b = barkod.value;
+  let u = urun.value;
 
-  if(!b || !u) return alert("Boş bırakma");
+  if(!b||!u) return;
 
-  stok.push({barkod:b, urun:u, adet:a});
+  stok.push({barkod:b,urun:u,adet:0});
   save();
   renderStok();
 }
 
-/* STOK SİL */
-function sil(i){
-  if(confirm("Silinsin mi?")){
-    stok.splice(i,1);
-    save();
-    renderStok();
-  }
+/* BARKOD OKU (simülasyon) */
+function barkodOku(){
+  let b = prompt("Barkod okutuldu:");
+  if(!b) return;
+
+  let u = prompt("Ürün adı:");
+  if(!u) return;
+
+  stok.push({barkod:b,urun:u,adet:0});
+  save();
+  renderStok();
 }
 
 /* STOK GÖSTER */
 function renderStok(){
-  let list = document.getElementById("stokList");
-  list.innerHTML = "";
-  stok.forEach((s,i)=>{
-    list.innerHTML += `
-      <li>
-        ${s.barkod} / ${s.urun} / ${s.adet}
-        <button onclick="sil(${i})" class="danger">Sil</button>
-      </li>`;
+  stokList.innerHTML="";
+  stok.forEach(s=>{
+    stokList.innerHTML+=`
+      <li>${s.barkod} / ${s.urun} / ${s.adet}</li>
+    `;
   });
 }
 
 /* CARİ EKLE */
 function cariEkle(){
-  let c = document.getElementById("cariInput").value;
+  let c = cariInput.value;
   if(!c) return;
 
   cari.push(c);
@@ -131,11 +190,23 @@ function cariEkle(){
   renderCari();
 }
 
+/* CARİ SİL */
+function cariSilSec(){
+  let c = prompt("Silinecek cari:");
+  if(!c) return;
+
+  if(confirm("Silmek istediğinize emin misiniz?")){
+    cari = cari.filter(x=>x!==c);
+    save();
+    renderCari();
+  }
+}
+
+/* CARİ GÖSTER */
 function renderCari(){
-  let list = document.getElementById("cariList");
-  list.innerHTML = "";
+  cariList.innerHTML="";
   cari.forEach(c=>{
-    list.innerHTML += `<li>${c}</li>`;
+    cariList.innerHTML+=`<li>${c}</li>`;
   });
 }
 
