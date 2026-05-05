@@ -8,22 +8,14 @@
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
-body { margin:0; font-family:Arial; background:#2d74da; }
-.container { max-width:500px; margin:20px auto; background:#fff; padding:15px; border-radius:12px; }
-.hidden { display:none; }
-
-button,input,select{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-}
-
+body{margin:0;font-family:Arial;background:#2d74da;}
+.container{max-width:500px;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
+.hidden{display:none;}
+button,input,select{width:100%;padding:10px;margin:5px 0;}
 .primary{background:#2d74da;color:#fff;border:0;}
 .danger{background:red;color:#fff;border:0;}
-
 ul{list-style:none;padding:0;}
 li{padding:8px;border-bottom:1px solid #ddd;}
-
 .topbar{display:flex;justify-content:space-between;}
 .blue{background:#2d74da;color:#fff;min-height:100vh;padding:20px;}
 </style>
@@ -34,41 +26,38 @@ li{padding:8px;border-bottom:1px solid #ddd;}
 <!-- LOGIN -->
 <div class="container" id="loginPage">
   <h2>BARKODPACKER</h2>
-
-  <input id="user" placeholder="Kullanıcı">
-  <input id="pass" type="password" placeholder="Şifre">
-
+  <input id="user">
+  <input id="pass" type="password">
   <select id="firma">
     <option>Firma Seçiniz</option>
     <option>Demo A.Ş</option>
   </select>
-
-  <button class="primary" onclick="login()">GİRİŞ</button>
+  <button class="primary" onclick="doLogin()">GİRİŞ</button>
 </div>
 
 <!-- HOME -->
-<div class="container hidden" id="home">
+<div class="container hidden" id="homePage">
   <h3>ANA SAYFA</h3>
 
-  <button onclick="page('stok')">STOK DETAY</button>
-  <button onclick="page('cari')">CARİ</button>
-  <button onclick="page('alis')">ALIŞ İRSALİYE</button>
-  <button onclick="page('satis')">SATIŞ İRSALİYE</button>
-  <button onclick="page('sayim')">SAYIM FİŞİ</button>
+  <button onclick="openPage('stokPage')">STOK</button>
+  <button onclick="openPage('cariPage')">CARİ</button>
+  <button onclick="openBlue('ALIŞ İRSALİYE')">ALIŞ</button>
+  <button onclick="openBlue('SATIŞ İRSALİYE')">SATIŞ</button>
+  <button onclick="openBlue('SAYIM FİŞİ')">SAYIM</button>
 </div>
 
 <!-- STOK -->
-<div class="container hidden" id="stok">
+<div class="container hidden" id="stokPage">
   <div class="topbar">
-    <button onclick="home()">🏠</button>
+    <button onclick="goHome()">🏠</button>
     <h3>STOK</h3>
   </div>
 
   <input id="barkod">
   <input id="urun">
 
-  <button class="primary" onclick="stokEkle()">EKLE</button>
-  <button onclick="openScanner()">📷 OKU</button>
+  <button class="primary" onclick="addStock()">EKLE</button>
+  <button onclick="scan()">📷 OKU</button>
 
   <div id="reader"></div>
 
@@ -76,28 +65,28 @@ li{padding:8px;border-bottom:1px solid #ddd;}
 </div>
 
 <!-- CARİ -->
-<div class="container hidden" id="cari">
+<div class="container hidden" id="cariPage">
   <div class="topbar">
-    <button onclick="home()">🏠</button>
+    <button onclick="goHome()">🏠</button>
     <h3>CARİ</h3>
   </div>
 
   <input id="cariInput">
-  <button class="primary" onclick="cariEkle()">EKLE</button>
+  <button class="primary" onclick="addCari()">EKLE</button>
 
   <ul id="cariList"></ul>
 </div>
 
-<!-- BLUE IRSA -->
-<div class="container hidden blue" id="irsaliye">
-  <h2 id="irsTitle"></h2>
-  <button onclick="home()">ANA SAYFA</button>
+<!-- BLUE SCREEN -->
+<div class="container hidden blue" id="bluePage">
+  <h2 id="blueTitle"></h2>
+  <button onclick="goHome()">ANA SAYFA</button>
 </div>
 
 <script>
 
-let stok=JSON.parse(localStorage.getItem("stok")||"[]");
-let cari=JSON.parse(localStorage.getItem("cari")||"[]");
+let stok = JSON.parse(localStorage.getItem("stok")||"[]");
+let cari = JSON.parse(localStorage.getItem("cari")||"[]");
 let scanner=null;
 
 /* SAVE */
@@ -107,75 +96,53 @@ function save(){
 }
 
 /* LOGIN */
-function login(){
+function doLogin(){
   let u=user.value,p=pass.value,f=firma.value;
+
   if(u==="admin"&&p==="1234"&&f!=="Firma Seçiniz"){
     loginPage.classList.add("hidden");
-    home.classList.remove("hidden");
-  }
+    homePage.classList.remove("hidden");
+  } else alert("Hatalı giriş");
 }
 
-/* PAGE */
-function page(id){
-  stopScanner();
+/* PAGE CONTROL */
+function openPage(id){
+  stopScan();
 
   document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
-
-  if(id==="stok") renderStok();
-  if(id==="cari") renderCari();
-  if(id==="alis"||id==="satis"||id==="sayim"){
-    irsaliye.classList.remove("hidden");
-    irsTitle.innerText=id.toUpperCase();
-    return;
-  }
-
   document.getElementById(id).classList.remove("hidden");
+
+  if(id==="stokPage") renderStock();
+  if(id==="cariPage") renderCari();
 }
 
-/* HOME RESET */
-function home(){
-  stopScanner();
+/* HOME */
+function goHome(){
+  stopScan();
+
   document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
-  home.classList.remove("hidden");
+  homePage.classList.remove("hidden");
 }
 
-/* STOP SCANNER (ÇOK ÖNEMLİ FIX) */
-function stopScanner(){
-  if(scanner){
-    scanner.stop().then(()=>scanner.clear()).catch(()=>{});
-    scanner=null;
-  }
+/* BLUE SCREEN */
+function openBlue(title){
+  stopScan();
+
+  document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
+  bluePage.classList.remove("hidden");
+  blueTitle.innerText=title;
 }
 
-/* SCANNER */
-function openScanner(){
-  stopScanner();
-
-  scanner=new Html5Qrcode("reader");
-
-  Html5Qrcode.getCameras().then(devices=>{
-    if(devices.length){
-      scanner.start(
-        devices[0].id,
-        {fps:10,qrbox:250},
-        (text)=>{
-          barkod.value=text;
-          stopScanner();
-        }
-      );
-    }
-  });
-}
-
-/* STOK */
-function stokEkle(){
+/* STOCK */
+function addStock(){
   if(!barkod.value||!urun.value) return;
+
   stok.push({barkod:barkod.value,urun:urun.value,adet:0});
   save();
-  renderStok();
+  renderStock();
 }
 
-function renderStok(){
+function renderStock(){
   stokList.innerHTML="";
   stok.forEach(s=>{
     stokList.innerHTML+=`<li>${s.barkod} / ${s.urun} / ${s.adet}</li>`;
@@ -183,8 +150,9 @@ function renderStok(){
 }
 
 /* CARİ */
-function cariEkle(){
+function addCari(){
   if(!cariInput.value) return;
+
   cari.push(cariInput.value);
   cari.sort();
   save();
@@ -196,6 +164,32 @@ function renderCari(){
   cari.forEach(c=>{
     cariList.innerHTML+=`<li>${c}</li>`;
   });
+}
+
+/* CAMERA FIX */
+function scan(){
+  stopScan();
+
+  scanner=new Html5Qrcode("reader");
+
+  Html5Qrcode.getCameras().then(devices=>{
+    scanner.start(
+      devices[0].id,
+      {fps:10,qrbox:250},
+      (text)=>{
+        barkod.value=text;
+        stopScan();
+      }
+    );
+  });
+}
+
+/* STOP CAMERA (KRİTİK) */
+function stopScan(){
+  if(scanner){
+    scanner.stop().then(()=>scanner.clear()).catch(()=>{});
+    scanner=null;
+  }
 }
 
 </script>
