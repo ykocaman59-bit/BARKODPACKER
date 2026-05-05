@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BARKODPACKER</title>
+
+<style>
+body {
+  font-family: Arial;
+  background: #2d74da;
+  margin: 0;
+}
+
+.container {
+  max-width: 400px;
+  margin: 50px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+}
+
+h2 {
+  text-align: center;
+}
+
+input, select, button {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+button {
+  border: none;
+  border-radius: 8px;
+}
+
+.login-btn {
+  background: #2d74da;
+  color: white;
+}
+
+.logout-btn {
+  background: red;
+  color: white;
+}
+
+.hidden {
+  display: none;
+}
+
+.big-input {
+  font-size: 20px;
+  padding: 15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container" id="loginPage">
+  <h2>BARKODPACKER</h2>
+
+  <input type="text" id="username" placeholder="Kullanıcı adı">
+  <input type="password" id="password" placeholder="Şifre">
+
+  <select>
+    <option>Firma Seçiniz</option>
+    <option>Demo A.Ş</option>
+  </select>
+
+  <button class="login-btn" onclick="login()">Giriş</button>
+</div>
+
+<div class="container hidden" id="appPage">
+  <h2>PDA Panel</h2>
+
+  <input class="big-input" id="barcode" placeholder="Barkod okut veya yaz">
+
+  <button onclick="addBarcode()">Ekle</button>
+
+  <ul id="list"></ul>
+
+  <button class="logout-btn" onclick="logout()">Çıkış</button>
+</div>
+
+<script>
+function login() {
+  const user = document.getElementById("username").value;
+  const pass = document.getElementById("password").value;
+
+  if (user === "admin" && pass === "1234") {
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("appPage").classList.remove("hidden");
+  } else {
+    alert("Hatalı giriş!");
+  }
+}
+
+function logout() {
+  document.getElementById("loginPage").classList.remove("hidden");
+  document.getElementById("appPage").classList.add("hidden");
+}
+
+function addBarcode() {
+  const barcode = document.getElementById("barcode").value;
+  if (!barcode) return;
+
+  const li = document.createElement("li");
+  li.innerText = barcode;
+
+  document.getElementById("list").appendChild(li);
+  document.getElementById("barcode").value = "";
+}
+</script>
+
+</body>
+</html>
