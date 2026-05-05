@@ -9,12 +9,14 @@
 
 <style>
 body{margin:0;font-family:Arial;background:#2d74da;}
-.box{max-width:500px;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
+.box{max-width:520px;margin:20px auto;background:#fff;padding:15px;border-radius:12px;}
 .hidden{display:none;}
 button,input,select{width:100%;padding:10px;margin:5px 0;}
 .primary{background:#2d74da;color:#fff;border:0;}
 .danger{background:red;color:#fff;border:0;}
-.top{display:flex;justify-content:space-between;}
+.top{display:flex;justify-content:space-between;align-items:center;}
+ul{list-style:none;padding:0;}
+li{padding:8px;border-bottom:1px solid #ddd;}
 .blue{background:#2d74da;color:#fff;min-height:100vh;padding:20px;}
 </style>
 </head>
@@ -25,8 +27,8 @@ button,input,select{width:100%;padding:10px;margin:5px 0;}
 <div class="box" id="loginPage">
   <h2>BARKODPACKER</h2>
 
-  <input id="user">
-  <input id="pass" type="password">
+  <input id="user" placeholder="Kullanıcı">
+  <input id="pass" type="password" placeholder="Şifre">
 
   <select id="firma">
     <option>Firma Seçiniz</option>
@@ -44,25 +46,25 @@ button,input,select{width:100%;padding:10px;margin:5px 0;}
     <button class="danger" onclick="logout()">ÇIKIŞ</button>
   </div>
 
-  <button onclick="openPage('stokPage')">STOK DETAY</button>
-  <button onclick="openPage('cariPage')">CARİ</button>
-  <button onclick="openPage('alisPage')">ALIŞ İRSALİYE</button>
-  <button onclick="openPage('satisPage')">SATIŞ İRSALİYE</button>
-  <button onclick="openPage('sayimPage')">SAYIM FİŞİ</button>
+  <button onclick="openPage('stok')">STOK DETAY</button>
+  <button onclick="openPage('cari')">CARİ</button>
+  <button onclick="openPage('alis')">ALIŞ İRSALİYE</button>
+  <button onclick="openPage('satis')">SATIŞ İRSALİYE</button>
+  <button onclick="openPage('sayim')">SAYIM FİŞİ</button>
 </div>
 
 <!-- STOK -->
-<div class="box hidden" id="stokPage">
+<div class="box hidden" id="stok">
   <div class="top">
     <button onclick="home()">🏠</button>
     <h3>STOK</h3>
   </div>
 
-  <input id="barkod">
-  <input id="urun">
+  <input id="barkod" placeholder="Barkod">
+  <input id="urun" placeholder="Ürün adı">
 
   <button class="primary" onclick="stokEkle()">EKLE</button>
-  <button onclick="kamera()">📷 OKU</button>
+  <button onclick="kameraAc()">📷 BARKOD OKU</button>
 
   <div id="reader"></div>
 
@@ -70,74 +72,75 @@ button,input,select{width:100%;padding:10px;margin:5px 0;}
 </div>
 
 <!-- CARİ -->
-<div class="box hidden" id="cariPage">
+<div class="box hidden" id="cari">
   <div class="top">
     <button onclick="home()">🏠</button>
     <h3>CARİ</h3>
   </div>
 
-  <input id="cariInput">
+  <input id="cariInput" placeholder="Cari adı">
   <button class="primary" onclick="cariEkle()">EKLE</button>
 
   <ul id="cariList"></ul>
 </div>
 
-<!-- DOCUMENT PAGES -->
-<div class="box hidden blue" id="alisPage">
+<!-- DOCUMENTS -->
+<div class="box hidden blue" id="alis">
   <h2>ALIŞ İRSALİYE</h2>
   <button onclick="home()">ANA SAYFA</button>
 </div>
 
-<div class="box hidden blue" id="satisPage">
+<div class="box hidden blue" id="satis">
   <h2>SATIŞ İRSALİYE</h2>
   <button onclick="home()">ANA SAYFA</button>
 </div>
 
-<div class="box hidden blue" id="sayimPage">
+<div class="box hidden blue" id="sayim">
   <h2>SAYIM FİŞİ</h2>
   <button onclick="home()">ANA SAYFA</button>
 </div>
 
 <script>
 
-let stok=JSON.parse(localStorage.getItem("stok")||"[]");
-let cari=JSON.parse(localStorage.getItem("cari")||"[]");
-let scanner=null;
+let stok = JSON.parse(localStorage.getItem("stok")||"[]");
+let cari = JSON.parse(localStorage.getItem("cari")||"[]");
+let scanner = null;
 
 /* LOGIN */
 function login(){
   if(user.value==="admin" && pass.value==="1234" && firma.value!=="Firma Seçiniz"){
     loginPage.classList.add("hidden");
     homePage.classList.remove("hidden");
-  }
+  } else alert("Hatalı giriş");
 }
 
 /* LOGOUT */
 function logout(){
-  stopCam();
+  stopCamera();
   document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
   loginPage.classList.remove("hidden");
 }
 
-/* NAVIGATION (KRİTİK CORE) */
+/* NAVIGATION (KIRILMAYAN SİSTEM) */
 function openPage(id){
-  stopCam();
+  stopCamera();
   document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
   document.getElementById(id).classList.remove("hidden");
 
-  if(id==="stokPage") renderStok();
-  if(id==="cariPage") renderCari();
+  if(id==="stok") renderStok();
+  if(id==="cari") renderCari();
 }
 
 function home(){
-  stopCam();
+  stopCamera();
   document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
   homePage.classList.remove("hidden");
 }
 
 /* STOK */
 function stokEkle(){
-  if(!barkod.value||!urun.value) return;
+  if(!barkod.value || !urun.value) return;
+
   stok.push({barkod:barkod.value,urun:urun.value,adet:0});
   localStorage.setItem("stok",JSON.stringify(stok));
   renderStok();
@@ -147,12 +150,14 @@ function renderStok(){
   stokList.innerHTML="";
   stok.forEach((s,i)=>{
     stokList.innerHTML+=`
-    <li>${s.barkod}/${s.urun}/${s.adet}</li>`;
+    <li>${s.barkod} / ${s.urun} / ${s.adet}</li>`;
   });
 }
 
 /* CARİ */
 function cariEkle(){
+  if(!cariInput.value) return;
+
   cari.push(cariInput.value);
   cari.sort();
   localStorage.setItem("cari",JSON.stringify(cari));
@@ -166,29 +171,35 @@ function renderCari(){
   });
 }
 
-/* CAMERA */
-function kamera(){
-  stopCam();
+/* 📷 CAMERA FIX (ARKA KAMERA ZORUNLU) */
+function kameraAc(){
+  stopCamera();
 
-  scanner=new Html5Qrcode("reader");
+  scanner = new Html5Qrcode("reader");
 
-  Html5Qrcode.getCameras().then(dev=>{
+  Html5Qrcode.getCameras().then(devices=>{
+
+    let backCam =
+      devices.find(d=>d.label.toLowerCase().includes("back")) ||
+      devices[0];
+
     scanner.start(
-      dev[0].id,
+      backCam.id,
       {fps:10,qrbox:250},
       (text)=>{
-        barkod.value=text;
-        stopCam();
+        barkod.value = text;
+        stopCamera();
       }
     );
+
   });
 }
 
-/* STOP CAMERA */
-function stopCam(){
+/* CAMERA STOP (KRİTİK) */
+function stopCamera(){
   if(scanner){
     scanner.stop().then(()=>scanner.clear()).catch(()=>{});
-    scanner=null;
+    scanner = null;
   }
 }
 
