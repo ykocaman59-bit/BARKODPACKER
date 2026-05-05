@@ -17,13 +17,13 @@ input,button,select{width:100%;padding:10px;margin:5px 0;}
 .danger{background:red;color:#fff;border:0;}
 
 table{width:100%;border-collapse:collapse;margin-top:10px;}
-td,th{border:1px solid #ddd;padding:8px;text-align:left;}
+td,th{border:1px solid #ddd;padding:8px;text-align:center;}
 
 .top{display:flex;justify-content:space-between;align-items:center;}
 
 .bottomExit{
 position:fixed;
-bottom:10px;
+bottom:60px;
 left:50%;
 transform:translateX(-50%);
 background:red;
@@ -32,6 +32,7 @@ padding:12px 25px;
 border:none;
 border-radius:10px;
 }
+
 .blue{background:#2d74da;color:#fff;min-height:100vh;padding:20px;}
 </style>
 </head>
@@ -57,17 +58,28 @@ border-radius:10px;
 <!-- HOME -->
 <div class="box hidden" id="homePage">
 
-<div class="top">
-<h3>ANA SAYFA</h3>
-</div>
+<h3 style="text-align:center;">ANA SAYFA</h3>
 
-<button onclick="openPage('stok')">STOK DETAY</button>
+<table>
+<tr>
+<td><button onclick="openPage('stok')">STOK DETAY</button></td>
+<td><button onclick="openPage('sayim')">SAYIM FİŞİ</button></td>
+</tr>
+
+<tr>
+<td><button onclick="openPage('alis')">ALIŞ İRSALİYE</button></td>
+<td><button onclick="openPage('satis')">SATIŞ İRSALİYE</button></td>
+</tr>
+
+<tr>
+<td colspan="2">
 <button onclick="openPage('cari')">CARİ</button>
-<button onclick="openPage('alis')">ALIŞ İRSALİYE</button>
-<button onclick="openPage('satis')">SATIŞ İRSALİYE</button>
-<button onclick="openPage('sayim')">SAYIM FİŞİ</button>
+</td>
+</tr>
+</table>
 
 <button class="bottomExit" onclick="logout()">ÇIKIŞ</button>
+
 </div>
 
 <!-- STOK -->
@@ -81,8 +93,9 @@ border-radius:10px;
 <input id="urun" placeholder="Ürün">
 
 <button class="primary" onclick="stokEkle()">EKLE</button>
-<button onclick="kamera()">📷 OKU</button>
+<button onclick="kamera()">📷 BARKOD OKU</button>
 
+<button id="camClose" class="danger hidden" onclick="stopCam()">Kapat</button>
 <div id="reader"></div>
 
 <div id="stokList"></div>
@@ -156,6 +169,8 @@ homePage.classList.remove("hidden");
 
 /* STOK */
 function stokEkle(){
+if(!barkod.value || !urun.value) return;
+
 stok.push({barkod:barkod.value,urun:urun.value,adet:0});
 localStorage.setItem("stok",JSON.stringify(stok));
 renderStok();
@@ -172,8 +187,10 @@ renderStok();
 function duzenleStok(i){
 let b=prompt("Barkod",stok[i].barkod);
 let u=prompt("Ürün",stok[i].urun);
-if(b&&u){
-stok[i]={barkod:b,urun:u,adet:stok[i].adet};
+
+if(b && u){
+stok[i].barkod=b;
+stok[i].urun=u;
 localStorage.setItem("stok",JSON.stringify(stok));
 renderStok();
 }
@@ -199,6 +216,8 @@ stokList.innerHTML=html;
 
 /* CARİ */
 function cariEkle(){
+if(!cariInput.value) return;
+
 cari.push(cariInput.value);
 cari.sort();
 localStorage.setItem("cari",JSON.stringify(cari));
@@ -238,9 +257,11 @@ html+="</table>";
 cariList.innerHTML=html;
 }
 
-/* CAMERA (ARKA KAMERA ZORUNLU) */
+/* CAMERA */
 function kamera(){
 stopCam();
+camClose.classList.remove("hidden");
+
 scanner=new Html5Qrcode("reader");
 
 Html5Qrcode.getCameras().then(dev=>{
@@ -258,6 +279,7 @@ if(scanner){
 scanner.stop().then(()=>scanner.clear()).catch(()=>{});
 scanner=null;
 }
+camClose.classList.add("hidden");
 }
 
 </script>
