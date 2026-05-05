@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BARKODPACKER</title>
 
+<script src="https://unpkg.com/html5-qrcode"></script>
+
 <style>
 body { margin:0; font-family:Arial; background:#2d74da; }
 .container { max-width:500px; margin:20px auto; background:#fff; padding:15px; border-radius:12px; }
@@ -15,26 +17,17 @@ input, button, select {
   padding:10px;
   margin:5px 0;
   border-radius:8px;
-  border:1px solid #ccc;
 }
 
-button { border:none; cursor:pointer; }
+button { border:0; cursor:pointer; }
 .primary { background:#2d74da; color:#fff; }
 .danger { background:red; color:#fff; }
 
 ul { list-style:none; padding:0; }
 li { padding:8px; border-bottom:1px solid #ddd; }
 
-.topbar { display:flex; justify-content:space-between; align-items:center; }
-
-.menu button { background:#eee; margin:5px 0; }
-
-.blue {
-  background:#2d74da;
-  color:white;
-  min-height:100vh;
-  padding:20px;
-}
+.topbar { display:flex; justify-content:space-between; }
+.blue { background:#2d74da; color:#fff; min-height:100vh; padding:20px; }
 </style>
 </head>
 
@@ -44,13 +37,12 @@ li { padding:8px; border-bottom:1px solid #ddd; }
 <div class="container" id="loginPage">
   <h2>BARKODPACKER</h2>
 
-  <input id="user" placeholder="Kullanıcı adı">
+  <input id="user" placeholder="Kullanıcı">
   <input id="pass" type="password" placeholder="Şifre">
 
   <select id="firma">
     <option>Firma Seçiniz</option>
     <option>Demo A.Ş</option>
-    <option>Test Ltd</option>
   </select>
 
   <button class="primary" onclick="login()">GİRİŞ</button>
@@ -60,13 +52,8 @@ li { padding:8px; border-bottom:1px solid #ddd; }
 <div class="container hidden" id="home">
   <h3>ANA PANEL</h3>
 
-  <div class="menu">
-    <button onclick="page('stok')">STOK DETAY</button>
-    <button onclick="page('cari')">CARİ</button>
-    <button onclick="blue('ALIS İRSALİYE')">ALIŞ</button>
-    <button onclick="blue('SATIŞ İRSALİYE')">SATIŞ</button>
-    <button onclick="blue('SAYIM FİŞİ')">SAYIM</button>
-  </div>
+  <button onclick="page('stok')">STOK DETAY</button>
+  <button onclick="page('cari')">CARİ</button>
 </div>
 
 <!-- STOK -->
@@ -80,7 +67,9 @@ li { padding:8px; border-bottom:1px solid #ddd; }
   <input id="urun" placeholder="Ürün adı">
 
   <button class="primary" onclick="stokEkle()">STOK EKLE</button>
-  <button onclick="barkodOku()">📷 Barkod Oku</button>
+  <button onclick="openScanner()">📷 Barkod Oku</button>
+
+  <div id="reader" style="width:100%"></div>
 
   <ul id="stokList"></ul>
 </div>
@@ -95,16 +84,8 @@ li { padding:8px; border-bottom:1px solid #ddd; }
   <input id="cariInput" placeholder="Cari adı">
 
   <button class="primary" onclick="cariEkle()">EKLE</button>
-  <button class="danger" onclick="cariSil()">SİL</button>
 
   <ul id="cariList"></ul>
-</div>
-
-<!-- MAVİ EKRAN -->
-<div class="hidden blue" id="blueScreen">
-  <h2 id="blueTitle"></h2>
-  <p>Bu ekran demo irsaliye ekranıdır</p>
-  <button onclick="page('home')">ANA SAYFA</button>
 </div>
 
 <script>
@@ -120,75 +101,69 @@ function save(){
 
 /* LOGIN */
 function login(){
-  const u = document.getElementById("user").value;
-  const p = document.getElementById("pass").value;
-  const f = document.getElementById("firma").value;
-
-  if(!u || !p || f === "Firma Seçiniz"){
-    alert("Tüm alanları doldur");
-    return;
-  }
-
-  if(u === "admin" && p === "1234"){
-    document.getElementById("loginPage").classList.add("hidden");
-    document.getElementById("home").classList.remove("hidden");
-  } else {
-    alert("Hatalı giriş");
-  }
+  const u=user.value,p=pass.value,f=firma.value;
+  if(u==="admin" && p==="1234" && f!=="Firma Seçiniz"){
+    loginPage.classList.add("hidden");
+    home.classList.remove("hidden");
+  } else alert("Hatalı giriş");
 }
 
 /* PAGE */
 function page(id){
   document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
-  document.getElementById("blueScreen").classList.add("hidden");
-
+  document.getElementById(id).classList.remove("hidden");
   if(id==="stok") renderStok();
   if(id==="cari") renderCari();
-
-  document.getElementById(id).classList.remove("hidden");
-}
-
-/* BLUE SCREEN */
-function blue(t){
-  document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
-  document.getElementById("blueScreen").classList.remove("hidden");
-  document.getElementById("blueTitle").innerText = t;
 }
 
 /* STOK EKLE */
 function stokEkle(){
-  const b = document.getElementById("barkod").value;
-  const u = document.getElementById("urun").value;
+  let b=barkod.value,u=urun.value;
+  if(!b||!u) return;
 
-  if(!b || !u) return;
-
-  stok.push({barkod:b, urun:u, adet:0});
+  stok.push({barkod:b,urun:u,adet:0});
   save();
   renderStok();
 }
 
-/* BARKOD OKU (simülasyon) */
-function barkodOku(){
-  const b = prompt("Barkod:");
-  const u = prompt("Ürün adı:");
-  if(!b || !u) return;
-
-  stok.push({barkod:b, urun:u, adet:0});
-  save();
-  renderStok();
+/* SİL */
+function sil(i){
+  if(confirm("Silinsin mi?")){
+    stok.splice(i,1);
+    save();
+    renderStok();
+  }
 }
 
-/* STOK GÖSTER */
+/* DÜZENLE */
+function duzenle(i){
+  let b=prompt("Barkod:",stok[i].barkod);
+  let u=prompt("Ürün:",stok[i].urun);
+
+  if(b&&u){
+    stok[i].barkod=b;
+    stok[i].urun=u;
+    save();
+    renderStok();
+  }
+}
+
+/* STOK LİSTE */
 function renderStok(){
   stokList.innerHTML="";
-  stok.forEach(s=>{
-    stokList.innerHTML += `<li>${s.barkod} / ${s.urun} / ${s.adet}</li>`;
+  stok.forEach((s,i)=>{
+    stokList.innerHTML+=`
+      <li>
+        ${s.barkod} / ${s.urun} / ${s.adet}
+        <button onclick="duzenle(${i})">Düzenle</button>
+        <button class="danger" onclick="sil(${i})">Sil</button>
+      </li>`;
   });
 }
 
 /* CARİ EKLE */
 function cariEkle(){
-  const c = document.getElementById("cariInput").value;
+  let c=cariInput.value;
   if(!c) return;
 
   cari.push(c);
@@ -197,23 +172,51 @@ function cariEkle(){
   renderCari();
 }
 
-/* CARİ SİL */
-function cariSil(){
-  const c = prompt("Silinecek cari adı:");
-  if(!c) return;
-
-  if(confirm("Emin misin?")){
-    cari = cari.filter(x=>x!==c);
+/* CARİ SİL + DÜZENLE */
+function cariSil(i){
+  if(confirm("Silinsin mi?")){
+    cari.splice(i,1);
     save();
     renderCari();
   }
 }
 
-/* CARİ GÖSTER */
+function cariDuzenle(i){
+  let c=prompt("Cari adı:",cari[i]);
+  if(c){
+    cari[i]=c;
+    save();
+    renderCari();
+  }
+}
+
 function renderCari(){
   cariList.innerHTML="";
-  cari.forEach(c=>{
-    cariList.innerHTML += `<li>${c}</li>`;
+  cari.forEach((c,i)=>{
+    cariList.innerHTML+=`
+      <li>
+        ${c}
+        <button onclick="cariDuzenle(${i})">Düzenle</button>
+        <button class="danger" onclick="cariSil(${i})">Sil</button>
+      </li>`;
+  });
+}
+
+/* BARCODE SCANNER */
+function openScanner(){
+  const scanner = new Html5Qrcode("reader");
+
+  Html5Qrcode.getCameras().then(devices=>{
+    if(devices.length){
+      scanner.start(
+        devices[0].id,
+        {fps:10, qrbox:250},
+        (text)=>{
+          barkod.value = text;
+          scanner.stop();
+        }
+      );
+    }
   });
 }
 
