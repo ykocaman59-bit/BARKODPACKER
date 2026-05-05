@@ -9,18 +9,29 @@
 body { margin:0; font-family:Arial; background:#2d74da; }
 .container { max-width:500px; margin:20px auto; background:#fff; padding:15px; border-radius:12px; }
 .hidden { display:none; }
-button { width:100%; padding:10px; margin:5px 0; border:0; border-radius:8px; }
-input { width:100%; padding:10px; margin:5px 0; }
+
+input, button, select {
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+
+button { border:none; cursor:pointer; }
 .primary { background:#2d74da; color:#fff; }
 .danger { background:red; color:#fff; }
-.menu button { background:#eee; }
+
 ul { list-style:none; padding:0; }
 li { padding:8px; border-bottom:1px solid #ddd; }
 
-.topbar { display:flex; justify-content:space-between; }
-.blueScreen {
+.topbar { display:flex; justify-content:space-between; align-items:center; }
+
+.menu button { background:#eee; margin:5px 0; }
+
+.blue {
   background:#2d74da;
-  color:#fff;
+  color:white;
   min-height:100vh;
   padding:20px;
 }
@@ -30,10 +41,10 @@ li { padding:8px; border-bottom:1px solid #ddd; }
 <body>
 
 <!-- LOGIN -->
-<div class="container" id="login">
+<div class="container" id="loginPage">
   <h2>BARKODPACKER</h2>
 
-  <input id="user" placeholder="Kullanıcı">
+  <input id="user" placeholder="Kullanıcı adı">
   <input id="pass" type="password" placeholder="Şifre">
 
   <select id="firma">
@@ -52,9 +63,9 @@ li { padding:8px; border-bottom:1px solid #ddd; }
   <div class="menu">
     <button onclick="page('stok')">STOK DETAY</button>
     <button onclick="page('cari')">CARİ</button>
-    <button onclick="blue('alis')">ALIŞ İRSALİYE</button>
-    <button onclick="blue('satis')">SATIŞ İRSALİYE</button>
-    <button onclick="blue('sayim')">SAYIM FİŞİ</button>
+    <button onclick="blue('ALIS İRSALİYE')">ALIŞ</button>
+    <button onclick="blue('SATIŞ İRSALİYE')">SATIŞ</button>
+    <button onclick="blue('SAYIM FİŞİ')">SAYIM</button>
   </div>
 </div>
 
@@ -84,16 +95,16 @@ li { padding:8px; border-bottom:1px solid #ddd; }
   <input id="cariInput" placeholder="Cari adı">
 
   <button class="primary" onclick="cariEkle()">EKLE</button>
-  <button class="danger" onclick="cariSilSec()">SİL</button>
+  <button class="danger" onclick="cariSil()">SİL</button>
 
   <ul id="cariList"></ul>
 </div>
 
 <!-- MAVİ EKRAN -->
-<div class="hidden blueScreen" id="blue">
+<div class="hidden blue" id="blueScreen">
   <h2 id="blueTitle"></h2>
-  <p>Ev butonu yok</p>
-  <button onclick="page('home')">ÇIKIŞ</button>
+  <p>Bu ekran demo irsaliye ekranıdır</p>
+  <button onclick="page('home')">ANA SAYFA</button>
 </div>
 
 <script>
@@ -101,6 +112,7 @@ li { padding:8px; border-bottom:1px solid #ddd; }
 let stok = JSON.parse(localStorage.getItem("stok")||"[]");
 let cari = JSON.parse(localStorage.getItem("cari")||"[]");
 
+/* SAVE */
 function save(){
   localStorage.setItem("stok",JSON.stringify(stok));
   localStorage.setItem("cari",JSON.stringify(cari));
@@ -108,27 +120,27 @@ function save(){
 
 /* LOGIN */
 function login(){
-  let u = user.value;
-  let p = pass.value;
-  let f = firma.value;
+  const u = document.getElementById("user").value;
+  const p = document.getElementById("pass").value;
+  const f = document.getElementById("firma").value;
 
-  if(!u||!p||f=="Firma Seçiniz"){
-    alert("Eksik bilgi");
+  if(!u || !p || f === "Firma Seçiniz"){
+    alert("Tüm alanları doldur");
     return;
   }
 
-  if(u==="admin" && p==="1234"){
-    login.classList.add("hidden");
-    home.classList.remove("hidden");
+  if(u === "admin" && p === "1234"){
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("home").classList.remove("hidden");
   } else {
     alert("Hatalı giriş");
   }
 }
 
-/* SAYFA */
+/* PAGE */
 function page(id){
   document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
-  document.getElementById("blue").classList.add("hidden");
+  document.getElementById("blueScreen").classList.add("hidden");
 
   if(id==="stok") renderStok();
   if(id==="cari") renderCari();
@@ -136,35 +148,32 @@ function page(id){
   document.getElementById(id).classList.remove("hidden");
 }
 
-/* MAVİ EKRAN */
-function blue(type){
+/* BLUE SCREEN */
+function blue(t){
   document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
-  blue.classList.remove("hidden");
-
-  blueTitle.innerText = type.toUpperCase();
+  document.getElementById("blueScreen").classList.remove("hidden");
+  document.getElementById("blueTitle").innerText = t;
 }
 
 /* STOK EKLE */
 function stokEkle(){
-  let b = barkod.value;
-  let u = urun.value;
+  const b = document.getElementById("barkod").value;
+  const u = document.getElementById("urun").value;
 
-  if(!b||!u) return;
+  if(!b || !u) return;
 
-  stok.push({barkod:b,urun:u,adet:0});
+  stok.push({barkod:b, urun:u, adet:0});
   save();
   renderStok();
 }
 
 /* BARKOD OKU (simülasyon) */
 function barkodOku(){
-  let b = prompt("Barkod okutuldu:");
-  if(!b) return;
+  const b = prompt("Barkod:");
+  const u = prompt("Ürün adı:");
+  if(!b || !u) return;
 
-  let u = prompt("Ürün adı:");
-  if(!u) return;
-
-  stok.push({barkod:b,urun:u,adet:0});
+  stok.push({barkod:b, urun:u, adet:0});
   save();
   renderStok();
 }
@@ -173,15 +182,13 @@ function barkodOku(){
 function renderStok(){
   stokList.innerHTML="";
   stok.forEach(s=>{
-    stokList.innerHTML+=`
-      <li>${s.barkod} / ${s.urun} / ${s.adet}</li>
-    `;
+    stokList.innerHTML += `<li>${s.barkod} / ${s.urun} / ${s.adet}</li>`;
   });
 }
 
 /* CARİ EKLE */
 function cariEkle(){
-  let c = cariInput.value;
+  const c = document.getElementById("cariInput").value;
   if(!c) return;
 
   cari.push(c);
@@ -191,11 +198,11 @@ function cariEkle(){
 }
 
 /* CARİ SİL */
-function cariSilSec(){
-  let c = prompt("Silinecek cari:");
+function cariSil(){
+  const c = prompt("Silinecek cari adı:");
   if(!c) return;
 
-  if(confirm("Silmek istediğinize emin misiniz?")){
+  if(confirm("Emin misin?")){
     cari = cari.filter(x=>x!==c);
     save();
     renderCari();
@@ -206,7 +213,7 @@ function cariSilSec(){
 function renderCari(){
   cariList.innerHTML="";
   cari.forEach(c=>{
-    cariList.innerHTML+=`<li>${c}</li>`;
+    cariList.innerHTML += `<li>${c}</li>`;
   });
 }
 
