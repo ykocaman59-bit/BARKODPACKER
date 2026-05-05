@@ -6,123 +6,139 @@
 <title>BARKODPACKER</title>
 
 <style>
-body {
-  font-family: Arial;
-  background: #2d74da;
-  margin: 0;
-}
-
-.container {
-  max-width: 400px;
-  margin: 50px auto;
-  background: white;
-  padding: 20px;
-  border-radius: 12px;
-}
-
-h2 {
-  text-align: center;
-}
-
-input, select, button {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  font-size: 16px;
-}
-
-button {
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.login-btn {
-  background: #2d74da;
-  color: white;
-}
-
-.logout-btn {
-  background: red;
-  color: white;
-}
-
-.big-input {
-  font-size: 20px;
-  padding: 15px;
-}
-
-.hidden {
-  display: none;
-}
+body { font-family: Arial; margin:0; background:#2d74da; }
+.container { max-width:500px; margin:30px auto; background:#fff; padding:15px; border-radius:12px; }
+button { padding:10px; margin:5px; width:100%; border:0; border-radius:8px; }
+input { width:100%; padding:10px; margin:5px 0; }
+.hidden { display:none; }
+.menu button { background:#eee; }
+.primary { background:#2d74da; color:#fff; }
+.danger { background:red; color:#fff; }
+ul { padding:0; list-style:none; }
+li { padding:8px; border-bottom:1px solid #ddd; }
+.topbar { display:flex; justify-content:space-between; }
 </style>
 </head>
 
 <body>
 
-<!-- LOGIN -->
-<div class="container" id="loginPage">
+<div class="container" id="home">
+
   <h2>BARKODPACKER</h2>
 
-  <input type="text" id="username" placeholder="Kullanıcı adı">
-  <input type="password" id="password" placeholder="Şifre">
+  <div class="menu">
+    <button onclick="openPage('stok')">STOK DETAY</button>
+    <button onclick="openPage('cari')">CARİ EKLE</button>
+    <button onclick="openPage('alis')">ALIŞ İRSALİYESİ</button>
+    <button onclick="openPage('satis')">SATIŞ İRSALİYESİ</button>
+    <button onclick="openPage('sayim')">SAYIM FİŞİ</button>
+  </div>
 
-  <select id="firma">
-    <option>Firma Seçiniz</option>
-    <option>Demo A.Ş</option>
-    <option>Test Ltd</option>
-  </select>
-
-  <button class="login-btn" onclick="login()">Giriş</button>
 </div>
 
-<!-- APP -->
-<div class="container hidden" id="appPage">
-  <h2>PDA PANEL</h2>
+<!-- STOK -->
+<div class="container hidden" id="stok">
+  <div class="topbar">
+    <button onclick="openPage('home')">🏠</button>
+    <h3>STOK</h3>
+  </div>
 
-  <input class="big-input" id="barcode" placeholder="Barkod yaz / okut">
+  <input id="barkod" placeholder="Barkod">
+  <input id="urun" placeholder="Ürün adı">
+  <input id="adet" placeholder="Adet">
 
-  <button onclick="addBarcode()">Ekle</button>
+  <button class="primary" onclick="stokEkle()">STOK EKLE</button>
 
-  <ul id="list"></ul>
-
-  <button class="logout-btn" onclick="logout()">Çıkış</button>
+  <ul id="stokList"></ul>
 </div>
 
+<!-- CARİ -->
+<div class="container hidden" id="cari">
+  <div class="topbar">
+    <button onclick="openPage('home')">🏠</button>
+    <h3>Cari</h3>
+  </div>
+
+  <input id="cariInput" placeholder="Cari adı">
+  <button class="primary" onclick="cariEkle()">EKLE</button>
+
+  <ul id="cariList"></ul>
+</div>
+
+<!-- BASİT JS -->
 <script>
-function login() {
-  const user = document.getElementById("username").value;
-  const pass = document.getElementById("password").value;
-  const firma = document.getElementById("firma").value;
 
-  if (!user || !pass || firma === "Firma Seçiniz") {
-    alert("Lütfen tüm alanları doldur");
-    return;
+let stok = JSON.parse(localStorage.getItem("stok") || "[]");
+let cari = JSON.parse(localStorage.getItem("cari") || "[]");
+
+function save(){
+  localStorage.setItem("stok", JSON.stringify(stok));
+  localStorage.setItem("cari", JSON.stringify(cari));
+}
+
+/* SAYFA */
+function openPage(id){
+  document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+
+  if(id==="stok") renderStok();
+  if(id==="cari") renderCari();
+}
+
+/* STOK EKLE */
+function stokEkle(){
+  let b = document.getElementById("barkod").value;
+  let u = document.getElementById("urun").value;
+  let a = parseInt(document.getElementById("adet").value || 0);
+
+  if(!b || !u) return alert("Boş bırakma");
+
+  stok.push({barkod:b, urun:u, adet:a});
+  save();
+  renderStok();
+}
+
+/* STOK SİL */
+function sil(i){
+  if(confirm("Silinsin mi?")){
+    stok.splice(i,1);
+    save();
+    renderStok();
   }
-
-  if (user === "admin" && pass === "1234") {
-    document.getElementById("loginPage").classList.add("hidden");
-    document.getElementById("appPage").classList.remove("hidden");
-  } else {
-    alert("Hatalı giriş!");
-  }
 }
 
-function logout() {
-  document.getElementById("loginPage").classList.remove("hidden");
-  document.getElementById("appPage").classList.add("hidden");
+/* STOK GÖSTER */
+function renderStok(){
+  let list = document.getElementById("stokList");
+  list.innerHTML = "";
+  stok.forEach((s,i)=>{
+    list.innerHTML += `
+      <li>
+        ${s.barkod} / ${s.urun} / ${s.adet}
+        <button onclick="sil(${i})" class="danger">Sil</button>
+      </li>`;
+  });
 }
 
-function addBarcode() {
-  const barcode = document.getElementById("barcode").value;
-  if (!barcode) return;
+/* CARİ EKLE */
+function cariEkle(){
+  let c = document.getElementById("cariInput").value;
+  if(!c) return;
 
-  const li = document.createElement("li");
-  li.innerText = barcode;
-
-  document.getElementById("list").appendChild(li);
-  document.getElementById("barcode").value = "";
+  cari.push(c);
+  cari.sort();
+  save();
+  renderCari();
 }
+
+function renderCari(){
+  let list = document.getElementById("cariList");
+  list.innerHTML = "";
+  cari.forEach(c=>{
+    list.innerHTML += `<li>${c}</li>`;
+  });
+}
+
 </script>
 
 </body>
