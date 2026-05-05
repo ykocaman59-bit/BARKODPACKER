@@ -67,9 +67,10 @@ button {
   <input type="text" id="username" placeholder="Kullanıcı adı">
   <input type="password" id="password" placeholder="Şifre">
 
-  <select>
+  <select id="firma">
     <option>Firma Seçiniz</option>
     <option>Demo A.Ş</option>
+    <option>Test Ltd</option>
   </select>
 
   <button class="login-btn" onclick="login()">Giriş</button>
@@ -77,9 +78,9 @@ button {
 
 <!-- APP -->
 <div class="container hidden" id="appPage">
-  <h2>PDA Panel</h2>
+  <h2>PDA PANEL</h2>
 
-  <input class="big-input" id="barcode" placeholder="Barkod yaz veya okut">
+  <input class="big-input" id="barcode" placeholder="Barkod yaz / okut">
 
   <button onclick="addBarcode()">Ekle</button>
 
@@ -92,6 +93,12 @@ button {
 function login() {
   const user = document.getElementById("username").value;
   const pass = document.getElementById("password").value;
+  const firma = document.getElementById("firma").value;
+
+  if (!user || !pass || firma === "Firma Seçiniz") {
+    alert("Lütfen tüm alanları doldur");
+    return;
+  }
 
   if (user === "admin" && pass === "1234") {
     document.getElementById("loginPage").classList.add("hidden");
