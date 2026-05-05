@@ -12,22 +12,20 @@ body { margin:0; font-family:Arial; background:#2d74da; }
 .container { max-width:500px; margin:20px auto; background:#fff; padding:15px; border-radius:12px; }
 .hidden { display:none; }
 
-input, button, select {
+button,input,select{
   width:100%;
   padding:10px;
   margin:5px 0;
-  border-radius:8px;
 }
 
-button { border:0; cursor:pointer; }
-.primary { background:#2d74da; color:#fff; }
-.danger { background:red; color:#fff; }
+.primary{background:#2d74da;color:#fff;border:0;}
+.danger{background:red;color:#fff;border:0;}
 
-ul { list-style:none; padding:0; }
-li { padding:8px; border-bottom:1px solid #ddd; }
+ul{list-style:none;padding:0;}
+li{padding:8px;border-bottom:1px solid #ddd;}
 
-.topbar { display:flex; justify-content:space-between; }
-.blue { background:#2d74da; color:#fff; min-height:100vh; padding:20px; }
+.topbar{display:flex;justify-content:space-between;}
+.blue{background:#2d74da;color:#fff;min-height:100vh;padding:20px;}
 </style>
 </head>
 
@@ -50,26 +48,29 @@ li { padding:8px; border-bottom:1px solid #ddd; }
 
 <!-- HOME -->
 <div class="container hidden" id="home">
-  <h3>ANA PANEL</h3>
+  <h3>ANA SAYFA</h3>
 
   <button onclick="page('stok')">STOK DETAY</button>
   <button onclick="page('cari')">CARİ</button>
+  <button onclick="page('alis')">ALIŞ İRSALİYE</button>
+  <button onclick="page('satis')">SATIŞ İRSALİYE</button>
+  <button onclick="page('sayim')">SAYIM FİŞİ</button>
 </div>
 
 <!-- STOK -->
 <div class="container hidden" id="stok">
   <div class="topbar">
-    <button onclick="page('home')">🏠</button>
+    <button onclick="home()">🏠</button>
     <h3>STOK</h3>
   </div>
 
-  <input id="barkod" placeholder="Barkod">
-  <input id="urun" placeholder="Ürün adı">
+  <input id="barkod">
+  <input id="urun">
 
-  <button class="primary" onclick="stokEkle()">STOK EKLE</button>
-  <button onclick="openScanner()">📷 Barkod Oku</button>
+  <button class="primary" onclick="stokEkle()">EKLE</button>
+  <button onclick="openScanner()">📷 OKU</button>
 
-  <div id="reader" style="width:100%"></div>
+  <div id="reader"></div>
 
   <ul id="stokList"></ul>
 </div>
@@ -77,21 +78,27 @@ li { padding:8px; border-bottom:1px solid #ddd; }
 <!-- CARİ -->
 <div class="container hidden" id="cari">
   <div class="topbar">
-    <button onclick="page('home')">🏠</button>
+    <button onclick="home()">🏠</button>
     <h3>CARİ</h3>
   </div>
 
-  <input id="cariInput" placeholder="Cari adı">
-
+  <input id="cariInput">
   <button class="primary" onclick="cariEkle()">EKLE</button>
 
   <ul id="cariList"></ul>
 </div>
 
+<!-- BLUE IRSA -->
+<div class="container hidden blue" id="irsaliye">
+  <h2 id="irsTitle"></h2>
+  <button onclick="home()">ANA SAYFA</button>
+</div>
+
 <script>
 
-let stok = JSON.parse(localStorage.getItem("stok")||"[]");
-let cari = JSON.parse(localStorage.getItem("cari")||"[]");
+let stok=JSON.parse(localStorage.getItem("stok")||"[]");
+let cari=JSON.parse(localStorage.getItem("cari")||"[]");
+let scanner=null;
 
 /* SAVE */
 function save(){
@@ -101,122 +108,93 @@ function save(){
 
 /* LOGIN */
 function login(){
-  const u=user.value,p=pass.value,f=firma.value;
-  if(u==="admin" && p==="1234" && f!=="Firma Seçiniz"){
+  let u=user.value,p=pass.value,f=firma.value;
+  if(u==="admin"&&p==="1234"&&f!=="Firma Seçiniz"){
     loginPage.classList.add("hidden");
     home.classList.remove("hidden");
-  } else alert("Hatalı giriş");
+  }
 }
 
 /* PAGE */
 function page(id){
+  stopScanner();
+
   document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
-  document.getElementById(id).classList.remove("hidden");
+
   if(id==="stok") renderStok();
   if(id==="cari") renderCari();
+  if(id==="alis"||id==="satis"||id==="sayim"){
+    irsaliye.classList.remove("hidden");
+    irsTitle.innerText=id.toUpperCase();
+    return;
+  }
+
+  document.getElementById(id).classList.remove("hidden");
 }
 
-/* STOK EKLE */
-function stokEkle(){
-  let b=barkod.value,u=urun.value;
-  if(!b||!u) return;
-
-  stok.push({barkod:b,urun:u,adet:0});
-  save();
-  renderStok();
+/* HOME RESET */
+function home(){
+  stopScanner();
+  document.querySelectorAll(".container").forEach(e=>e.classList.add("hidden"));
+  home.classList.remove("hidden");
 }
 
-/* SİL */
-function sil(i){
-  if(confirm("Silinsin mi?")){
-    stok.splice(i,1);
-    save();
-    renderStok();
+/* STOP SCANNER (ÇOK ÖNEMLİ FIX) */
+function stopScanner(){
+  if(scanner){
+    scanner.stop().then(()=>scanner.clear()).catch(()=>{});
+    scanner=null;
   }
 }
 
-/* DÜZENLE */
-function duzenle(i){
-  let b=prompt("Barkod:",stok[i].barkod);
-  let u=prompt("Ürün:",stok[i].urun);
-
-  if(b&&u){
-    stok[i].barkod=b;
-    stok[i].urun=u;
-    save();
-    renderStok();
-  }
-}
-
-/* STOK LİSTE */
-function renderStok(){
-  stokList.innerHTML="";
-  stok.forEach((s,i)=>{
-    stokList.innerHTML+=`
-      <li>
-        ${s.barkod} / ${s.urun} / ${s.adet}
-        <button onclick="duzenle(${i})">Düzenle</button>
-        <button class="danger" onclick="sil(${i})">Sil</button>
-      </li>`;
-  });
-}
-
-/* CARİ EKLE */
-function cariEkle(){
-  let c=cariInput.value;
-  if(!c) return;
-
-  cari.push(c);
-  cari.sort();
-  save();
-  renderCari();
-}
-
-/* CARİ SİL + DÜZENLE */
-function cariSil(i){
-  if(confirm("Silinsin mi?")){
-    cari.splice(i,1);
-    save();
-    renderCari();
-  }
-}
-
-function cariDuzenle(i){
-  let c=prompt("Cari adı:",cari[i]);
-  if(c){
-    cari[i]=c;
-    save();
-    renderCari();
-  }
-}
-
-function renderCari(){
-  cariList.innerHTML="";
-  cari.forEach((c,i)=>{
-    cariList.innerHTML+=`
-      <li>
-        ${c}
-        <button onclick="cariDuzenle(${i})">Düzenle</button>
-        <button class="danger" onclick="cariSil(${i})">Sil</button>
-      </li>`;
-  });
-}
-
-/* BARCODE SCANNER */
+/* SCANNER */
 function openScanner(){
-  const scanner = new Html5Qrcode("reader");
+  stopScanner();
+
+  scanner=new Html5Qrcode("reader");
 
   Html5Qrcode.getCameras().then(devices=>{
     if(devices.length){
       scanner.start(
         devices[0].id,
-        {fps:10, qrbox:250},
+        {fps:10,qrbox:250},
         (text)=>{
-          barkod.value = text;
-          scanner.stop();
+          barkod.value=text;
+          stopScanner();
         }
       );
     }
+  });
+}
+
+/* STOK */
+function stokEkle(){
+  if(!barkod.value||!urun.value) return;
+  stok.push({barkod:barkod.value,urun:urun.value,adet:0});
+  save();
+  renderStok();
+}
+
+function renderStok(){
+  stokList.innerHTML="";
+  stok.forEach(s=>{
+    stokList.innerHTML+=`<li>${s.barkod} / ${s.urun} / ${s.adet}</li>`;
+  });
+}
+
+/* CARİ */
+function cariEkle(){
+  if(!cariInput.value) return;
+  cari.push(cariInput.value);
+  cari.sort();
+  save();
+  renderCari();
+}
+
+function renderCari(){
+  cariList.innerHTML="";
+  cari.forEach(c=>{
+    cariList.innerHTML+=`<li>${c}</li>`;
   });
 }
 
