@@ -106,6 +106,7 @@ border-radius:10px;
 
 <button onclick="stokEkle()">EKLE</button>
 
+<div id="reader"></div>
 <div id="stokList"></div>
 </div>
 
@@ -130,7 +131,6 @@ border-radius:10px;
 <div class="top">
 <button onclick="home()">🏠</button>
 <h3>ALIŞ</h3>
-<button onclick="evrakMenu()">☰</button>
 </div>
 
 <b>Belge:</b> <span id="labelBelge">-</span><br>
@@ -141,8 +141,6 @@ border-radius:10px;
 <button onclick="belgePage()">BELGE NO</button>
 <button onclick="cariSecAc()">CARİ SEÇ</button>
 <button onclick="barkodAc()">BARKOD GİRİŞ</button>
-
-<div id="evrakPanel"></div>
 </div>
 
 <!-- BELGE -->
@@ -170,7 +168,6 @@ border-radius:10px;
 <div class="box hidden" id="barkodPage">
 <div class="top">
 <button onclick="geriAlis()">⬅</button>
-<button onclick="toggleListe()">📒</button>
 </div>
 
 <input id="barkodInput">
@@ -178,6 +175,7 @@ border-radius:10px;
 <button onclick="kamera()">📷</button>
 
 <div id="reader"></div>
+
 <div id="urunInfo"></div>
 
 <input id="adet" type="number" placeholder="Adet">
@@ -197,8 +195,6 @@ let aktif=null;
 let cam=null;
 let belgeNo="";
 let cariSecili="";
-let aktifEvrak=null;
-let listeMod=false;
 
 /* LOGIN */
 function login(){
@@ -219,17 +215,19 @@ document.getElementById(id).classList.remove("hidden");
 if(id==="stok") renderStok();
 if(id==="cari") renderCari();
 
-if(id==="alis" && !aktifEvrak){
-yeniBelge();
+if(id==="alis"){
+belgeNo="ALIŞ-"+Date.now();
+labelBelge.innerText=belgeNo;
 }
 }
 
 function home(){
+stopCam();
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 homePage.classList.remove("hidden");
 }
 
-/* ===== STOK ===== */
+/* STOK */
 function stokEkle(){
 if(!stokBarkod.value || !stokUrun.value) return;
 
@@ -255,11 +253,15 @@ html+="</table>";
 stokList.innerHTML=html;
 }
 
-/* KAMERA STOK */
+/* STOK KAMERA */
 function kameraStok(){
+stopCam();
 cam=new Html5Qrcode("reader");
+
 Html5Qrcode.getCameras().then(dev=>{
-cam.start(dev[0].id,{fps:10,qrbox:250},txt=>{
+let back=dev.find(d=>d.label.toLowerCase().includes("back")) || dev[0];
+
+cam.start(back.id,{fps:10,qrbox:250},txt=>{
 stokBarkod.value=txt;
 stopCam();
 let u=prompt("Ürün adı?");
@@ -271,51 +273,50 @@ stokEkle();
 });
 }
 
-/* CARİ */
-function cariEkle(){
-if(!cariInput.value) return;
+/* BELGE */
+function belgePage(){
+document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
+document.getElementById("belgePage").classList.remove("hidden");
 
-cari.push(cariInput.value);
-cari.sort();
-localStorage.setItem("cari",JSON.stringify(cari));
-cariInput.value="";
-renderCari();
+belge1.value=belgeNo;
+belge2.value="";
 }
 
-function renderCari(){
+function belgeKaydet(){
+belgeNo = belge1.value || belge2.value;
+labelBelge.innerText=belgeNo;
+geriAlis();
+}
+
+/* CARİ */
+function cariSecAc(){
+document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
+document.getElementById("cariSec").classList.remove("hidden");
+cariFiltre2();
+}
+
+function cariFiltre2(){
+let v=cariSearch2.value.toLowerCase();
+let liste=cari.filter(x=>x.toLowerCase().includes(v));
+
 let html="<table>";
-cari.forEach((c,i)=>{
-html+=`<tr><td>${c}</td>
-<td><button onclick="cariSil(${i})">Sil</button></td></tr>`;
+liste.forEach(c=>{
+html+=`<tr><td onclick="secCari('${c}')">${c}</td></tr>`;
 });
 html+="</table>";
-cariList.innerHTML=html;
+
+cariSecList.innerHTML=html;
 }
 
-function cariSil(i){
-if(confirm("Silmek istediğinize emin misiniz?")){
-cari.splice(i,1);
-localStorage.setItem("cari",JSON.stringify(cari));
-renderCari();
-}
+function secCari(c){
+cariSecili=c;
+labelCari.innerText=c;
+geriAlis();
 }
 
-function cariFiltre(){
-let v=cariSearch.value.toLowerCase();
-let liste=cari.filter(x=>x.toLowerCase().includes(v));
-let html="<table>";
-liste.forEach(c=> html+=`<tr><td>${c}</td></tr>`);
-html+="</table>";
-cariList.innerHTML=html;
-}
+function geriAlis(){openPage("alis");}
 
-/* ===== ALIŞ ===== */
-function yeniBelge(){
-belgeNo="ALIŞ-"+Date.now();
-aktifEvrak={id:Date.now(),belge:belgeNo,cari:"",tarih:new Date().toISOString(),items:[]};
-labelBelge.innerText=belgeNo;
-}
-
+/* BARKOD */
 function barkodAc(){
 if(!cariSecili){
 alert("Cari seçiniz");
@@ -334,12 +335,9 @@ urunInfo.innerHTML=u.urun+" / "+u.adet;
 function ekle(){
 if(!aktif||!adet.value) return;
 
-let a=Number(adet.value);
-aktif.adet+=a;
+aktif.adet+=Number(adet.value);
 
-aktifEvrak.items.push({barkod:aktif.barkod,urun:aktif.urun,adet:a});
-
-if(!alis.find(x=>x.id===aktifEvrak.id)) alis.push(aktifEvrak);
+alis.push({belge:belgeNo,urun:aktif.urun,adet:adet.value});
 
 localStorage.setItem("stok",JSON.stringify(stok));
 localStorage.setItem("alis",JSON.stringify(alis));
@@ -349,77 +347,15 @@ barkodInput.value="";
 urunInfo.innerHTML="";
 }
 
-/* DEFTER */
-function toggleListe(){
-listeMod=!listeMod;
-
-if(listeMod){
-let html="<table><tr><th>Ürün</th><th>Adet</th></tr>";
-aktifEvrak.items.forEach(i=>{
-html+=`<tr><td>${i.urun}</td><td>${i.adet}</td></tr>`;
-});
-html+="</table>";
-liste.innerHTML=html;
-}else{
-liste.innerHTML="";
-}
-}
-
-/* EVRAK MENU */
-function evrakMenu(){
-evrakPanel.innerHTML=`
-<button onclick="evrakGetir()">Evrak Getir</button>
-<button onclick="evrakSil()">Evrak Sil</button>
-`;
-}
-
-function evrakGetir(){
-let t1=prompt("İlk tarih YYYY-MM-DD");
-let t2=prompt("Son tarih YYYY-MM-DD");
-
-let html="<table>";
-alis.forEach(e=>{
-let t=e.tarih.slice(0,10);
-if(t>=t1 && t<=t2){
-html+=`<tr><td onclick="evrakAc(${e.id})">${e.belge}</td></tr>`;
-}
-});
-html+="</table>";
-evrakPanel.innerHTML=html;
-}
-
-function evrakAc(id){
-let e=alis.find(x=>x.id===id);
-aktifEvrak=e;
-belgeNo=e.belge;
-cariSecili=e.cari;
-
-labelBelge.innerText=e.belge;
-labelCari.innerText=e.cari;
-}
-
-function evrakSil(){
-if(!confirm("Silmek istediğinize emin misiniz?")) return;
-
-aktifEvrak.items.forEach(i=>{
-let s=stok.find(x=>x.barkod==i.barkod);
-if(s) s.adet-=i.adet;
-});
-
-alis=alis.filter(x=>x.id!==aktifEvrak.id);
-
-localStorage.setItem("stok",JSON.stringify(stok));
-localStorage.setItem("alis",JSON.stringify(alis));
-
-aktifEvrak=null;
-home();
-}
-
 /* CAMERA */
 function kamera(){
+stopCam();
 cam=new Html5Qrcode("reader");
+
 Html5Qrcode.getCameras().then(dev=>{
-cam.start(dev[0].id,{fps:10,qrbox:250},txt=>{
+let back=dev.find(d=>d.label.toLowerCase().includes("back"))||dev[0];
+
+cam.start(back.id,{fps:10,qrbox:250},txt=>{
 barkodInput.value=txt;
 urunGetir();
 stopCam();
