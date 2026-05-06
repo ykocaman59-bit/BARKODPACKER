@@ -122,7 +122,7 @@ border-radius:10px;
 <div class="top">
 <button onclick="home()">🏠</button>
 <h3>ALIŞ</h3>
-<button onclick="evrakGetirPage()">📄</button>
+<button onclick="evrakPanel()">📄</button>
 </div>
 
 <div class="label">
@@ -143,7 +143,7 @@ border-radius:10px;
 <button onclick="geriAlis()">⬅</button>
 
 <h3>Belge No</h3>
-<input id="belge1" placeholder="Belge No">
+<input id="belge1">
 
 <button onclick="belgeKaydet()">KAYDET</button>
 </div>
@@ -175,7 +175,7 @@ border-radius:10px;
 
 </div>
 
-<!-- EVRAK LİSTE -->
+<!-- EVRAK PANEL -->
 <div class="box hidden" id="evrakPage">
 <button onclick="home()">⬅</button>
 
@@ -198,34 +198,48 @@ let evrak=JSON.parse(localStorage.getItem("evrak")||"[]");
 
 let aktif=null;
 let cariSecili="";
-let currentEvrak=null;
+let current=null;
 
-/* BELGE NO */
-function yeniBelgeNo(){
-return "ALIŞ-" + Date.now();
+/* LOGIN */
+function login(){
+if(user.value==="admin" && pass.value==="1234" && firma.value!=="Firma Seçiniz"){
+loginPage.classList.add("hidden");
+homePage.classList.remove("hidden");
+}
+}
+
+function logout(){location.reload();}
+
+/* NAV */
+function openPage(id){
+document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
+document.getElementById(id).classList.remove("hidden");
+
+if(id==="stok") renderStok();
+if(id==="cari") renderCari();
 }
 
 /* ALIŞ AÇ */
 function barkodAc(){
 
 if(!cariSecili){
-alert("Cari seçin");
+alert("Cari seç");
 return;
 }
 
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 barkodPage.classList.remove("hidden");
 
-if(!currentEvrak){
-currentEvrak={
+if(!current){
+current={
 id:Date.now(),
-belge:yeniBelgeNo(),
+belge:"ALIŞ-"+Date.now(),
 cari:cariSecili,
 items:[],
 date:new Date().toISOString().split("T")[0]
 };
 
-labelBelge.innerText=currentEvrak.belge;
+labelBelge.innerText=current.belge;
 labelCari.innerText=cariSecili;
 }
 }
@@ -236,7 +250,7 @@ if(!aktif || !adet.value) return;
 
 aktif.adet += Number(adet.value);
 
-currentEvrak.items.push({
+current.items.push({
 barkod:aktif.barkod,
 urun:aktif.urun,
 adet:Number(adet.value)
@@ -247,29 +261,28 @@ barkodInput.value="";
 urunInfo.innerHTML="";
 }
 
-/* HOME / ÇIKIŞ KONTROL */
+/* HOME = KAYIT */
 function home(){
 
-if(currentEvrak && currentEvrak.items.length > 0){
-evrak.push(currentEvrak);
-localStorage.setItem("stok",JSON.stringify(stok));
+if(current && current.items.length>0){
+evrak.push(current);
 localStorage.setItem("evrak",JSON.stringify(evrak));
 }
 
-currentEvrak=null;
+current=null;
 
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 homePage.classList.remove("hidden");
 }
 
-/* EVRAK GETİR */
-function evrakGetirPage(){
+/* EVRAK PANEL */
+function evrakPanel(){
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 evrakPage.classList.remove("hidden");
 
-let today=new Date().toISOString().split("T")[0];
-startDate.value=today;
-endDate.value=today;
+let t=new Date().toISOString().split("T")[0];
+startDate.value=t;
+endDate.value=t;
 }
 
 function evrakListele(){
@@ -282,45 +295,59 @@ let list=evrak.filter(x=>x.date>=s && x.date<=e);
 let html="<table>";
 
 list.forEach((e,i)=>{
-html+=`<tr>
-<td onclick="evrakAc(${i})">${e.belge}</td>
+html+=`
+<tr>
+<td onclick="evrakAc(i)">${e.belge}</td>
 <td><button onclick="evrakSil(${i})">Sil</button></td>
 </tr>`;
 });
 
 html+="</table>";
-
 evrakList.innerHTML=html;
 }
 
 /* EVRAK AÇ */
 function evrakAc(i){
-currentEvrak=evrak[i];
+current=evrak[i];
 
-labelBelge.innerText=currentEvrak.belge;
-labelCari.innerText=currentEvrak.cari;
+labelBelge.innerText=current.belge;
+labelCari.innerText=current.cari;
 
 home();
 barkodPage.classList.remove("hidden");
 }
 
-/* EVRAK SİL + STOK GERİ AL */
+/* EVRAK SİL + STOK GERİ */
 function evrakSil(i){
 
 let e=evrak[i];
 
-e.items.forEach(it=>{
-let s=stok.find(x=>x.barkod==it.barkod);
-if(s) s.adet -= it.adet;
+e.items.forEach(u=>{
+let s=stok.find(x=>x.barkod===u.barkod);
+if(s) s.adet -= u.adet;
 });
 
 evrak.splice(i,1);
 
 localStorage.setItem("stok",JSON.stringify(stok));
 localStorage.setItem("evrak",JSON.stringify(evrak));
-
-evrakListele();
 }
+
+/* BELGE */
+function belgeKaydet(){
+current.belge="ALIŞ-"+belge1.value;
+labelBelge.innerText=current.belge;
+geriAlis();
+}
+
+/* CARİ SEÇ */
+function secCari(c){
+cariSecili=c;
+labelCari.innerText=c;
+geriAlis();
+}
+
+function geriAlis(){openPage("alis");}
 
 </script>
 
