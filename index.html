@@ -9,7 +9,6 @@
 
 <style>
 body{margin:0;font-family:Arial;background:#2d74da;}
-
 .box{max-width:520px;margin:15px auto;background:#fff;padding:15px;border-radius:12px;}
 .hidden{display:none;}
 
@@ -17,17 +16,15 @@ input,button,select{
 width:100%;
 padding:10px;
 margin:5px 0;
-font-weight:bold;
 }
 
 button{
-background:#1e88e5;
-color:white;
+background:#2d74da;
+color:#fff;
+font-weight:bold;
 border:none;
-border-radius:8px;
+border-radius:20px;
 }
-
-button:hover{background:#1565c0;}
 
 table{
 width:100%;
@@ -39,54 +36,42 @@ td,th{
 border:1px solid #ddd;
 padding:8px;
 text-align:center;
-font-weight:600;
 }
-
-th{background:#f1f1f1;}
 
 .top{display:flex;justify-content:space-between;}
 
 .exit{
 position:fixed;
-bottom:20px;
+bottom:70px;
 left:50%;
 transform:translateX(-50%);
-background:#e53935;
+background:red;
 color:white;
-font-weight:bold;
-padding:14px 30px;
+padding:12px 25px;
 border:none;
 border-radius:10px;
-}
-
-.camClose{
-background:black;
-margin-top:5px;
 }
 </style>
 </head>
 
-<body>
+<body oncopy="return false" oncut="return false">
 
 <!-- LOGIN -->
 <div class="box" id="loginPage">
 <h2>BARKODPACKER</h2>
-<input id="user" placeholder="Kullanıcı">
+<input id="user" placeholder="Kullanıcı adı">
 <input id="pass" type="password" placeholder="Şifre">
-
 <select id="firma">
 <option>Firma Seçiniz</option>
 <option>Demo</option>
 <option>Test LTD</option>
 </select>
-
 <button onclick="login()">GİRİŞ</button>
 </div>
 
 <!-- HOME -->
 <div class="box hidden" id="homePage">
 <h3 style="text-align:center;">ANA SAYFA</h3>
-
 <table>
 <tr>
 <td><button onclick="openPage('stok')">STOK</button></td>
@@ -100,41 +85,48 @@ margin-top:5px;
 <td colspan="2"><button onclick="openPage('cari')">CARİ</button></td>
 </tr>
 </table>
-
 <button class="exit" onclick="logout()">ÇIKIŞ</button>
 </div>
 
 <!-- STOK -->
 <div class="box hidden" id="stok">
-<div class="top"><button onclick="home()">🏠</button><h3>STOK</h3></div>
+<div class="top">
+<button onclick="home()">🏠</button>
+<h3>STOK</h3>
+</div>
 
 <input id="stokBarkod" placeholder="Barkod">
 <input id="stokUrun" placeholder="Ürün">
-
 <button onclick="stokEkle()">EKLE</button>
-
 <div id="stokList"></div>
 </div>
 
 <!-- CARİ -->
 <div class="box hidden" id="cari">
-<div class="top"><button onclick="home()">🏠</button><h3>CARİ</h3></div>
+<div class="top">
+<button onclick="home()">🏠</button>
+<h3>CARİ</h3>
+</div>
 
-<input id="cariInput">
+<input id="cariInput" placeholder="Cari adı">
 <button onclick="cariEkle()">EKLE</button>
 
-<input id="cariSearch">
-<button onclick="cariFiltre()">FİLTRE</button>
+<input id="cariSearch" placeholder="Ara">
+<button onclick="cariFiltre()">Filtrele</button>
 
 <div id="cariList"></div>
 </div>
 
 <!-- ALIŞ -->
 <div class="box hidden" id="alis">
-<div class="top"><button onclick="home()">🏠</button><h3>ALIŞ</h3></div>
+<div class="top">
+<button onclick="home()">🏠</button>
+<h3>ALIŞ</h3>
+<button onclick="evrakGetir()">☰</button>
+</div>
 
-<div>
-<b>Belge:</b> <span id="labelBelge">ALIŞ-</span><br>
+<div class="label">
+<b>Belge:</b> <span id="labelBelge">-</span><br>
 <b>Cari:</b> <span id="labelCari">Seçilmedi</span>
 </div>
 
@@ -150,7 +142,7 @@ margin-top:5px;
 <button onclick="geriAlis()">⬅</button>
 <h3>Belge No</h3>
 <input id="belge1">
-<input id="belge2">
+<input id="belge2" placeholder="Alternatif">
 <button onclick="belgeKaydet()">KAYDET</button>
 </div>
 
@@ -158,45 +150,46 @@ margin-top:5px;
 <div class="box hidden" id="cariSec">
 <button onclick="geriAlis()">⬅</button>
 <input id="cariSearch2">
-<button onclick="cariFiltre2()">FİLTRE</button>
+<button onclick="cariFiltre2()">Filtrele</button>
 <div id="cariSecList"></div>
 </div>
 
 <!-- BARKOD -->
 <div class="box hidden" id="barkodPage">
-
-<div class="top"><button onclick="geriAlis()">⬅</button></div>
+<div class="top">
+<button onclick="geriAlis()">⬅</button>
+<button onclick="evrakSil()">🗑</button>
+</div>
 
 <input id="barkodInput">
 <button onclick="urunGetir()">GETİR</button>
-
 <button onclick="kamera()">📷 OKU</button>
 
 <div id="reader"></div>
-<button id="camCloseBtn" class="camClose hidden" onclick="stopCam()">KAMERAYI KAPAT</button>
-
 <div id="urunInfo"></div>
 
-<input id="adet" type="number">
+<input id="adet" type="number" placeholder="Adet">
 <button onclick="ekle()">EKLE</button>
 
+<div id="liste"></div>
 </div>
 
 <script>
 
+/* DATA */
 let stok=JSON.parse(localStorage.getItem("stok")||"[]");
 let cari=JSON.parse(localStorage.getItem("cari")||"[]");
-let alis=JSON.parse(localStorage.getItem("alis")||"[]");
+let evraklar=JSON.parse(localStorage.getItem("evraklar")||"[]");
 
 let aktif=null;
 let cam=null;
-
-let belgeNo="ALIŞ-";
+let belgeNo="";
 let cariSecili="";
+let aktifEvrak=null;
 
 /* LOGIN */
 function login(){
-if(user.value==="admin" && pass.value==="1234"){
+if(user.value==="admin" && pass.value==="1234" && firma.value!=="Firma Seçiniz"){
 loginPage.classList.add("hidden");
 homePage.classList.remove("hidden");
 }
@@ -214,109 +207,102 @@ if(id==="stok") renderStok();
 if(id==="cari") renderCari();
 
 if(id==="alis"){
-labelBelge.innerText=belgeNo;
-labelCari.innerText=cariSecili||"Seçilmedi";
+if(!aktifEvrak) yeniEvrak();
 }
 }
 
+/* HOME */
 function home(){
+
+if(aktifEvrak && aktifEvrak.urunler.length>0){
+evraklar.push(aktifEvrak);
+localStorage.setItem("evraklar",JSON.stringify(evraklar));
+}
+
+aktifEvrak=null;
+
 stopCam();
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 homePage.classList.remove("hidden");
 }
 
-/* STOK */
-function stokEkle(){
-stok.push({barkod:stokBarkod.value,urun:stokUrun.value,adet:0});
-localStorage.setItem("stok",JSON.stringify(stok));
-renderStok();
-}
+/* YENİ EVRAK */
+function yeniEvrak(){
+aktifEvrak={
+no:"ALIŞ-"+Date.now(),
+cari:"",
+tarih:new Date().toLocaleDateString(),
+urunler:[]
+};
 
-function renderStok(){
-stokList.innerHTML=stok.map((s,i)=>
-`<tr>
-<td>${s.barkod}</td>
-<td>${s.urun}</td>
-<td>${s.adet}</td>
-<td>
-<button onclick="stokDuzenle(${i})">DÜZ</button>
-<button onclick="stokSil(${i})">SİL</button>
-</td>
-</tr>`).join("");
-}
-
-function stokSil(i){
-stok.splice(i,1);
-localStorage.setItem("stok",JSON.stringify(stok));
-renderStok();
-}
-
-function stokDuzenle(i){
-let b=prompt("Barkod",stok[i].barkod);
-let u=prompt("Ürün",stok[i].urun);
-if(b&&u){
-stok[i]={barkod:b,urun:u,adet:stok[i].adet};
-localStorage.setItem("stok",JSON.stringify(stok));
-renderStok();
-}
-}
-
-/* CARİ */
-function cariEkle(){
-cari.push(cariInput.value);
-cari.sort();
-localStorage.setItem("cari",JSON.stringify(cari));
-}
-
-function cariFiltre(){
-let v=cariSearch.value.toLowerCase();
-cariList.innerHTML=cari
-.filter(x=>x.toLowerCase().includes(v))
-.map((c,i)=>`
-<tr>
-<td>${c}</td>
-<td>
-<button onclick="secCari('${c}')">SEÇ</button>
-<button onclick="cariSil(${i})">SİL</button>
-<button onclick="cariDuzenle(${i})">DÜZ</button>
-</td>
-</tr>`).join("");
-}
-
-function secCari(c){
-cariSecili=c;
-labelCari.innerText=c;
-geriAlis();
-}
-
-function cariSil(i){
-if(confirm("Silinsin mi?")){
-cari.splice(i,1);
-localStorage.setItem("cari",JSON.stringify(cari));
-cariFiltre();
-}
-}
-
-function cariDuzenle(i){
-let y=prompt("Cari",cari[i]);
-if(y){
-cari[i]=y;
-localStorage.setItem("cari",JSON.stringify(cari));
-}
+belgeNo=aktifEvrak.no;
+cariSecili="";
+labelBelge.innerText=belgeNo;
+labelCari.innerText="Seçilmedi";
 }
 
 /* BELGE */
 function belgePage(){
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
-document.getElementById("belgePage").classList.remove("hidden");
-belge1.value=belgeNo.replace("ALIŞ-","");
+belgePage.classList.remove("hidden");
+belge1.value=belgeNo;
 }
 
 function belgeKaydet(){
-belgeNo="ALIŞ-"+(belge1.value||Date.now());
+if(belge1.value){
+belgeNo=belge1.value;
+aktifEvrak.no=belgeNo;
+}
 labelBelge.innerText=belgeNo;
 geriAlis();
 }
+
+/* CARİ */
+function cariEkle(){
+if(!cariInput.value) return;
+cari.push(cariInput.value);
+localStorage.setItem("cari",JSON.stringify(cari));
+cariInput.value="";
+renderCari();
+}
+
+function renderCari(){
+let html="<table>";
+cari.forEach((c,i)=>{
+html+=`<tr><td>${c}</td></tr>`;
+});
+html+="</table>";
+cariList.innerHTML=html;
+}
+
+function cariFiltre(){
+renderCari();
+}
+
+/* CARİ SEÇ */
+function cariSecAc(){
+document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
+cariSec.classList.remove("hidden");
+cariFiltre2();
+}
+
+function cariFiltre2(){
+let html="<table>";
+cari.forEach(c=>{
+html+=`<tr><td onclick="secCari('${c}')">${c}</td></tr>`;
+});
+html+="</table>";
+cariSecList.innerHTML=html;
+}
+
+function secCari(c){
+cariSecili=c;
+labelCari.innerText=c;
+aktifEvrak.cari=c;
+geriAlis();
+}
+
+function geriAlis(){openPage("alis");}
 
 /* BARKOD */
 function barkodAc(){
@@ -325,27 +311,87 @@ document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 barkodPage.classList.remove("hidden");
 }
 
+/* ÜRÜN */
 function urunGetir(){
 let u=stok.find(x=>x.barkod==barkodInput.value);
 if(!u){alert("Yok");return;}
 aktif=u;
-urunInfo.innerText=u.urun+" "+u.adet;
+urunInfo.innerHTML=u.urun+" / "+u.adet;
 }
 
+/* EKLE */
 function ekle(){
+if(!aktif||!adet.value) return;
+
 aktif.adet+=Number(adet.value);
-alis.push({belge:belgeNo,urun:aktif.urun,adet:adet.value});
+
+aktifEvrak.urunler.push({
+urun:aktif.urun,
+adet:Number(adet.value)
+});
+
 localStorage.setItem("stok",JSON.stringify(stok));
-localStorage.setItem("alis",JSON.stringify(alis));
+
+adet.value="";
+barkodInput.value="";
+urunInfo.innerHTML="";
+}
+
+/* EVRAK GETİR */
+function evrakGetir(){
+let ilk=prompt("İlk tarih",new Date().toLocaleDateString());
+let son=prompt("Son tarih",new Date().toLocaleDateString());
+
+let liste=evraklar.filter(e=>e.tarih>=ilk && e.tarih<=son);
+
+let html="<table>";
+liste.forEach((e,i)=>{
+html+=`<tr><td onclick="evrakAc(${i})">${e.no} - ${e.cari}</td></tr>`;
+});
+html+="</table>";
+
+stokList.innerHTML=html;
+}
+
+/* EVRAK AÇ */
+function evrakAc(i){
+aktifEvrak=evraklar[i];
+belgeNo=aktifEvrak.no;
+cariSecili=aktifEvrak.cari;
+
+labelBelge.innerText=belgeNo;
+labelCari.innerText=cariSecili;
+
+openPage("alis");
+}
+
+/* EVRAK SİL */
+function evrakSil(){
+if(!aktifEvrak) return;
+
+aktifEvrak.urunler.forEach(u=>{
+let s=stok.find(x=>x.urun==u.urun);
+if(s) s.adet-=u.adet;
+});
+
+evraklar=evraklar.filter(e=>e.no!=aktifEvrak.no);
+
+localStorage.setItem("stok",JSON.stringify(stok));
+localStorage.setItem("evraklar",JSON.stringify(evraklar));
+
+alert("Silindi");
+aktifEvrak=null;
+yeniEvrak();
 }
 
 /* CAMERA */
 function kamera(){
+stopCam();
 cam=new Html5Qrcode("reader");
-document.getElementById("camCloseBtn").classList.remove("hidden");
 
 Html5Qrcode.getCameras().then(dev=>{
-let back=dev[0];
+let back=dev.find(d=>d.label.toLowerCase().includes("back"))||dev[0];
+
 cam.start(back.id,{fps:10,qrbox:250},txt=>{
 barkodInput.value=txt;
 stopCam();
@@ -358,10 +404,7 @@ if(cam){
 cam.stop().then(()=>cam.clear());
 cam=null;
 }
-document.getElementById("camCloseBtn").classList.add("hidden");
 }
-
-function geriAlis(){openPage("alis");}
 
 </script>
 
