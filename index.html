@@ -66,7 +66,6 @@ border-radius:10px;
 
 <!-- HOME -->
 <div class="box hidden" id="homePage">
-
 <h3 style="text-align:center;">ANA SAYFA</h3>
 
 <table>
@@ -125,15 +124,12 @@ border-radius:10px;
 <h3>ALIŞ</h3>
 </div>
 
-<!-- PDA BAŞLIK -->
-<div style="text-align:center;font-weight:bold;margin-bottom:10px;">
-BARKODPACKER-PDA
-</div>
-
 <div class="label">
 <b>Belge:</b> <span id="labelBelge">-</span><br>
 <b>Cari:</b> <span id="labelCari">Seçilmedi</span>
 </div>
+
+<input value="BARKODPACKER-PDA" disabled>
 
 <button onclick="belgePage()">BELGE NO</button>
 <button onclick="cariSecAc()">CARİ SEÇ</button>
@@ -145,9 +141,9 @@ BARKODPACKER-PDA
 <div class="box hidden" id="belgePage">
 <button onclick="geriAlis()">⬅</button>
 
-<h3>ALIS-PDA</h3>
+<h3>Belge No</h3>
 
-<input id="belge1" placeholder="Sistem No (öneri)">
+<input id="belge1" placeholder="Belge No">
 <input id="belge2" placeholder="Alternatif">
 
 <button onclick="belgeKaydet()">KAYDET</button>
@@ -182,6 +178,8 @@ BARKODPACKER-PDA
 <input id="adet" type="number" placeholder="Adet">
 <button onclick="ekle()">EKLE</button>
 
+<div id="liste"></div>
+
 </div>
 
 <script>
@@ -191,14 +189,10 @@ let stok=JSON.parse(localStorage.getItem("stok")||"[]");
 let cari=JSON.parse(localStorage.getItem("cari")||"[]");
 let alis=JSON.parse(localStorage.getItem("alis")||"[]");
 
-/* STATE */
 let aktif=null;
 let cam=null;
 let belgeNo="";
 let cariSecili="";
-
-/* DEFAULT BELGE */
-let defaultBelgeNo="74004554215";
 
 /* LOGIN */
 function login(){
@@ -210,41 +204,20 @@ homePage.classList.remove("hidden");
 
 function logout(){location.reload();}
 
-/* HOME */
-function home(){
-stopCam();
-
-document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
-homePage.classList.remove("hidden");
-
-resetState();
-}
-
-/* RESET (BOZMADAN) */
-function resetState(){
-
-aktif=null;
-cariSecili="";
-
-/* sadece işlem yoksa belge temizle */
-if(!aktif){
-belgeNo="";
-labelBelge.innerText="-";
-}
-
-labelCari.innerText="Seçilmedi";
-
-}
-
-/* PAGE */
+/* NAV */
 function openPage(id){
 stopCam();
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 document.getElementById(id).classList.remove("hidden");
 
-if(id==="alis"){
-belge1.value=defaultBelgeNo;
+if(id==="stok") renderStok();
+if(id==="cari") renderCari();
 }
+
+function home(){
+stopCam();
+document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
+homePage.classList.remove("hidden");
 }
 
 /* STOK */
@@ -253,7 +226,8 @@ function stokEkle(){
 if(!stokBarkod.value || !stokUrun.value) return;
 
 if(stok.find(x=>x.barkod===stokBarkod.value)){
-alert("Barkod var");return;
+alert("Barkod var");
+return;
 }
 
 stok.push({barkod:stokBarkod.value,urun:stokUrun.value,adet:0});
@@ -261,6 +235,46 @@ localStorage.setItem("stok",JSON.stringify(stok));
 
 stokBarkod.value="";
 stokUrun.value="";
+
+renderStok();
+}
+
+function renderStok(){
+let html="<table><tr><th>Barkod</th><th>Ürün</th><th>Adet</th><th>İşlem</th></tr>";
+
+stok.forEach((s,i)=>{
+html+=`<tr>
+<td>${s.barkod}</td>
+<td>${s.urun}</td>
+<td>${s.adet}</td>
+<td>
+<button onclick="stokDuzenle(${i})">Düz</button>
+<button onclick="stokSil(${i})">Sil</button>
+</td>
+</tr>`;
+});
+
+html+="</table>";
+stokList.innerHTML=html;
+}
+
+function stokSil(i){
+if(confirm("Silmek istediğinize emin misiniz?")){
+stok.splice(i,1);
+localStorage.setItem("stok",JSON.stringify(stok));
+renderStok();
+}
+}
+
+function stokDuzenle(i){
+let b=prompt("Barkod",stok[i].barkod);
+let u=prompt("Ürün",stok[i].urun);
+
+if(b&&u){
+stok[i]={barkod:b,urun:u,adet:stok[i].adet};
+localStorage.setItem("stok",JSON.stringify(stok));
+renderStok();
+}
 }
 
 /* CARİ */
@@ -269,7 +283,8 @@ function cariEkle(){
 if(!cariInput.value) return;
 
 if(cari.includes(cariInput.value)){
-alert("Var");return;
+alert("Var");
+return;
 }
 
 cari.push(cariInput.value);
@@ -278,26 +293,52 @@ cari.sort();
 localStorage.setItem("cari",JSON.stringify(cari));
 
 cariInput.value="";
+renderCari();
+}
+
+function renderCari(){
+let html="<table><tr><th>Cari</th><th>İşlem</th></tr>";
+
+cari.forEach((c,i)=>{
+html+=`<tr>
+<td>${c}</td>
+<td>
+<button onclick="cariDuzenle(${i})">Düz</button>
+<button onclick="cariSil(${i})">Sil</button>
+</td>
+</tr>`;
+});
+
+html+="</table>";
+cariList.innerHTML=html;
+}
+
+function cariSil(i){
+if(confirm("Silmek istediğinize emin misiniz?")){
+cari.splice(i,1);
+localStorage.setItem("cari",JSON.stringify(cari));
+renderCari();
+}
+}
+
+function cariDuzenle(i){
+let y=prompt("Cari",cari[i]);
+if(y){
+cari[i]=y;
+localStorage.setItem("cari",JSON.stringify(cari));
+renderCari();
+}
 }
 
 /* BELGE */
 function belgePage(){
-
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
-belgePageDiv.classList.remove("hidden");
-
-belge1.value=defaultBelgeNo;
-belge2.value="";
+document.getElementById("belgePage").classList.remove("hidden");
 }
 
 function belgeKaydet(){
-
-belgeNo=belge1.value||belge2.value;
-
-defaultBelgeNo=belgeNo;
-
+belgeNo = belge1.value || belge2.value;
 labelBelge.innerText=belgeNo;
-
 geriAlis();
 }
 
@@ -305,20 +346,18 @@ geriAlis();
 function cariSecAc(){
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 cariSec.classList.remove("hidden");
+cariFiltre2();
 }
 
 function cariFiltre2(){
-
 let v=cariSearch2.value.toLowerCase();
 
-let l=cari.filter(x=>x.toLowerCase().includes(v));
+let liste=cari.filter(x=>x.toLowerCase().includes(v));
 
 let html="<table>";
-
-l.forEach(c=>{
-html+=`<tr onclick="secCari('${c}')"><td>${c}</td></tr>`;
+liste.forEach(c=>{
+html+=`<tr><td onclick="secCari('${c}')">${c}</td></tr>`;
 });
-
 html+="</table>";
 
 cariSecList.innerHTML=html;
@@ -330,9 +369,10 @@ labelCari.innerText=c;
 geriAlis();
 }
 
-/* BARKOD */
-function barkodAc(){
+function geriAlis(){openPage("alis");}
 
+/* ALIŞ */
+function barkodAc(){
 if(!cariSecili){
 alert("Firma seçiniz");
 return;
@@ -340,25 +380,18 @@ return;
 
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 barkodPage.classList.remove("hidden");
-
 }
 
 /* ÜRÜN */
 function urunGetir(){
-
 let u=stok.find(x=>x.barkod==barkodInput.value);
-
 if(!u){alert("Yok");return;}
-
 aktif=u;
-
 urunInfo.innerHTML=u.urun+" / "+u.adet;
-
 }
 
 /* EKLE */
 function ekle(){
-
 if(!aktif||!adet.value) return;
 
 aktif.adet+=Number(adet.value);
@@ -373,22 +406,19 @@ barkodInput.value="";
 urunInfo.innerHTML="";
 }
 
-/* CAMERA */
+/* CAMERA (ARKA KAMERA FIX) */
 function kamera(){
-
 stopCam();
-
 cam=new Html5Qrcode("reader");
 
 Html5Qrcode.getCameras().then(dev=>{
-let back=dev.find(x=>x.label.toLowerCase().includes("back"))||dev[0];
+let back=dev.find(d=>d.label.toLowerCase().includes("back"))||dev[0];
 
-cam.start(back.id,{fps:10,qrbox:250},t=>{
-barkodInput.value=t;
+cam.start(back.id,{fps:10,qrbox:250},txt=>{
+barkodInput.value=txt;
 stopCam();
 });
 });
-
 }
 
 function stopCam(){
@@ -396,10 +426,6 @@ if(cam){
 cam.stop().then(()=>cam.clear());
 cam=null;
 }
-}
-
-function geriAlis(){
-openPage("alis");
 }
 
 </script>
