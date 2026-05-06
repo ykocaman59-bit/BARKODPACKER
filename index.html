@@ -1,4 +1,4 @@
-DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -129,8 +129,7 @@ border-radius:10px;
 <b>Cari:</b> <span id="labelCari">Seçilmedi</span>
 </div>
 
-<!-- 🔥 SADECE BURAYI DEĞİŞTİRDİM -->
-<input value="ALIŞ-PDA" disabled>
+<input value="BARKODPACKER-PDA" disabled>
 
 <button onclick="belgePage()">BELGE NO</button>
 <button onclick="cariSecAc()">CARİ SEÇ</button>
@@ -195,14 +194,6 @@ let cam=null;
 let belgeNo="";
 let cariSecili="";
 
-/* 🔥 YENİ EKLENDİ - ALIŞ RESET SİSTEMİ */
-function resetAlis(){
-belgeNo="";
-cariSecili="";
-if(labelBelge) labelBelge.innerText="-";
-if(labelCari) labelCari.innerText="Seçilmedi";
-}
-
 /* LOGIN */
 function login(){
 if(user.value==="admin" && pass.value==="1234" && firma.value!=="Firma Seçiniz"){
@@ -221,24 +212,17 @@ document.getElementById(id).classList.remove("hidden");
 
 if(id==="stok") renderStok();
 if(id==="cari") renderCari();
-
-/* 🔥 ALIŞA GİRİNCE RESET YOK - ÇIKINCA RESET */
-if(id!=="alis"){
-resetAlis();
-}
 }
 
 function home(){
 stopCam();
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 homePage.classList.remove("hidden");
-
-/* 🔥 EV TUŞU = TEMİZLE */
-resetAlis();
 }
 
 /* STOK */
 function stokEkle(){
+
 if(!stokBarkod.value || !stokUrun.value) return;
 
 if(stok.find(x=>x.barkod===stokBarkod.value)){
@@ -274,8 +258,28 @@ html+="</table>";
 stokList.innerHTML=html;
 }
 
+function stokSil(i){
+if(confirm("Silmek istediğinize emin misiniz?")){
+stok.splice(i,1);
+localStorage.setItem("stok",JSON.stringify(stok));
+renderStok();
+}
+}
+
+function stokDuzenle(i){
+let b=prompt("Barkod",stok[i].barkod);
+let u=prompt("Ürün",stok[i].urun);
+
+if(b&&u){
+stok[i]={barkod:b,urun:u,adet:stok[i].adet};
+localStorage.setItem("stok",JSON.stringify(stok));
+renderStok();
+}
+}
+
 /* CARİ */
 function cariEkle(){
+
 if(!cariInput.value) return;
 
 if(cari.includes(cariInput.value)){
@@ -290,6 +294,40 @@ localStorage.setItem("cari",JSON.stringify(cari));
 
 cariInput.value="";
 renderCari();
+}
+
+function renderCari(){
+let html="<table><tr><th>Cari</th><th>İşlem</th></tr>";
+
+cari.forEach((c,i)=>{
+html+=`<tr>
+<td>${c}</td>
+<td>
+<button onclick="cariDuzenle(${i})">Düz</button>
+<button onclick="cariSil(${i})">Sil</button>
+</td>
+</tr>`;
+});
+
+html+="</table>";
+cariList.innerHTML=html;
+}
+
+function cariSil(i){
+if(confirm("Silmek istediğinize emin misiniz?")){
+cari.splice(i,1);
+localStorage.setItem("cari",JSON.stringify(cari));
+renderCari();
+}
+}
+
+function cariDuzenle(i){
+let y=prompt("Cari",cari[i]);
+if(y){
+cari[i]=y;
+localStorage.setItem("cari",JSON.stringify(cari));
+renderCari();
+}
 }
 
 /* BELGE */
@@ -311,6 +349,20 @@ cariSec.classList.remove("hidden");
 cariFiltre2();
 }
 
+function cariFiltre2(){
+let v=cariSearch2.value.toLowerCase();
+
+let liste=cari.filter(x=>x.toLowerCase().includes(v));
+
+let html="<table>";
+liste.forEach(c=>{
+html+=`<tr><td onclick="secCari('${c}')">${c}</td></tr>`;
+});
+html+="</table>";
+
+cariSecList.innerHTML=html;
+}
+
 function secCari(c){
 cariSecili=c;
 labelCari.innerText=c;
@@ -328,6 +380,52 @@ return;
 
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 barkodPage.classList.remove("hidden");
+}
+
+/* ÜRÜN */
+function urunGetir(){
+let u=stok.find(x=>x.barkod==barkodInput.value);
+if(!u){alert("Yok");return;}
+aktif=u;
+urunInfo.innerHTML=u.urun+" / "+u.adet;
+}
+
+/* EKLE */
+function ekle(){
+if(!aktif||!adet.value) return;
+
+aktif.adet+=Number(adet.value);
+
+alis.push({belge:belgeNo,urun:aktif.urun,adet:adet.value});
+
+localStorage.setItem("stok",JSON.stringify(stok));
+localStorage.setItem("alis",JSON.stringify(alis));
+
+adet.value="";
+barkodInput.value="";
+urunInfo.innerHTML="";
+}
+
+/* CAMERA (ARKA KAMERA FIX) */
+function kamera(){
+stopCam();
+cam=new Html5Qrcode("reader");
+
+Html5Qrcode.getCameras().then(dev=>{
+let back=dev.find(d=>d.label.toLowerCase().includes("back"))||dev[0];
+
+cam.start(back.id,{fps:10,qrbox:250},txt=>{
+barkodInput.value=txt;
+stopCam();
+});
+});
+}
+
+function stopCam(){
+if(cam){
+cam.stop().then(()=>cam.clear());
+cam=null;
+}
 }
 
 </script>
