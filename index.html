@@ -18,6 +18,14 @@ padding:10px;
 margin:5px 0;
 }
 
+button{
+background:#2d74da;
+color:#fff;
+font-weight:bold;
+border:none;
+border-radius:20px;
+}
+
 table{
 width:100%;
 border-collapse:collapse;
@@ -46,28 +54,24 @@ border-radius:10px;
 </style>
 </head>
 
-<body>
+<body oncopy="return false" oncut="return false">
 
 <!-- LOGIN -->
 <div class="box" id="loginPage">
 <h2>BARKODPACKER</h2>
-
 <input id="user" placeholder="Kullanıcı adı">
 <input id="pass" type="password" placeholder="Şifre">
-
 <select id="firma">
 <option>Firma Seçiniz</option>
 <option>Demo</option>
 <option>Test LTD</option>
 </select>
-
 <button onclick="login()">GİRİŞ</button>
 </div>
 
 <!-- HOME -->
 <div class="box hidden" id="homePage">
 <h3 style="text-align:center;">ANA SAYFA</h3>
-
 <table>
 <tr>
 <td><button onclick="openPage('stok')">STOK</button></td>
@@ -81,7 +85,6 @@ border-radius:10px;
 <td colspan="2"><button onclick="openPage('cari')">CARİ</button></td>
 </tr>
 </table>
-
 <button class="exit" onclick="logout()">ÇIKIŞ</button>
 </div>
 
@@ -94,9 +97,7 @@ border-radius:10px;
 
 <input id="stokBarkod" placeholder="Barkod">
 <input id="stokUrun" placeholder="Ürün">
-
 <button onclick="stokEkle()">EKLE</button>
-
 <div id="stokList"></div>
 </div>
 
@@ -118,7 +119,6 @@ border-radius:10px;
 
 <!-- ALIŞ -->
 <div class="box hidden" id="alis">
-
 <div class="top">
 <button onclick="home()">🏠</button>
 <h3>ALIŞ</h3>
@@ -135,34 +135,27 @@ border-radius:10px;
 <button onclick="belgePage()">BELGE NO</button>
 <button onclick="cariSecAc()">CARİ SEÇ</button>
 <button onclick="barkodAc()">BARKOD GİRİŞ</button>
-
 </div>
 
 <!-- BELGE -->
 <div class="box hidden" id="belgePage">
 <button onclick="geriAlis()">⬅</button>
-
 <h3>Belge No</h3>
-
 <input id="belge1">
 <input id="belge2" placeholder="Alternatif">
-
 <button onclick="belgeKaydet()">KAYDET</button>
 </div>
 
 <!-- CARİ SEÇ -->
 <div class="box hidden" id="cariSec">
 <button onclick="geriAlis()">⬅</button>
-
 <input id="cariSearch2">
 <button onclick="cariFiltre2()">Filtrele</button>
-
 <div id="cariSecList"></div>
 </div>
 
 <!-- BARKOD -->
 <div class="box hidden" id="barkodPage">
-
 <div class="top">
 <button onclick="geriAlis()">⬅</button>
 <button onclick="evrakSil()">🗑</button>
@@ -170,18 +163,15 @@ border-radius:10px;
 
 <input id="barkodInput">
 <button onclick="urunGetir()">GETİR</button>
-
 <button onclick="kamera()">📷 OKU</button>
 
 <div id="reader"></div>
-
 <div id="urunInfo"></div>
 
 <input id="adet" type="number" placeholder="Adet">
 <button onclick="ekle()">EKLE</button>
 
 <div id="liste"></div>
-
 </div>
 
 <script>
@@ -189,7 +179,6 @@ border-radius:10px;
 /* DATA */
 let stok=JSON.parse(localStorage.getItem("stok")||"[]");
 let cari=JSON.parse(localStorage.getItem("cari")||"[]");
-let alis=JSON.parse(localStorage.getItem("alis")||"[]");
 let evraklar=JSON.parse(localStorage.getItem("evraklar")||"[]");
 
 let aktif=null;
@@ -217,14 +206,21 @@ document.getElementById(id).classList.remove("hidden");
 if(id==="stok") renderStok();
 if(id==="cari") renderCari();
 
-if(id==="alis") yeniEvrak();
+if(id==="alis"){
+if(!aktifEvrak) yeniEvrak();
+}
 }
 
+/* HOME */
 function home(){
+
 if(aktifEvrak && aktifEvrak.urunler.length>0){
 evraklar.push(aktifEvrak);
 localStorage.setItem("evraklar",JSON.stringify(evraklar));
 }
+
+aktifEvrak=null;
+
 stopCam();
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 homePage.classList.remove("hidden");
@@ -248,18 +244,42 @@ labelCari.innerText="Seçilmedi";
 /* BELGE */
 function belgePage(){
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
-document.getElementById("belgePage").classList.remove("hidden");
+belgePage.classList.remove("hidden");
 belge1.value=belgeNo;
 }
 
 function belgeKaydet(){
-belgeNo = belge1.value || belgeNo;
-labelBelge.innerText=belgeNo;
+if(belge1.value){
+belgeNo=belge1.value;
 aktifEvrak.no=belgeNo;
+}
+labelBelge.innerText=belgeNo;
 geriAlis();
 }
 
 /* CARİ */
+function cariEkle(){
+if(!cariInput.value) return;
+cari.push(cariInput.value);
+localStorage.setItem("cari",JSON.stringify(cari));
+cariInput.value="";
+renderCari();
+}
+
+function renderCari(){
+let html="<table>";
+cari.forEach((c,i)=>{
+html+=`<tr><td>${c}</td></tr>`;
+});
+html+="</table>";
+cariList.innerHTML=html;
+}
+
+function cariFiltre(){
+renderCari();
+}
+
+/* CARİ SEÇ */
 function cariSecAc(){
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 cariSec.classList.remove("hidden");
@@ -267,11 +287,8 @@ cariFiltre2();
 }
 
 function cariFiltre2(){
-let v=cariSearch2.value.toLowerCase();
-let liste=cari.filter(x=>x.toLowerCase().includes(v));
-
 let html="<table>";
-liste.forEach(c=>{
+cari.forEach(c=>{
 html+=`<tr><td onclick="secCari('${c}')">${c}</td></tr>`;
 });
 html+="</table>";
@@ -322,8 +339,10 @@ urunInfo.innerHTML="";
 
 /* EVRAK GETİR */
 function evrakGetir(){
-let tarih=prompt("Tarih (örn: 6.05.2026)");
-let liste=evraklar.filter(e=>e.tarih==tarih);
+let ilk=prompt("İlk tarih",new Date().toLocaleDateString());
+let son=prompt("Son tarih",new Date().toLocaleDateString());
+
+let liste=evraklar.filter(e=>e.tarih>=ilk && e.tarih<=son);
 
 let html="<table>";
 liste.forEach((e,i)=>{
@@ -331,7 +350,7 @@ html+=`<tr><td onclick="evrakAc(${i})">${e.no} - ${e.cari}</td></tr>`;
 });
 html+="</table>";
 
-document.getElementById("stokList").innerHTML=html;
+stokList.innerHTML=html;
 }
 
 /* EVRAK AÇ */
@@ -361,10 +380,11 @@ localStorage.setItem("stok",JSON.stringify(stok));
 localStorage.setItem("evraklar",JSON.stringify(evraklar));
 
 alert("Silindi");
+aktifEvrak=null;
 yeniEvrak();
 }
 
-/* CAMERA (AYNEN SENİN) */
+/* CAMERA */
 function kamera(){
 stopCam();
 cam=new Html5Qrcode("reader");
