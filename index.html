@@ -10,7 +10,6 @@
 <style>
 body{margin:0;font-family:Arial;background:#2d74da;}
 
-/* BOX */
 .box{
 max-width:520px;
 margin:15px auto;
@@ -21,14 +20,12 @@ border-radius:12px;
 
 .hidden{display:none;}
 
-/* INPUT */
 input,select{
 width:100%;
 padding:10px;
 margin:5px 0;
 }
 
-/* OVAL MAVİ BUTON */
 button{
 width:100%;
 padding:10px;
@@ -40,7 +37,6 @@ border-radius:25px;
 font-weight:bold;
 }
 
-/* TABLE */
 table{
 width:100%;
 border-collapse:collapse;
@@ -53,13 +49,11 @@ padding:8px;
 text-align:center;
 }
 
-/* TOP */
 .top{
 display:flex;
 justify-content:space-between;
 }
 
-/* EXIT */
 .exit{
 position:fixed;
 bottom:70px;
@@ -72,12 +66,11 @@ border:none;
 border-radius:10px;
 }
 
-/* LABEL */
 .label{
-margin:10px 0;
+background:#eee;
 padding:10px;
-background:#f1f1f1;
 border-radius:10px;
+margin:10px 0;
 }
 </style>
 </head>
@@ -104,17 +97,25 @@ border-radius:10px;
 <div class="box hidden" id="homePage">
 <h3 style="text-align:center;">ANA SAYFA</h3>
 
-<button onclick="openPage('stok')">STOK DETAY</button>
-<button onclick="openPage('sayim')">SAYIM</button>
-<button onclick="openPage('alis')">ALIŞ</button>
-<button onclick="openPage('satis')">SATIŞ</button>
-<button onclick="openPage('cari')">CARİ</button>
-
-<button class="exit" onclick="logout()">ÇIKIŞ</button>
+<table>
+<tr>
+<td><button onclick="openPage('stok')">STOK DETAY</button></td>
+<td><button onclick="openPage('sayim')">SAYIM</button></td>
+</tr>
+<tr>
+<td><button onclick="openPage('alis')">ALIŞ</button></td>
+<td><button onclick="openPage('satis')">SATIŞ</button></td>
+</tr>
+<tr>
+<td><button onclick="openPage('cari')">CARİ</button></td>
+<td><button onclick="logout()">ÇIKIŞ</button></td>
+</tr>
+</table>
 </div>
 
 <!-- STOK -->
 <div class="box hidden" id="stok">
+
 <div class="top">
 <button onclick="home()">🏠</button>
 <h3>STOK</h3>
@@ -123,6 +124,9 @@ border-radius:10px;
 <input id="stokBarkod" placeholder="Barkod">
 <input id="stokUrun" placeholder="Ürün">
 
+<button onclick="kameraStok()">📷 OKU</button>
+<div id="reader"></div>
+
 <button onclick="stokEkle()">EKLE</button>
 
 <div id="stokList"></div>
@@ -130,6 +134,7 @@ border-radius:10px;
 
 <!-- CARİ -->
 <div class="box hidden" id="cari">
+
 <div class="top">
 <button onclick="home()">🏠</button>
 <h3>CARİ</h3>
@@ -153,7 +158,7 @@ border-radius:10px;
 </div>
 
 <div class="label">
-<b>Belge:</b> <span id="labelBelge">YENİ</span><br>
+<b>Belge:</b> <span id="labelBelge">ALIŞ-YENİ</span><br>
 <b>Cari:</b> <span id="labelCari">Seçilmedi</span>
 </div>
 
@@ -166,9 +171,7 @@ border-radius:10px;
 <!-- BELGE -->
 <div class="box hidden" id="belgePage">
 <h3>Belge No</h3>
-
-<input id="belge1" placeholder="Belge No">
-
+<input id="belge1">
 <button onclick="belgeKaydet()">KAYDET</button>
 </div>
 
@@ -176,7 +179,6 @@ border-radius:10px;
 <div class="box hidden" id="cariSec">
 <input id="cariSearch2">
 <button onclick="renderCariSec()">ARA</button>
-
 <div id="cariSecList"></div>
 </div>
 
@@ -192,14 +194,11 @@ border-radius:10px;
 <button onclick="urunGetir()">GETİR</button>
 <button onclick="kamera()">📷 OKU</button>
 
-<div id="reader"></div>
-
 <div id="urunInfo"></div>
 
 <input id="adet" type="number" placeholder="Adet">
 <button onclick="ekle()">EKLE</button>
 
-<div id="liste"></div>
 </div>
 
 <script>
@@ -209,20 +208,17 @@ let stok=JSON.parse(localStorage.getItem("stok")||"[]");
 let cari=JSON.parse(localStorage.getItem("cari")||"[]");
 let alis=JSON.parse(localStorage.getItem("alis")||"[]");
 
-let aktif=null;
 let cam=null;
-let belgeNo="";
+let aktif=null;
 let cariSecili="";
-let taslak=null;
+let belgeNo="";
 
 /* LOGIN */
 function login(){
-
 if(!firma.value){
 alert("Firma seçiniz");
 return;
 }
-
 if(user.value==="admin" && pass.value==="1234"){
 loginPage.classList.add("hidden");
 homePage.classList.remove("hidden");
@@ -236,16 +232,29 @@ function openPage(id){
 stopCam();
 document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
 document.getElementById(id).classList.remove("hidden");
-renderStok();
 }
 
 /* STOK */
+function kameraStok(){
+
+cam=new Html5Qrcode("reader");
+
+Html5Qrcode.getCameras().then(dev=>{
+let back=dev.find(d=>d.label.toLowerCase().includes("back"))||dev[0];
+
+cam.start(back.id,{fps:10,qrbox:250},txt=>{
+stokBarkod.value=txt;
+stopCam();
+});
+});
+}
+
 function stokEkle(){
 
 if(!stokBarkod.value || !stokUrun.value) return;
 
 if(stok.find(x=>x.barkod===stokBarkod.value)){
-alert("Zaten kayıtlı");
+alert("Zaten var");
 return;
 }
 
@@ -274,7 +283,8 @@ html+=`
 <td>${s.urun}</td>
 <td>${s.adet}</td>
 <td>
-<button onclick="stokSil(${i})">Sil</button>
+<button onclick="stokDuzenle(${i})">DÜZ</button>
+<button onclick="stokSil(${i})">SİL</button>
 </td>
 </tr>`;
 });
@@ -291,13 +301,25 @@ renderStok();
 }
 }
 
+function stokDuzenle(i){
+let b=prompt("Barkod",stok[i].barkod);
+let u=prompt("Ürün",stok[i].urun);
+
+if(b&&u){
+stok[i].barkod=b;
+stok[i].urun=u;
+localStorage.setItem("stok",JSON.stringify(stok));
+renderStok();
+}
+}
+
 /* CARİ */
 function cariEkle(){
 
 if(!cariInput.value) return;
 
 if(cari.includes(cariInput.value)){
-alert("Zaten var");
+alert("Var");
 return;
 }
 
@@ -310,17 +332,14 @@ renderCari();
 
 function renderCari(){
 
-let f=cariSearch.value?.toLowerCase()||"";
+let f=cariSearch.value.toLowerCase();
 
-let list=cari.filter(x=>x.toLowerCase().includes(f));
+let list=cari.filter(x=>x.toLowerCase().includes(f)).sort();
 
 let html="<table>";
 
-list.forEach((c,i)=>{
-html+=`
-<tr>
-<td onclick="secCari('${c}')">${c}</td>
-</tr>`;
+list.forEach(c=>{
+html+=`<tr><td onclick="secCari('${c}')">${c}</td></tr>`;
 });
 
 html+="</table>";
@@ -335,9 +354,8 @@ openPage("alis");
 
 /* BELGE */
 function belgePage(){
-belge1.value = belgeNo || "ALIŞ-"+Date.now();
-document.getElementById("belgePage").classList.remove("hidden");
-document.getElementById("alis").classList.add("hidden");
+belge1.value="ALIŞ-"+Date.now();
+openPage("belgePage");
 }
 
 function belgeKaydet(){
@@ -354,15 +372,6 @@ alert("Cari seçiniz");
 return;
 }
 
-if(!taslak){
-taslak={
-belge:belgeNo,
-cari:cariSecili,
-urunler:[],
-durum:"taslak"
-};
-}
-
 openPage("barkodPage");
 }
 
@@ -372,7 +381,7 @@ function urunGetir(){
 let u=stok.find(x=>x.barkod==barkodInput.value);
 
 if(!u){
-alert("Stok bulunamadı");
+alert("Bulunamadı");
 return;
 }
 
@@ -383,16 +392,18 @@ urunInfo.innerHTML=u.urun+" / "+u.adet;
 /* EKLE */
 function ekle(){
 
-if(!aktif || !adet.value) return;
+if(!aktif||!adet.value) return;
 
-aktif.adet += Number(adet.value);
+aktif.adet+=Number(adet.value);
 
-taslak.urunler.push({
+alis.push({
+belge:belgeNo,
 barkod:aktif.barkod,
 adet:Number(adet.value)
 });
 
 localStorage.setItem("stok",JSON.stringify(stok));
+localStorage.setItem("alis",JSON.stringify(alis));
 
 adet.value="";
 barkodInput.value="";
@@ -405,8 +416,7 @@ function kamera(){
 cam=new Html5Qrcode("reader");
 
 Html5Qrcode.getCameras().then(dev=>{
-
-let back=dev.find(d=>d.label.includes("back"))||dev[0];
+let back=dev.find(d=>d.label.toLowerCase().includes("back"))||dev[0];
 
 cam.start(back.id,{fps:10,qrbox:250},txt=>{
 barkodInput.value=txt;
