@@ -55,7 +55,6 @@
         td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 12px; }
         .floating-icon { font-size: 24px; background: none; border: none; color: white; width: auto; box-shadow: none; padding: 0; margin: 0;}
         
-        /* Nitrogen Style Filter Grid */
         .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #ddd; }
         .filter-grid label { font-size: 11px; font-weight: bold; color: #666; margin-left: 5px; }
     </style>
@@ -90,7 +89,6 @@
         <button class="btn-secondary" onclick="openPage('cariPage')">Cari</button>
     </div>
     <button class="btn-exit" onclick="logout()">Çıkış</button>
-    <div style="text-align:center; margin-top:20px; color:var(--primary-blue); font-weight:bold;">www.teknoerp.com.tr</div>
 </div>
 
 <div id="stokPage" class="box hidden">
@@ -127,20 +125,14 @@
     <button onclick="openPage('cariSecPage')">Cari Seç</button>
     <button onclick="barkodGirisAc()">Barkod Giriş</button>
     <button onclick="islemSatirlariKontrol()">İşlem Satırları</button>
+    <button id="btnEvrakSil" class="btn-exit hidden" onclick="evrakSil()">BU EVRAKI SİL</button>
 </div>
 
 <div id="evrakListesiPage" class="box hidden">
     <h3 style="text-align:center;">EVRAK SORGULAMA</h3>
-    
     <div class="filter-grid">
-        <div>
-            <label>İlk Tarih</label>
-            <input type="date" id="filterBasTar">
-        </div>
-        <div>
-            <label>Son Tarih</label>
-            <input type="date" id="filterBitTar">
-        </div>
+        <div><label>İlk Tarih</label><input type="date" id="filterBasTar"></div>
+        <div><label>Son Tarih</label><input type="date" id="filterBitTar"></div>
         <div style="grid-column: span 2;">
             <label>Seri / Belge No</label>
             <div style="display:flex; gap:5px;">
@@ -149,13 +141,10 @@
             </div>
         </div>
     </div>
-    
     <button onclick="evrakSorgula()" style="background:#28a745;">EVRAKLARI GETİR</button>
-    
     <table>
         <thead><tr><th>TARİH</th><th>SIRA</th><th>CARİ ADI</th><th>TOPLAM</th></tr></thead>
-        <tbody id="evrakSorguGövde">
-            </tbody>
+        <tbody id="evrakSorguGövde"></tbody>
     </table>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
 </div>
@@ -222,7 +211,6 @@ let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
 let aktifEvrak = { no: "", seri: "DENEME", sira: "", cari: "", kalemler: [], tarih: "" };
 let html5QrCode = null;
 
-// GİRİŞ
 function login() {
     let firma = document.getElementById('firmaInp').value;
     if(firma === "") { alert("Lütfen önce firma seçiniz!"); return; }
@@ -244,22 +232,20 @@ function openPage(pageId) {
 function goHome() { openPage('homePage'); }
 function toggleMenu() { document.getElementById('alisMenu').classList.toggle('hidden'); }
 
-// EVRAK SORGULAMA (NITROGEN MANTIĞI)
+// EVRAK İŞLEMLERİ
 function evrakSorgula() {
     let sira = document.getElementById('filterSira').value;
     let bas = document.getElementById('filterBasTar').value;
     let bit = document.getElementById('filterBitTar').value;
-    
     let html = "";
     let filtreli = db_evraklar.filter(e => {
         let matchSira = sira ? e.sira.includes(sira) : true;
         let matchTar = (bas && bit) ? (e.tarih >= bas && e.tarih <= bit) : true;
         return matchSira && matchTar;
     });
-
-    filtreli.forEach((e, index) => {
+    filtreli.forEach((e) => {
         let toplamAdet = e.kalemler.reduce((a, b) => a + b.miktar, 0);
-        html += `<tr onclick="evrakYukle(${index})" style="cursor:pointer">
+        html += `<tr onclick="evrakYukle('${e.no}')" style="cursor:pointer">
             <td>${e.tarih}</td>
             <td>${e.sira}</td>
             <td>${e.cari}</td>
@@ -269,17 +255,39 @@ function evrakSorgula() {
     document.getElementById('evrakSorguGövde').innerHTML = html || "<tr><td colspan='4'>Kayıt Bulunamadı</td></tr>";
 }
 
-function evrakYukle(idx) {
-    aktifEvrak = JSON.parse(JSON.stringify(db_evraklar[idx]));
-    document.getElementById('dispEvrakNo').innerText = aktifEvrak.seri + "-" + aktifEvrak.sira;
-    document.getElementById('dispCari').innerText = aktifEvrak.cari;
-    openPage('alisPage');
-    alert("Evrak yüklendi, devam edebilirsiniz.");
+function evrakYukle(evrakNo) {
+    let evrak = db_evraklar.find(e => e.no === evrakNo);
+    if(evrak) {
+        aktifEvrak = JSON.parse(JSON.stringify(evrak));
+        document.getElementById('dispEvrakNo').innerText = aktifEvrak.no;
+        document.getElementById('dispCari').innerText = aktifEvrak.cari;
+        document.getElementById('btnEvrakSil').classList.remove('hidden');
+        openPage('alisPage');
+    }
 }
 
-// ALIŞ İRSALİYESİ
+function evrakSil() {
+    if(!confirm("Bu evrakı silmek istediğinize emin misiniz? Stoklar geri çekilecektir.")) return;
+    
+    // Stokları geri al
+    aktifEvrak.kalemler.forEach(item => {
+        let urun = db_stok.find(s => s.barkod == item.barkod);
+        if(urun) urun.stok = (urun.stok || 0) - item.miktar;
+    });
+
+    // Listeden sil
+    db_evraklar = db_evraklar.filter(e => e.no !== aktifEvrak.no);
+    
+    localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
+    localStorage.setItem("db_stok", JSON.stringify(db_stok));
+    
+    alert("Evrak silindi ve stoklar güncellendi.");
+    goHome();
+}
+
 function yeniAlisBaslat() {
     yeniEvrak();
+    document.getElementById('btnEvrakSil').classList.add('hidden');
     openPage('alisPage');
 }
 
@@ -300,7 +308,6 @@ function evragaEkle() {
         aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
         u.stok = (u.stok || 0) + m;
         
-        // Evrak listesini güncelle veya ekle
         let exIdx = db_evraklar.findIndex(e => e.no === aktifEvrak.no);
         if(exIdx > -1) db_evraklar[exIdx] = aktifEvrak;
         else db_evraklar.push(aktifEvrak);
@@ -315,6 +322,7 @@ function evragaEkle() {
     }
 }
 
+// DİĞER FONKSİYONLAR
 function barkodGirisAc() {
     if(!aktifEvrak.cari || aktifEvrak.cari === "Seçilmedi") { alert("Lütfen önce cari seçiniz!"); return; }
     openPage('barkodGirisPage');
@@ -347,7 +355,6 @@ function belgeKaydet() {
     openPage('alisPage');
 }
 
-// STOK VE CARİ (STANDART)
 function stokListele() {
     let ara = document.getElementById('stokAra').value.toLowerCase();
     let html = "";
