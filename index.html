@@ -19,31 +19,19 @@
         .hidden { display: none; }
 
         button {
-            width: 100%;
-            padding: 15px;
-            margin: 8px 0;
-            border: none;
-            border-radius: 40px;
-            background: var(--primary-blue);
-            color: white;
-            font-weight: bold;
-            font-size: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            cursor: pointer;
+            width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 40px;
+            background: var(--primary-blue); color: white; font-weight: bold; font-size: 16px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer;
         }
 
         .btn-secondary { background: var(--secondary-blue); }
         .btn-exit { background: var(--danger-red); margin-top: 20px; }
-        .btn-danger-sm { background: var(--danger-red); width: auto; padding: 5px 10px; border-radius: 8px; font-size: 12px; margin-left: 5px; color: white; }
+        .btn-danger-sm { background: var(--danger-red); width: auto; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: white; }
         .btn-edit-sm { background: var(--primary-blue); width: auto; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: white; }
         
         input, select {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            box-sizing: border-box;
+            width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd;
+            border-radius: 12px; box-sizing: border-box;
         }
 
         .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--primary-blue); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
@@ -55,16 +43,25 @@
         td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 12px; }
         .floating-icon { font-size: 24px; background: none; border: none; color: white; width: auto; box-shadow: none; padding: 0; margin: 0;}
         
-        .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #ddd; }
-        .filter-grid label { font-size: 11px; font-weight: bold; color: #666; margin-left: 5px; }
+        /* Modern Bildirim (Toast) */
+        #toast {
+            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 10px; padding: 16px; position: fixed;
+            z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px;
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
     </style>
 </head>
 <body>
 
+<div id="toast">Bildirim Mesajı</div>
+
 <div id="loginPage" class="box" style="text-align: center; margin-top: 50px;">
     <h2 style="color: var(--primary-blue);">BARKODPACKER</h2>
-    <input id="userInp" placeholder="Kullanıcı Adı (admin)">
-    <input id="passInp" type="password" placeholder="Şifre (1234)">
+    <input id="userInp" placeholder="Kullanıcı Adı">
+    <input id="passInp" type="password" placeholder="Şifre">
     <select id="firmaInp">
         <option value="">Firma Seçiniz</option>
         <option value="Demo">Demo</option>
@@ -82,9 +79,9 @@
 <div id="homePage" class="box hidden">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <button onclick="openPage('stokPage')">Stok Detay</button>
-        <button class="btn-secondary" onclick="alert('Sayım Fişi Hazırlanıyor')">Sayım Fişi</button>
-        <button onclick="alert('Depo Sevk Hazırlanıyor')">Deposevk</button>
-        <button class="btn-secondary" onclick="alert('Satış İrsaliyesi')">Satış İrsaliyesi</button>
+        <button class="btn-secondary" onclick="showToast('Sayım Fişi Hazırlanıyor')">Sayım Fişi</button>
+        <button onclick="showToast('Depo Sevk Hazırlanıyor')">Deposevk</button>
+        <button class="btn-secondary" onclick="showToast('Satış İrsaliyesi')">Satış İrsaliyesi</button>
         <button onclick="yeniAlisBaslat()">Alış İrsaliyesi</button>
         <button class="btn-secondary" onclick="openPage('cariPage')">Cari</button>
     </div>
@@ -143,7 +140,7 @@
     </div>
     <button onclick="evrakSorgula()" style="background:#28a745;">EVRAKLARI GETİR</button>
     <table>
-        <thead><tr><th>TARİH</th><th>SIRA (BELGE NO)</th><th>CARİ ADI</th><th>TOPLAM</th></tr></thead>
+        <thead><tr><th>TARİH</th><th>SIRA</th><th>CARİ ADI</th><th>TOPLAM</th></tr></thead>
         <tbody id="evrakSorguGövde"></tbody>
     </table>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
@@ -154,17 +151,12 @@
         <input id="belgeSabit" value="DENEME" disabled style="width: 30%; background: #eee;">
         <input id="belgeDinamik" placeholder="No Giriniz" style="width: 70%;">
     </div>
-    <input id="belgeNotIstegeBagli" placeholder="Ekstra Bilgi"> 
     <button onclick="belgeKaydet()">KAYDET</button>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
 </div>
 
 <div id="cariSecPage" class="box hidden">
     <input id="cariSecAra" placeholder="Cari Adı Girin..." oninput="cariFiltreleSec()">
-    <div style="display: flex; gap: 5px;">
-        <button onclick="cariFiltreleSec()">FİLTRELE</button>
-        <button class="btn-secondary" onclick="cariHepsiniListele()">LİSTELE</button>
-    </div>
     <div id="cariSecListesi" style="margin-top: 10px;"></div>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
 </div>
@@ -174,15 +166,14 @@
     <input id="cariName" placeholder="Yeni Cari Adı">
     <button onclick="cariEkle()">EKLE</button>
     <hr>
-    <input id="cariAraKutusu" placeholder="Cari Adı Yazın..." oninput="cariListeleHepsini()">
-    <button onclick="cariListeleHepsini()">LİSTELE</button>
+    <input id="cariAraKutusu" placeholder="Cari Ara..." oninput="cariListeleHepsini()">
     <div id="cariListesi"></div>
     <button class="btn-secondary" onclick="goHome()">GERİ</button>
 </div>
 
 <div id="barkodGirisPage" class="box hidden">
     <div style="display: flex; gap: 5px; align-items: center;">
-        <input id="barcodeInp" placeholder="Barkod Okutun">
+        <input id="barcodeInp" placeholder="Barkod Girin">
         <button onclick="urunBul()" style="width: 80px; border-radius: 8px;">GETİR</button>
         <button onclick="kameraAc()" style="width: 60px; border-radius: 8px;">📷</button>
     </div>
@@ -190,7 +181,7 @@
     <div id="urunDetay" class="hidden">
         <div class="card" id="urunBilgiText"></div>
         <input id="adetInp" type="number" placeholder="Miktar">
-        <button onclick="evragaEkle()">EKLE</button>
+        <button onclick="evragaEkle()">LİSTEYE EKLE</button>
     </div>
     <button onclick="islemSatirlariKontrol()" style="background: #6c757d;">📋 İŞLEM SATIRLARI</button>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
@@ -201,7 +192,7 @@
         <thead><tr><th>Barkod</th><th>Ürün</th><th>Miktar</th></tr></thead>
         <tbody id="islemTabloGövde"></tbody>
     </table>
-    <button onclick="barkodGirisAc()" style="margin-top:20px;">Barkod Girişine Dön</button>
+    <button onclick="openPage('barkodGirisPage')" style="margin-top:20px;">Barkod Girişine Dön</button>
 </div>
 
 <script>
@@ -211,18 +202,24 @@ let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
 let aktifEvrak = { no: "", seri: "DENEME", sira: "", cari: "", kalemler: [], tarih: "" };
 let html5QrCode = null;
 
-// --- GÜVENLİ GİRİŞ ---
+function showToast(msg) {
+    let x = document.getElementById("toast");
+    x.innerText = msg;
+    x.className = "show";
+    setTimeout(function(){ x.className = x.className.replace("show", ""); }, 3000);
+}
+
 function login() {
     let u = document.getElementById('userInp').value;
     let p = document.getElementById('passInp').value;
     let f = document.getElementById('firmaInp').value;
-
     if(u === "admin" && p === "1234" && f !== "") {
         document.getElementById('loginPage').classList.add('hidden');
         document.getElementById('navBar').classList.remove('hidden');
         document.getElementById('homePage').classList.remove('hidden');
+        showToast("Başarıyla Giriş Yapıldı");
     } else {
-        alert("Hatalı Kullanıcı Adı, Şifre veya Firma Seçimi!");
+        showToast("Hatalı Giriş!");
     }
 }
 
@@ -269,7 +266,7 @@ function stopKamera() {
 function stokYeniKaydet() {
     let b = document.getElementById('newBarkodInp').value;
     let a = document.getElementById('newAdInp').value;
-    if(!b || !a) return;
+    if(!b || !a) return showToast("Boş alan bırakmayın!");
     db_stok.push({ barkod: b, ad: a, stok: 0 });
     localStorage.setItem("db_stok", JSON.stringify(db_stok));
     openPage('stokPage');
@@ -283,8 +280,8 @@ function stokListele() {
             html += `<div class="card">
                 <div><b>${s.ad}</b><br><small>${s.barkod} | Stok: ${s.stok}</small></div>
                 <div style="display:flex;">
-                    <button class="btn-edit-sm" onclick="stokDuzenle(${index})">Düzenle</button>
-                    <button class="btn-danger-sm" onclick="stokSil(${index})">Sil</button>
+                    <button class="btn-edit-sm" onclick="stokDuzenle(${index})">✎</button>
+                    <button class="btn-danger-sm" onclick="stokSil(${index})">✖</button>
                 </div>
             </div>`;
         }
@@ -340,7 +337,7 @@ function cariSecildi(c) {
     openPage('alisPage'); 
 }
 
-// --- EVRAK ---
+// --- EVRAK VE MÜKERRER KONTROLÜ ---
 function yeniAlisBaslat() { 
     yeniEvrak(); 
     document.getElementById('btnEvrakSil').classList.add('hidden');
@@ -362,7 +359,7 @@ function urunBul() {
         document.getElementById('urunBilgiText').innerHTML = `<b>${u.ad}</b><br><small>Mevcut Stok: ${u.stok}</small>`;
         document.getElementById('urunDetay').classList.remove('hidden');
     } else {
-        alert("Kayıtsız Barkod!");
+        showToast("Kayıtsız Barkod!");
         document.getElementById('urunDetay').classList.add('hidden');
     }
 }
@@ -373,7 +370,14 @@ function evragaEkle() {
     let u = db_stok.find(x => x.barkod == b);
     
     if(m > 0 && u) {
-        aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
+        // MÜKERRER KONTROLÜ: Eğer ürün zaten evrakta varsa miktarını artır
+        let mevcutKalem = aktifEvrak.kalemler.find(k => k.barkod === b);
+        if(mevcutKalem) {
+            mevcutKalem.miktar += m;
+        } else {
+            aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
+        }
+
         u.stok = (u.stok || 0) + m;
         
         let exIdx = db_evraklar.findIndex(e => e.no === aktifEvrak.no);
@@ -386,9 +390,9 @@ function evragaEkle() {
         document.getElementById('barcodeInp').value = "";
         document.getElementById('adetInp').value = "";
         document.getElementById('urunDetay').classList.add('hidden');
-        alert("Başarıyla Eklendi");
+        showToast("Ürün Eklendi / Güncellendi");
     } else {
-        alert("Lütfen miktar giriniz!");
+        showToast("Lütfen geçerli miktar giriniz!");
     }
 }
 
@@ -425,16 +429,17 @@ function evrakSil() {
     db_evraklar = db_evraklar.filter(x => x.no !== aktifEvrak.no);
     localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
     localStorage.setItem("db_stok", JSON.stringify(db_stok));
+    showToast("Evrak Silindi");
     goHome();
 }
 
 function barkodGirisAc() { 
-    if(!aktifEvrak.cari || aktifEvrak.cari === "Seçilmedi") { alert("Önce Cari Seçin!"); return; } 
+    if(!aktifEvrak.cari || aktifEvrak.cari === "Seçilmedi") { showToast("Önce Cari Seçin!"); return; } 
     openPage('barkodGirisPage'); 
 }
 
 function islemSatirlariKontrol() { 
-    if(!aktifEvrak.cari || aktifEvrak.cari === "Seçilmedi") { alert("Önce Cari Seçin!"); return; }
+    if(!aktifEvrak.cari || aktifEvrak.cari === "Seçilmedi") { showToast("Önce Cari Seçin!"); return; }
     tabloGoster(); 
     openPage('islemSatirlariPage'); 
 }
