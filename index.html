@@ -16,7 +16,7 @@
         body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f9; }
         .navbar { background: var(--primary-blue); color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
         .box { padding: 15px; }
-        .hidden { display: none; }
+        .hidden { display: none !important; }
 
         button {
             width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 40px;
@@ -26,7 +26,8 @@
 
         .btn-secondary { background: var(--secondary-blue); }
         .btn-exit { background: var(--danger-red); margin-top: 20px; }
-        .btn-danger-sm { background: var(--danger-red); width: auto; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: white; }
+        .btn-danger-sm { background: var(--danger-red); width: auto; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: white; margin-left: 5px; }
+        .btn-edit-sm { background: var(--primary-blue); width: auto; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: white; }
         
         input, select {
             width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd;
@@ -35,6 +36,10 @@
 
         .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--primary-blue); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .info-panel { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; color: #333; line-height: 1.6; }
+        
+        /* Modal - Özel Uyarı Penceresi */
+        .modal-overlay { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 10001; }
+        .modal-box { background: white; padding: 20px; border-radius: 15px; width: 80%; max-width: 300px; text-align: center; }
         
         #reader, #readerStok { width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 10px; background: #000; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; margin-top: 10px;}
@@ -54,6 +59,16 @@
 <body>
 
 <div id="toast">Bildirim Mesajı</div>
+
+<div id="customConfirm" class="modal-overlay hidden">
+    <div class="modal-box">
+        <p style="font-weight: bold;" id="confirmText">Silmek istediğinize emin misiniz?</p>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-secondary" style="padding: 10px;" onclick="closeConfirm(false)">Vazgeç</button>
+            <button class="btn-exit" style="padding: 10px; margin-top: 8px;" id="confirmYesBtn">Evet, Sil</button>
+        </div>
+    </div>
+</div>
 
 <div id="loginPage" class="box" style="text-align: center; margin-top: 50px;">
     <h2 style="color: var(--primary-blue);">BARKODPACKER</h2>
@@ -94,14 +109,14 @@
 </div>
 
 <div id="stokEklePage" class="box hidden">
-    <h3>YENİ STOK KARTI</h3>
+    <h3 id="stokFormBaslik">YENİ STOK KARTI</h3>
     <div id="readerStok"></div>
     <div style="display: flex; gap: 5px;">
         <input id="newBarkodInp" placeholder="Barkod No">
         <button onclick="kameraAcStok()" style="width: 60px; border-radius: 8px;">📷</button>
     </div>
     <input id="newAdInp" placeholder="Ürün Adı">
-    <button onclick="stokYeniKaydet()" style="background: #28a745;">LİSTEYE EKLE</button>
+    <button id="btnStokKaydet" onclick="stokYeniKaydet()" style="background: #28a745;">LİSTEYE EKLE</button>
     <button class="btn-secondary" onclick="openPage('stokPage')">İPTAL</button>
 </div>
 
@@ -119,7 +134,7 @@
     <button onclick="openCariSec()">Cari Seç</button>
     <button onclick="barkodGirisAc()">Barkod Giriş</button>
     <button onclick="islemSatirlariKontrol()">İşlem Satırları</button>
-    <button id="btnEvrakSil" class="btn-exit hidden" onclick="evrakSil()">BU EVRAKI SİL</button>
+    <button id="btnEvrakSil" class="btn-exit hidden" onclick="confirmSil('evrak')">BU EVRAKI SİL</button>
 </div>
 
 <div id="evrakListesiPage" class="box hidden">
@@ -155,7 +170,7 @@
 <div id="cariPage" class="box hidden">
     <h3>CARİ YÖNETİMİ</h3>
     <input id="cariName" placeholder="Yeni Cari Adı">
-    <button onclick="cariEkle()">EKLE</button>
+    <button id="btnCariEkle" onclick="cariEkle()">EKLE</button>
     <hr>
     <input id="cariAraKutusu" placeholder="Cari Ara..." oninput="cariListeleHepsini()">
     <div id="cariListesi"></div>
@@ -192,13 +207,29 @@ let db_cari = JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda"]');
 let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
 let aktifEvrak = { no: "", seri: "DENEME", sira: "", cari: "", kalemler: [], tarih: "" };
 let html5QrCode = null;
+let editIndex = -1; 
+let deleteTarget = null;
 
 function showToast(msg) {
     let x = document.getElementById("toast");
     x.innerText = msg;
     x.className = "show";
-    setTimeout(function(){ x.className = "hidden"; x.className = ""; }, 3000);
+    setTimeout(function(){ x.className = ""; }, 3000);
 }
+
+// Özel Silme Onayı
+function confirmSil(type, index = null) {
+    deleteTarget = { type, index };
+    document.getElementById('customConfirm').classList.remove('hidden');
+    document.getElementById('confirmYesBtn').onclick = function() {
+        if(deleteTarget.type === 'stok') stokSil(deleteTarget.index);
+        if(deleteTarget.type === 'cari') cariSil(deleteTarget.index);
+        if(deleteTarget.type === 'evrak') evrakSil();
+        closeConfirm();
+    };
+}
+
+function closeConfirm() { document.getElementById('customConfirm').classList.add('hidden'); }
 
 function login() {
     let u = document.getElementById('userInp').value;
@@ -220,8 +251,8 @@ function openPage(pageId) {
     document.querySelectorAll('.box').forEach(b => b.classList.add('hidden'));
     document.getElementById(pageId).classList.remove('hidden');
     stopKamera();
-    if(pageId === 'stokPage') stokListele();
-    if(pageId === 'cariPage') cariListeleHepsini();
+    if(pageId === 'stokPage') { editIndex = -1; stokListele(); }
+    if(pageId === 'cariPage') { editIndex = -1; cariListeleHepsini(); }
 }
 
 function goHome() { openPage('homePage'); }
@@ -258,8 +289,20 @@ function stokYeniKaydet() {
     let b = document.getElementById('newBarkodInp').value;
     let a = document.getElementById('newAdInp').value;
     if(!b || !a) return showToast("Boş alan bırakmayın!");
-    db_stok.push({ barkod: b, ad: a, stok: 0 });
+    
+    if(editIndex > -1) {
+        db_stok[editIndex].barkod = b;
+        db_stok[editIndex].ad = a;
+        showToast("Stok Güncellendi");
+    } else {
+        db_stok.push({ barkod: b, ad: a, stok: 0 });
+        showToast("Stok Eklendi");
+    }
+    
     localStorage.setItem("db_stok", JSON.stringify(db_stok));
+    editIndex = -1;
+    document.getElementById('stokFormBaslik').innerText = "YENİ STOK KARTI";
+    document.getElementById('btnStokKaydet').innerText = "LİSTEYE EKLE";
     openPage('stokPage');
 }
 
@@ -271,7 +314,8 @@ function stokListele() {
             html += `<div class="card">
                 <div><b>${s.ad}</b><br><small>${s.barkod} | Stok: ${s.stok}</small></div>
                 <div style="display:flex;">
-                    <button class="btn-danger-sm" onclick="stokSil(${index})">✖</button>
+                    <button class="btn-edit-sm" onclick="stokDuzenle(${index})">✎</button>
+                    <button class="btn-danger-sm" onclick="confirmSil('stok', ${index})">✖</button>
                 </div>
             </div>`;
         }
@@ -279,9 +323,18 @@ function stokListele() {
     document.getElementById('stokListesi').innerHTML = html || "Kayıt Yok";
 }
 
-function stokSil(i) { if(confirm("Silinsin mi?")) { db_stok.splice(i, 1); localStorage.setItem("db_stok", JSON.stringify(db_stok)); stokListele(); } }
+function stokDuzenle(i) {
+    editIndex = i;
+    document.getElementById('stokFormBaslik').innerText = "STOK DÜZENLE";
+    document.getElementById('btnStokKaydet').innerText = "GÜNCELLE";
+    document.getElementById('newBarkodInp').value = db_stok[i].barkod;
+    document.getElementById('newAdInp').value = db_stok[i].ad;
+    openPage('stokEklePage');
+}
 
-// --- CARİ (YENİLENMİŞ) ---
+function stokSil(i) { db_stok.splice(i, 1); localStorage.setItem("db_stok", JSON.stringify(db_stok)); stokListele(); }
+
+// --- CARİ ---
 function openCariSec() {
     document.getElementById('cariSecAra').value = "";
     cariFiltreleSec();
@@ -311,9 +364,17 @@ function cariSecildi(c) {
 function cariEkle() {
     let c = document.getElementById('cariName').value;
     if(!c) return;
-    db_cari.push(c);
+    if(editIndex > -1) {
+        db_cari[editIndex] = c;
+        showToast("Cari Güncellendi");
+        document.getElementById('btnCariEkle').innerText = "EKLE";
+    } else {
+        db_cari.push(c);
+        showToast("Cari Eklendi");
+    }
     localStorage.setItem("db_cari", JSON.stringify(db_cari));
     document.getElementById('cariName').value = "";
+    editIndex = -1;
     cariListeleHepsini();
 }
 
@@ -324,16 +385,26 @@ function cariListeleHepsini() {
         if(c.toLowerCase().includes(ara)) {
             html += `<div class="card">
                 <div style="flex:1"><b>${c}</b></div>
-                <button class="btn-danger-sm" onclick="cariSil(${index})">✖</button>
+                <div style="display:flex;">
+                    <button class="btn-edit-sm" onclick="cariDuzenle(${index})">✎</button>
+                    <button class="btn-danger-sm" onclick="confirmSil('cari', ${index})">✖</button>
+                </div>
             </div>`;
         }
     });
     document.getElementById('cariListesi').innerHTML = html;
 }
 
-function cariSil(i) { if(confirm("Silinsin mi?")) { db_cari.splice(i, 1); localStorage.setItem("db_cari", JSON.stringify(db_cari)); cariListeleHepsini(); } }
+function cariDuzenle(i) {
+    editIndex = i;
+    document.getElementById('cariName').value = db_cari[i];
+    document.getElementById('btnCariEkle').innerText = "GÜNCELLE";
+    document.getElementById('cariName').focus();
+}
 
-// --- EVRAK (YENİLENMİŞ) ---
+function cariSil(i) { db_cari.splice(i, 1); localStorage.setItem("db_cari", JSON.stringify(db_cari)); cariListeleHepsini(); }
+
+// --- EVRAK ---
 function openEvrakGetir() {
     let bugun = new Date().toISOString().split('T')[0];
     document.getElementById('filterBasTar').value = bugun;
@@ -392,47 +463,4 @@ function evragaEkle() {
     let u = db_stok.find(x => x.barkod == b);
     if(m > 0 && u) {
         let mevcut = aktifEvrak.kalemler.find(k => k.barkod === b);
-        if(mevcut) mevcut.miktar += m; else aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
-        u.stok = (u.stok || 0) + m;
-        let idx = db_evraklar.findIndex(e => e.no === aktifEvrak.no);
-        if(idx > -1) db_evraklar[idx] = aktifEvrak; else db_evraklar.push(aktifEvrak);
-        localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
-        localStorage.setItem("db_stok", JSON.stringify(db_stok));
-        document.getElementById('barcodeInp').value = ""; document.getElementById('adetInp').value = "";
-        document.getElementById('urunDetay').classList.add('hidden');
-        showToast("Eklendi");
-    }
-}
-
-function evrakYukle(no) {
-    let e = db_evraklar.find(x => x.no === no);
-    if(e) {
-        aktifEvrak = JSON.parse(JSON.stringify(e));
-        document.getElementById('dispEvrakNo').innerText = aktifEvrak.no;
-        document.getElementById('dispCari').innerText = aktifEvrak.cari;
-        document.getElementById('belgeDinamik').value = aktifEvrak.sira;
-        document.getElementById('btnEvrakSil').classList.remove('hidden');
-        openPage('alisPage');
-    }
-}
-
-function evrakSil() {
-    if(!confirm("Silinsin mi?")) return;
-    aktifEvrak.kalemler.forEach(k => { let u = db_stok.find(s => s.barkod == k.barkod); if(u) u.stok = Math.max(0, u.stok - k.miktar); });
-    db_evraklar = db_evraklar.filter(x => x.no !== aktifEvrak.no);
-    localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
-    localStorage.setItem("db_stok", JSON.stringify(db_stok));
-    goHome();
-}
-
-function barkodGirisAc() { if(!aktifEvrak.cari || aktifEvrak.cari === "Seçilmedi") return showToast("Cari Seç!"); openPage('barkodGirisPage'); }
-function islemSatirlariKontrol() { if(!aktifEvrak.cari || aktifEvrak.cari === "Seçilmedi") return showToast("Cari Seç!"); tabloGoster(); openPage('islemSatirlariPage'); }
-function tabloGoster() {
-    let html = "";
-    aktifEvrak.kalemler.forEach(k => { html += `<tr><td>${k.barkod}</td><td>${k.ad}</td><td>${k.miktar}</td></tr>`; });
-    document.getElementById('islemTabloGövde').innerHTML = html;
-}
-function belgeKaydet() { aktifEvrak.sira = document.getElementById('belgeDinamik').value; aktifEvrak.no = "DENEME-" + aktifEvrak.sira; document.getElementById('dispEvrakNo').innerText = aktifEvrak.no; openPage('alisPage'); }
-</script>
-</body>
-</html>
+        if(mevcut) mevcut.miktar += m; else aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m }
