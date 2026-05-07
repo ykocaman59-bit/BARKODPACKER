@@ -63,6 +63,7 @@
     <input id="userInp" placeholder="Kullanıcı Adı">
     <input id="passInp" type="password" placeholder="Şifre">
     <select id="firmaInp">
+        <option value="">Firma Seçiniz</option>
         <option value="Demo">Demo</option>
         <option value="Test">Test LTD</option>
     </select>
@@ -78,13 +79,14 @@
 <div id="homePage" class="box hidden">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <button onclick="openPage('stokPage')">Stok Detay</button>
-        <button class="btn-secondary" onclick="alert('Hazırlanıyor')">Sayım Fişi</button>
-        <button onclick="alert('Hazırlanıyor')">Deposevk</button>
-        <button class="btn-secondary" onclick="alert('Hazırlanıyor')">Satış İrsaliyesi</button>
+        <button class="btn-secondary" onclick="alert('Sayım Fişi Hazırlanıyor')">Sayım Fişi</button>
+        <button onclick="alert('Depo Sevk Hazırlanıyor')">Deposevk</button>
+        <button class="btn-secondary" onclick="alert('Satış İrsaliyesi')">Satış İrsaliyesi</button>
         <button onclick="yeniAlisBaslat()">Alış İrsaliyesi</button>
         <button class="btn-secondary" onclick="openPage('cariPage')">Cari</button>
     </div>
     <button class="btn-exit" onclick="logout()">Çıkış</button>
+    <div style="text-align:center; margin-top:20px; color:var(--primary-blue); font-weight:bold;">www.teknoerp.com.tr</div>
 </div>
 
 <div id="stokPage" class="box hidden">
@@ -110,7 +112,8 @@
 <div id="alisPage" class="box hidden">
     <div class="info-panel">
         <b>Evrak No:</b> <span id="dispEvrakNo">-</span><br>
-        <b>Cari:</b> <span id="dispCari">Seçilmedi</span>
+        <b>Cari:</b> <span id="dispCari">Seçilmedi</span><br>
+        <b>Depo:</b> DENEME
     </div>
     <div id="alisMenu" class="hidden" style="background:#eee; padding:10px; border-radius:10px; margin-bottom:10px;">
         <button onclick="yeniEvrak()">Yeni Evrak</button>
@@ -124,13 +127,13 @@
 
 <div id="evrakListesiPage" class="box hidden">
     <h3>EVRAK LİSTESİ</h3>
-    <input id="evrakSeri" value="BTL23" placeholder="Seri">
+    <input id="evrakSeri" value="DENEME" placeholder="Seri">
     <input id="evrakSira" placeholder="Sıra">
     <button onclick="alert('Filtreleme Aktif')">GETİR</button>
     <table>
-        <thead><tr><th>SERİ</th><th>SIRA</th><th>CARI ADI</th><th>MİKTAR</th></tr></thead>
-        <tbody id="evrakGetirGövde">
-            <tr><td>BTL23</td><td>7469</td><td>Özlem Market</td><td>150.00</td></tr>
+        <thead><tr><th>SERİ</th><th>SIRA</th><th>CARI ADI</th><th>MIKTAR</th></tr></thead>
+        <tbody>
+            <tr><td>DENEME</td><td>9429</td><td>Örnek Market</td><td>150.00</td></tr>
         </tbody>
     </table>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
@@ -141,7 +144,7 @@
         <input id="belgeSabit" value="ALIŞ-" disabled style="width: 30%; background: #eee;">
         <input id="belgeDinamik" placeholder="No Giriniz" style="width: 70%;">
     </div>
-    <input id="belgeNotIstegeBagli"> 
+    <input id="belgeNotIstegeBagli" placeholder="Ekstra Bilgi"> 
     <button onclick="belgeKaydet()">KAYDET</button>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
 </div>
@@ -198,6 +201,8 @@ let aktifEvrak = { no: "", cari: "", kalemler: [] };
 let html5QrCode = null;
 
 function login() {
+    let firma = document.getElementById('firmaInp').value;
+    if(firma === "") { alert("Lütfen önce firma seçiniz!"); return; }
     if(document.getElementById('userInp').value === "admin") {
         document.getElementById('loginPage').classList.add('hidden');
         document.getElementById('navBar').classList.remove('hidden');
@@ -218,7 +223,7 @@ function openPage(pageId) {
 function goHome() { openPage('homePage'); }
 function toggleMenu() { document.getElementById('alisMenu').classList.toggle('hidden'); }
 
-// --- STOK İŞLEMLERİ (SİL/DÜZENLE EKLENDİ) ---
+// STOK İŞLEMLERİ
 function stokYeniKaydet() {
     let b = document.getElementById('newBarkodInp').value;
     let a = document.getElementById('newAdInp').value;
@@ -251,7 +256,7 @@ function stokSil(index) {
     }
 }
 
-// --- CARİ İŞLEMLERİ (LİSTELE/FİLTRELE MANTIĞI) ---
+// CARİ İŞLEMLERİ
 function cariEkle() {
     let ad = document.getElementById('cariName').value;
     if(!ad) return;
@@ -291,7 +296,7 @@ function cariSil(index) {
     }
 }
 
-// --- DİĞER FONKSİYONLAR (BOZULMADAN KORUNDU) ---
+// ALIŞ İRSALİYESİ KONTROLLERİ
 function yeniAlisBaslat() {
     yeniEvrak();
     openPage('alisPage');
@@ -299,31 +304,21 @@ function yeniAlisBaslat() {
 
 function yeniEvrak() {
     let rnd = Math.floor(Math.random()*9000+1000);
-    aktifEvrak = { no: "BTL23-" + rnd, cari: "", kalemler: [] };
+    aktifEvrak = { no: "ALIŞ-" + rnd, cari: "", kalemler: [] };
     document.getElementById('dispEvrakNo').innerText = aktifEvrak.no;
+    document.getElementById('dispCari').innerText = "Seçilmedi";
     document.getElementById('belgeDinamik').value = rnd;
-    document.getElementById('belgeNotIstegeBagli').value = "";
 }
 
-function belgeKaydet() {
-    aktifEvrak.no = "ALIŞ-" + document.getElementById('belgeDinamik').value;
-    document.getElementById('dispEvrakNo').innerText = aktifEvrak.no;
-    openPage('alisPage');
+function barkodGirisAc() {
+    if(!aktifEvrak.cari || aktifEvrak.cari === "") { alert("Lütfen önce cari seçiniz!"); return; }
+    openPage('barkodGirisPage');
 }
 
-function cariHepsiniListele() {
-    let html = "";
-    db_cari.forEach(c => { html += `<div class="card" onclick="cariSecildi('${c}')">${c}</div>`; });
-    document.getElementById('cariSecListesi').innerHTML = html;
-}
-
-function cariFiltreleSec() {
-    let ara = document.getElementById('cariSecAra').value.toLowerCase();
-    let html = "";
-    db_cari.filter(c => c.toLowerCase().includes(ara)).forEach(c => {
-        html += `<div class="card" onclick="cariSecildi('${c}')">${c}</div>`;
-    });
-    document.getElementById('cariSecListesi').innerHTML = html || "Yok";
+function islemSatirlariKontrol() {
+    if(!aktifEvrak.cari || aktifEvrak.cari === "") { alert("Lütfen önce cari seçiniz!"); return; }
+    tabloGoster();
+    openPage('islemSatirlariPage');
 }
 
 function cariSecildi(c) {
@@ -341,6 +336,50 @@ function urunBul() {
     } else { alert("Kayıtsız!"); }
 }
 
+function evragaEkle() {
+    let m = parseInt(document.getElementById('adetInp').value);
+    let b = document.getElementById('barcodeInp').value;
+    let u = db_stok.find(x => x.barkod == b);
+    if(m > 0 && u) {
+        aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
+        u.stok = (u.stok || 0) + m;
+        localStorage.setItem("db_stok", JSON.stringify(db_stok));
+        document.getElementById('barcodeInp').value = "";
+        document.getElementById('adetInp').value = "";
+        document.getElementById('urunDetay').classList.add('hidden');
+        alert("Eklendi");
+    }
+}
+
+function tabloGoster() {
+    let html = "";
+    aktifEvrak.kalemler.forEach(k => {
+        html += `<tr><td>${k.barkod}</td><td>${k.ad}</td><td>${k.miktar}</td></tr>`;
+    });
+    document.getElementById('islemTabloGövde').innerHTML = html;
+}
+
+function cariHepsiniListele() {
+    let html = "";
+    db_cari.forEach(c => { html += `<div class="card" onclick="cariSecildi('${c}')">${c}</div>`; });
+    document.getElementById('cariSecListesi').innerHTML = html;
+}
+
+function cariFiltreleSec() {
+    let ara = document.getElementById('cariSecAra').value.toLowerCase();
+    let html = "";
+    db_cari.filter(c => c.toLowerCase().includes(ara)).forEach(c => {
+        html += `<div class="card" onclick="cariSecildi('${c}')">${c}</div>`;
+    });
+    document.getElementById('cariSecListesi').innerHTML = html || "Yok";
+}
+
+function belgeKaydet() {
+    aktifEvrak.no = "ALIŞ-" + document.getElementById('belgeDinamik').value;
+    document.getElementById('dispEvrakNo').innerText = aktifEvrak.no;
+    openPage('alisPage');
+}
+
 function stopKamera() {
     if (html5QrCode && html5QrCode.isScanning) {
         html5QrCode.stop().then(() => html5QrCode.clear());
@@ -349,4 +388,3 @@ function stopKamera() {
 </script>
 </body>
 </html>
-
