@@ -35,8 +35,8 @@
 
         .btn-secondary { background: var(--secondary-blue); }
         .btn-exit { background: var(--danger-red); margin-top: 20px; }
-        .btn-danger-sm { background: var(--danger-red); width: auto; padding: 5px 10px; border-radius: 8px; font-size: 12px; margin-left: 5px; color: white; }
-        .btn-edit-sm { background: var(--primary-blue); width: auto; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: white; }
+        .btn-danger-sm { background: var(--danger-red); width: auto; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: white; border:none; }
+        .btn-edit-sm { background: var(--primary-blue); width: auto; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: white; border:none; }
         
         input, select {
             width: 100%;
@@ -47,10 +47,17 @@
             box-sizing: border-box;
         }
 
-        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--primary-blue); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .info-panel { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; color: #333; line-height: 1.6; }
+        /* Kopyalama engelleme ve Kart yapısı */
+        .card { 
+            background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; 
+            border-left: 5px solid var(--primary-blue); display: flex; justify-content: space-between; 
+            align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            user-select: none; -webkit-user-select: none; /* Kopyalama Engeli */
+        }
         
+        .info-panel { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; color: #333; line-height: 1.6; }
         #reader, #readerStok { width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 10px; background: #000; }
+        
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; margin-top: 10px;}
         th { background: #eee; padding: 10px; font-size: 12px; border: 1px solid #ddd; }
         td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 12px; }
@@ -58,23 +65,9 @@
         
         .filter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: #fff; padding: 10px; border-radius: 12px; margin-bottom: 10px; border: 1px solid #ddd; }
         .filter-grid label { font-size: 11px; font-weight: bold; color: #666; margin-left: 5px; }
-
-        #customAlert { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 10000; 
-        }
-        .alert-container { background: white; width: 85%; border-radius: 20px; padding: 20px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     </style>
 </head>
 <body>
-
-<div id="customAlert" class="hidden">
-    <div class="alert-container">
-        <h3 id="alertTitle" style="color: var(--primary-blue); margin-top: 0;">UYARI</h3>
-        <p id="alertMsg" style="font-size: 16px; color: #444; margin-bottom: 20px;"></p>
-        <button onclick="closeMsg()" style="margin-bottom: 0;">TAMAM</button>
-    </div>
-</div>
 
 <div id="loginPage" class="box" style="text-align: center; margin-top: 50px;">
     <h2 style="color: var(--primary-blue);">BARKODPACKER</h2>
@@ -97,9 +90,9 @@
 <div id="homePage" class="box hidden">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <button onclick="openPage('stokPage')">Stok Detay</button>
-        <button class="btn-secondary" onclick="showMsg('Sayım Fişi Hazırlanıyor')">Sayım Fişi</button>
-        <button onclick="showMsg('Depo Sevk Hazırlanıyor')">Deposevk</button>
-        <button class="btn-secondary" onclick="showMsg('Satış İrsaliyesi Hazırlanıyor')">Satış İrsaliyesi</button>
+        <button class="btn-secondary" onclick="alert('Hazırlanıyor...')">Sayım Fişi</button>
+        <button onclick="alert('Hazırlanıyor...')">Deposevk</button>
+        <button class="btn-secondary" onclick="alert('Hazırlanıyor...')">Satış İrsaliyesi</button>
         <button onclick="yeniAlisBaslat()">Alış İrsaliyesi</button>
         <button class="btn-secondary" onclick="openPage('cariPage')">Cari</button>
     </div>
@@ -109,18 +102,14 @@
 <div id="stokPage" class="box hidden">
     <h3>STOK LİSTESİ</h3>
     <button onclick="openPage('stokEklePage')" style="background: var(--success-green); margin-bottom:15px;">➕ YENİ STOK EKLE</button>
-    <input id="stokAra" placeholder="Ürün Ara..." oninput="stokListele()">
+    <input id="stokAra" placeholder="Ürün veya Barkod Ara..." oninput="stokListele()">
     <div id="stokListesi"></div>
     <button class="btn-secondary" onclick="goHome()">GERİ</button>
 </div>
 
 <div id="stokEklePage" class="box hidden">
     <h3>YENİ STOK KARTI</h3>
-    <div id="readerStok"></div>
-    <div style="display: flex; gap: 5px;">
-        <input id="newBarkodInp" placeholder="Barkod No">
-        <button onclick="kameraAcStok()" style="width: 60px; border-radius: 8px;">📷</button>
-    </div>
+    <input id="newBarkodInp" placeholder="Barkod No">
     <input id="newAdInp" placeholder="Ürün Adı">
     <button onclick="stokYeniKaydet()" style="background: var(--success-green);">LİSTEYE EKLE</button>
     <button class="btn-secondary" onclick="openPage('stokPage')">İPTAL</button>
@@ -143,6 +132,21 @@
     <button id="btnEvrakSil" class="btn-exit hidden" onclick="evrakSil()">BU EVRAKI SİL</button>
 </div>
 
+<div id="evrakListesiPage" class="box hidden">
+    <h3 style="text-align:center;">EVRAK SORGULAMA</h3>
+    <div class="filter-grid">
+        <div><label>İlk Tarih</label><input type="date" id="filterBasTar"></div>
+        <div><label>Son Tarih</label><input type="date" id="filterBitTar"></div>
+    </div>
+    <input id="filterSira" placeholder="Evrak/Sıra No ile Ara...">
+    <button onclick="evrakSorgula()" style="background:var(--success-green);">FİLTRELE VE GETİR</button>
+    <table>
+        <thead><tr><th>TARİH</th><th>SIRA</th><th>CARİ</th><th>TOPLAM</th></tr></thead>
+        <tbody id="evrakSorguGövde"></tbody>
+    </table>
+    <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
+</div>
+
 <div id="cariPage" class="box hidden">
     <h3>CARİ YÖNETİMİ</h3>
     <input id="cariName" placeholder="Yeni Cari Adı">
@@ -154,25 +158,25 @@
 </div>
 
 <div id="cariSecPage" class="box hidden">
-    <h3>EVRAK İÇİN CARİ SEÇ</h3>
+    <h3>CARİ SEÇ</h3>
     <input id="cariSecAra" placeholder="Cari Ara..." oninput="cariFiltreleSec()">
-    <div id="cariSecListesi" style="margin-top: 10px;"></div>
+    <div id="cariSecListesi"></div>
+    <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
+</div>
+
+<div id="belgeNoPage" class="box hidden">
+    <input id="belgeDinamik" placeholder="Belge/Sıra No Giriniz">
+    <button onclick="belgeKaydet()">KAYDET</button>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
 </div>
 
 <div id="barkodGirisPage" class="box hidden">
-    <div style="display: flex; gap: 5px; align-items: center;">
-        <input id="barcodeInp" placeholder="Barkod Okutun">
-        <button onclick="urunBul()" style="width: 80px; border-radius: 8px;">GETİR</button>
-        <button onclick="kameraAc()" style="width: 60px; border-radius: 8px;">📷</button>
-    </div>
-    <div id="reader"></div>
+    <input id="barcodeInp" placeholder="Barkod Okutun" onkeypress="if(event.key==='Enter') urunBul()">
     <div id="urunDetay" class="hidden">
         <div class="card" id="urunBilgiText"></div>
         <input id="adetInp" type="number" placeholder="Miktar">
         <button onclick="evragaEkle()">EKLE</button>
     </div>
-    <button onclick="islemSatirlariKontrol()" style="background: #6c757d;">📋 İŞLEM SATIRLARI</button>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
 </div>
 
@@ -180,29 +184,6 @@
     <table>
         <thead><tr><th>Barkod</th><th>Ürün</th><th>Miktar</th></tr></thead>
         <tbody id="islemTabloGövde"></tbody>
-    </table>
-    <button onclick="barkodGirisAc()" style="margin-top:20px;">Barkod Girişine Dön</button>
-</div>
-
-<div id="belgeNoPage" class="box hidden">
-    <div style="display: flex; gap: 5px;">
-        <input id="belgeSabit" value="DENEME" disabled style="width: 30%; background: #eee;">
-        <input id="belgeDinamik" placeholder="No Giriniz" style="width: 70%;">
-    </div>
-    <button onclick="belgeKaydet()">KAYDET</button>
-    <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
-</div>
-
-<div id="evrakListesiPage" class="box hidden">
-    <h3 style="text-align:center;">EVRAK SORGULAMA</h3>
-    <div class="filter-grid">
-        <div><label>İlk Tarih</label><input type="date" id="filterBasTar"></div>
-        <div><label>Son Tarih</label><input type="date" id="filterBitTar"></div>
-    </div>
-    <button onclick="evrakSorgula()" style="background: var(--success-green);">EVRAKLARI GETİR</button>
-    <table>
-        <thead><tr><th>TARİH</th><th>SIRA</th><th>CARİ</th><th>TOPLAM</th></tr></thead>
-        <tbody id="evrakSorguGövde"></tbody>
     </table>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
 </div>
@@ -213,14 +194,8 @@ let db_cari = JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda"]');
 let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
 let aktifEvrak = { no: "", seri: "DENEME", sira: "", cari: "", kalemler: [], tarih: "" };
 
-function showMsg(m) {
-    document.getElementById('alertMsg').innerText = m;
-    document.getElementById('customAlert').classList.remove('hidden');
-}
-function closeMsg() { document.getElementById('customAlert').classList.add('hidden'); }
-
 function login() {
-    if(document.getElementById('firmaInp').value === "") { showMsg("Lütfen firma seçiniz!"); return; }
+    if(document.getElementById('firmaInp').value === "") { alert("Firma seçin!"); return; }
     openPage('homePage');
     document.getElementById('navBar').classList.remove('hidden');
     document.getElementById('loginPage').classList.add('hidden');
@@ -239,23 +214,21 @@ function openPage(pageId) {
 function goHome() { openPage('homePage'); }
 function toggleMenu() { document.getElementById('alisMenu').classList.toggle('hidden'); }
 
-// --- GELİŞMİŞ STOK DÜZENLEME ---
+// --- STOK DÜZENLEME (AD VE BARKOD) ---
 function stokDuzenle(index) {
     let s = db_stok[index];
-    let yeniBarkod = prompt("Yeni Barkod No (Değiştirmek istemiyorsanız boş bırakın):", s.barkod);
-    let yeniAd = prompt("Yeni Ürün Adı:", s.ad);
-    
-    if (yeniAd) {
+    let yeniBarkod = prompt("Barkod No Güncelle:", s.barkod);
+    let yeniAd = prompt("Ürün Adı Güncelle:", s.ad);
+    if(yeniAd && yeniBarkod) {
         db_stok[index].ad = yeniAd;
-        if(yeniBarkod) db_stok[index].barkod = yeniBarkod;
+        db_stok[index].barkod = yeniBarkod;
         localStorage.setItem("db_stok", JSON.stringify(db_stok));
         stokListele();
-        showMsg("Ürün güncellendi.");
     }
 }
 
 function stokSil(index) {
-    if(confirm("Bu ürünü silmek istediğinize emin misiniz?")) {
+    if(confirm("Silmek istediğinize emin misiniz?")) {
         db_stok.splice(index, 1);
         localStorage.setItem("db_stok", JSON.stringify(db_stok));
         stokListele();
@@ -276,19 +249,19 @@ function stokListele() {
             </div>`;
         }
     });
-    document.getElementById('stokListesi').innerHTML = html || "Kayıt yok.";
+    document.getElementById('stokListesi').innerHTML = html;
 }
 
 function stokYeniKaydet() {
     let b = document.getElementById('newBarkodInp').value;
     let a = document.getElementById('newAdInp').value;
-    if(!b || !a) { showMsg("Eksik bilgi!"); return; }
+    if(!b || !a) return;
     db_stok.push({ barkod: b, ad: a, stok: 0 });
     localStorage.setItem("db_stok", JSON.stringify(db_stok));
     openPage('stokPage');
 }
 
-// --- CARİ YÖNETİMİ (SİL / DÜZENLE) ---
+// --- CARİ İŞLEMLERİ (SİL / DÜZENLE / HIZLI EVRAK) ---
 function cariEkle() {
     let c = document.getElementById('cariName').value;
     if(!c) return;
@@ -299,16 +272,16 @@ function cariEkle() {
 }
 
 function cariDuzenle(index) {
-    let yeniCari = prompt("Cari Adını Güncelle:", db_cari[index]);
-    if(yeniCari) {
-        db_cari[index] = yeniCari;
+    let yeni = prompt("Cari Adını Düzenle:", db_cari[index]);
+    if(yeni) {
+        db_cari[index] = yeni;
         localStorage.setItem("db_cari", JSON.stringify(db_cari));
         cariListeleHepsini();
     }
 }
 
 function cariSil(index) {
-    if(confirm(db_cari[index] + " carisini silmek istediğinize emin misiniz?")) {
+    if(confirm("Bu cariyi silmek istediğinize emin misiniz?")) {
         db_cari.splice(index, 1);
         localStorage.setItem("db_cari", JSON.stringify(db_cari));
         cariListeleHepsini();
@@ -321,15 +294,20 @@ function cariListeleHepsini() {
     db_cari.forEach((c, index) => {
         if(c.toLowerCase().includes(ara)) {
             html += `<div class="card">
-                <div style="flex:1;"><b>${c}</b></div>
-                <div>
+                <div onclick="hizliEvrakAc('${c}')" style="flex:1; cursor:pointer;"><b>${c}</b></div>
+                <div style="display:flex; gap:5px;">
                     <button class="btn-edit-sm" onclick="cariDuzenle(${index})">✎</button>
                     <button class="btn-danger-sm" onclick="cariSil(${index})">✖</button>
                 </div>
             </div>`;
         }
     });
-    document.getElementById('cariListesi').innerHTML = html || "Cari bulunamadı.";
+    document.getElementById('cariListesi').innerHTML = html;
+}
+
+function hizliEvrakAc(c) {
+    yeniEvrak();
+    cariSecildi(c);
 }
 
 function cariFiltreleSec() {
@@ -349,10 +327,56 @@ function cariSecildi(c) {
     openPage('alisPage');
 }
 
-// --- EVRAK VE DİĞER FONKSİYONLAR (Aynen Korunmuştur) ---
+// --- EVRAK SORGULAMA VE YÜKLEME ---
+function evrakSorgula() {
+    let siraFiltre = document.getElementById('filterSira').value.toLowerCase();
+    let bas = document.getElementById('filterBasTar').value;
+    let bit = document.getElementById('filterBitTar').value;
+    
+    let filtreli = db_evraklar.filter(e => {
+        let matchSira = siraFiltre ? (e.sira && e.sira.toLowerCase().includes(siraFiltre)) : true;
+        let matchTar = (bas && bit) ? (e.tarih >= bas && e.tarih <= bit) : true;
+        return matchSira && matchTar;
+    });
+
+    let html = "";
+    filtreli.forEach(e => {
+        let toplam = e.kalemler.reduce((a, b) => a + (b.miktar || 0), 0);
+        html += `<tr onclick="evrakYukle('${e.no}')" style="cursor:pointer">
+            <td>${e.tarih}</td><td>${e.sira}</td><td>${e.cari}</td><td>${toplam}</td>
+        </tr>`;
+    });
+    document.getElementById('evrakSorguGövde').innerHTML = html || "<tr><td colspan='4'>Kayıt bulunamadı</td></tr>";
+}
+
+function evrakYukle(evrakNo) {
+    let evrak = db_evraklar.find(e => e.no === evrakNo);
+    if(evrak) {
+        aktifEvrak = JSON.parse(JSON.stringify(evrak));
+        document.getElementById('dispEvrakNo').innerText = aktifEvrak.no;
+        document.getElementById('dispCari').innerText = aktifEvrak.cari;
+        document.getElementById('belgeDinamik').value = aktifEvrak.sira;
+        document.getElementById('btnEvrakSil').classList.remove('hidden');
+        openPage('alisPage');
+    }
+}
+
+function evrakSil() {
+    if(!confirm("Evrak silinsin mi? Stoklar geri alınacak.")) return;
+    aktifEvrak.kalemler.forEach(item => {
+        let urun = db_stok.find(s => s.barkod == item.barkod);
+        if(urun) urun.stok = Math.max(0, (urun.stok || 0) - item.miktar);
+    });
+    db_evraklar = db_evraklar.filter(e => e.no !== aktifEvrak.no);
+    localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
+    localStorage.setItem("db_stok", JSON.stringify(db_stok));
+    goHome();
+}
+
 function yeniAlisBaslat() {
     yeniEvrak();
     openPage('alisPage');
+    document.getElementById('btnEvrakSil').classList.add('hidden');
 }
 
 function yeniEvrak() {
@@ -370,7 +394,7 @@ function urunBul() {
     if(u) {
         document.getElementById('urunBilgiText').innerHTML = `<b>${u.ad}</b><br><small>Stok: ${u.stok}</small>`;
         document.getElementById('urunDetay').classList.remove('hidden');
-    } else { showMsg("Ürün Bulunamadı!"); }
+    } else { alert("Ürün Bulunamadı!"); }
 }
 
 function evragaEkle() {
@@ -380,17 +404,21 @@ function evragaEkle() {
     if(m > 0 && u) {
         aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
         u.stok = (u.stok || 0) + m;
-        db_evraklar.push(aktifEvrak);
+        
+        let exIdx = db_evraklar.findIndex(e => e.no === aktifEvrak.no);
+        if(exIdx > -1) db_evraklar[exIdx] = aktifEvrak;
+        else db_evraklar.push(aktifEvrak);
+        
         localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
         localStorage.setItem("db_stok", JSON.stringify(db_stok));
         document.getElementById('barcodeInp').value = "";
         document.getElementById('urunDetay').classList.add('hidden');
-        showMsg("Eklendi.");
+        alert("Eklendi");
     }
 }
 
 function barkodGirisAc() {
-    if(!aktifEvrak.cari) { showMsg("Önce cari seçin!"); return; }
+    if(!aktifEvrak.cari || aktifEvrak.cari === "Seçilmedi") { alert("Önce cari seçin!"); return; }
     openPage('barkodGirisPage');
 }
 
@@ -401,6 +429,13 @@ function islemSatirlariKontrol() {
     });
     document.getElementById('islemTabloGövde').innerHTML = html;
     openPage('islemSatirlariPage');
+}
+
+function belgeKaydet() {
+    aktifEvrak.sira = document.getElementById('belgeDinamik').value;
+    aktifEvrak.no = "DENEME-" + aktifEvrak.sira;
+    document.getElementById('dispEvrakNo').innerText = aktifEvrak.no;
+    openPage('alisPage');
 }
 </script>
 </body>
