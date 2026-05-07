@@ -147,7 +147,6 @@
     <input id="cariName" placeholder="Yeni Cari Adı">
     <button onclick="cariEkle()">EKLE</button>
     <hr>
-    <input id="cariAra" placeholder="Cari Ara..." oninput="cariFiltrele()">
     <div id="cariListesi"></div>
     <button class="btn-secondary" onclick="goHome()">GERİ</button>
 </div>
@@ -202,12 +201,35 @@ function openPage(pageId) {
     stopKamera();
     if(pageId === 'stokPage') stokListele();
     if(pageId === 'islemSatirlariPage') tabloGoster();
-    if(pageId === 'cariPage') cariListele();
+    if(pageId === 'cariPage') cariHepsiniGoster();
 }
 
 function goHome() { openPage('homePage'); }
 function toggleMenu() { document.getElementById('alisMenu').classList.toggle('hidden'); }
 
+// STOK İŞLEMLERİ
+function stokYeniKaydet() {
+    let b = document.getElementById('newBarkodInp').value;
+    let a = document.getElementById('newAdInp').value;
+    if(!b || !a) { alert("Boş bırakmayın!"); return; }
+    db_stok.push({ barkod: b, ad: a, stok: 0 });
+    localStorage.setItem("db_stok", JSON.stringify(db_stok));
+    alert("Ürün eklendi.");
+    openPage('stokPage');
+}
+
+function stokListele() {
+    let ara = document.getElementById('stokAra').value.toLowerCase();
+    let html = "";
+    // db_stok dizisini filtreleyip ekrana basıyoruz
+    let süzülmüs = db_stok.filter(s => s.ad.toLowerCase().includes(ara));
+    süzülmüs.forEach((s) => {
+        html += `<div class="card"><div><b>${s.ad}</b><br><small>${s.barkod} | Stok: ${s.stok || 0}</small></div></div>`;
+    });
+    document.getElementById('stokListesi').innerHTML = html || "Ürün bulunamadı.";
+}
+
+// ALIŞ İRSALİYESİ
 function yeniAlisBaslat() {
     yeniEvrak();
     openPage('alisPage');
@@ -222,8 +244,8 @@ function yeniEvrak() {
         tarih: new Date().toISOString().split('T')[0] 
     };
     document.getElementById('dispEvrakNo').innerText = aktifEvrak.no;
-    document.getElementById('belgeDinamik').value = randomNo; // ANA EKRAN İLE EŞLEŞTİ
-    document.getElementById('belgeNotIstegeBagli').value = ""; // 2. KUTU SIFIRLANDI
+    document.getElementById('belgeDinamik').value = randomNo;
+    document.getElementById('belgeNotIstegeBagli').value = ""; 
     document.getElementById('dispCari').innerText = "Seçilmedi";
     document.getElementById('islemTabloGövde').innerHTML = "";
     if(!document.getElementById('alisMenu').classList.contains('hidden')) toggleMenu();
@@ -246,16 +268,17 @@ function islemSatirlariKontrol() {
     }
 }
 
+// CARİ İŞLEMLERİ
 function cariEkle() {
     let ad = document.getElementById('cariName').value;
     if(!ad) return;
     db_cari.push(ad);
     localStorage.setItem("db_cari", JSON.stringify(db_cari));
     document.getElementById('cariName').value = "";
-    cariListele();
+    cariHepsiniGoster();
 }
 
-function cariListele() {
+function cariHepsiniGoster() {
     let html = "";
     db_cari.forEach(c => { html += `<div class="card">${c}</div>`; });
     document.getElementById('cariListesi').innerHTML = html;
@@ -289,21 +312,27 @@ function barkodGirisAc() {
     openPage('barkodGirisPage'); 
 }
 
+// ÜRÜN BULMA VE EKLEME
 function urunBul() {
     let b = document.getElementById('barcodeInp').value;
     let u = db_stok.find(x => x.barkod == b);
     if(u) {
-        document.getElementById('urunBilgiText').innerHTML = `<b>${u.ad}</b>`;
+        // Ürün bulunursa adet bilgisini (stok) buraya ekledik
+        document.getElementById('urunBilgiText').innerHTML = `<b>${u.ad}</b><br><small>Mevcut Stok: ${u.stok || 0}</small>`;
         document.getElementById('urunDetay').classList.remove('hidden');
-    } else { alert("Kayıtsız!"); }
+    } else { alert("Kayıtsız Ürün!"); }
 }
 
 function evragaEkle() {
     let m = parseInt(document.getElementById('adetInp').value);
     let b = document.getElementById('barcodeInp').value;
     let u = db_stok.find(x => x.barkod == b);
-    if(m > 0) {
+    if(m > 0 && u) {
         aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
+        // Stok güncelleme
+        u.stok = (u.stok || 0) + m;
+        localStorage.setItem("db_stok", JSON.stringify(db_stok));
+        
         document.getElementById('barcodeInp').value = "";
         document.getElementById('adetInp').value = "";
         document.getElementById('urunDetay').classList.add('hidden');
