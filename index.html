@@ -143,7 +143,7 @@
     </div>
     <button onclick="evrakSorgula()" style="background:#28a745;">EVRAKLARI GETİR</button>
     <table>
-        <thead><tr><th>TARİH</th><th>SIRA</th><th>CARİ ADI</th><th>TOPLAM</th></tr></thead>
+        <thead><tr><th>TARİH</th><th>SIRA (BELGE NO)</th><th>CARİ ADI</th><th>TOPLAM</th></tr></thead>
         <tbody id="evrakSorguGövde"></tbody>
     </table>
     <button class="btn-secondary" onclick="openPage('alisPage')">GERİ</button>
@@ -232,23 +232,29 @@ function openPage(pageId) {
 function goHome() { openPage('homePage'); }
 function toggleMenu() { document.getElementById('alisMenu').classList.toggle('hidden'); }
 
-// EVRAK İŞLEMLERİ
+// EVRAK İŞLEMLERİ - DÜZELTİLDİ
 function evrakSorgula() {
-    let sira = document.getElementById('filterSira').value;
+    let siraFiltre = document.getElementById('filterSira').value;
     let bas = document.getElementById('filterBasTar').value;
     let bit = document.getElementById('filterBitTar').value;
     let html = "";
+    
     let filtreli = db_evraklar.filter(e => {
-        let matchSira = sira ? e.sira.includes(sira) : true;
+        // Sira bilgisi undefined gelmemesi için e.sira kontrolü eklendi
+        let matchSira = siraFiltre ? (e.sira && e.sira.toString().includes(siraFiltre)) : true;
         let matchTar = (bas && bit) ? (e.tarih >= bas && e.tarih <= bit) : true;
         return matchSira && matchTar;
     });
+
     filtreli.forEach((e) => {
-        let toplamAdet = e.kalemler.reduce((a, b) => a + b.miktar, 0);
+        let toplamAdet = e.kalemler ? e.kalemler.reduce((a, b) => a + (b.miktar || 0), 0) : 0;
+        // e.sira boşsa yedek olarak evrak numarasının son parçasını gösterir
+        let gosterilecekSira = e.sira || (e.no ? e.no.split('-')[1] : "Bilinmiyor");
+        
         html += `<tr onclick="evrakYukle('${e.no}')" style="cursor:pointer">
-            <td>${e.tarih}</td>
-            <td>${e.sira}</td>
-            <td>${e.cari}</td>
+            <td>${e.tarih || '-'}</td>
+            <td>${gosterilecekSira}</td>
+            <td>${e.cari || 'Cari Seçilmemiş'}</td>
             <td>${toplamAdet}</td>
         </tr>`;
     });
@@ -261,6 +267,8 @@ function evrakYukle(evrakNo) {
         aktifEvrak = JSON.parse(JSON.stringify(evrak));
         document.getElementById('dispEvrakNo').innerText = aktifEvrak.no;
         document.getElementById('dispCari').innerText = aktifEvrak.cari;
+        // Evrak yüklendiğinde Belge No inputunu da dolduruyoruz
+        document.getElementById('belgeDinamik').value = aktifEvrak.sira;
         document.getElementById('btnEvrakSil').classList.remove('hidden');
         openPage('alisPage');
     }
@@ -269,13 +277,11 @@ function evrakYukle(evrakNo) {
 function evrakSil() {
     if(!confirm("Bu evrakı silmek istediğinize emin misiniz? Stoklar geri çekilecektir.")) return;
     
-    // Stokları geri al
     aktifEvrak.kalemler.forEach(item => {
         let urun = db_stok.find(s => s.barkod == item.barkod);
         if(urun) urun.stok = (urun.stok || 0) - item.miktar;
     });
 
-    // Listeden sil
     db_evraklar = db_evraklar.filter(e => e.no !== aktifEvrak.no);
     
     localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
@@ -322,7 +328,6 @@ function evragaEkle() {
     }
 }
 
-// DİĞER FONKSİYONLAR
 function barkodGirisAc() {
     if(!aktifEvrak.cari || aktifEvrak.cari === "Seçilmedi") { alert("Lütfen önce cari seçiniz!"); return; }
     openPage('barkodGirisPage');
@@ -352,6 +357,14 @@ function belgeKaydet() {
     aktifEvrak.sira = document.getElementById('belgeDinamik').value;
     aktifEvrak.no = "DENEME-" + aktifEvrak.sira;
     document.getElementById('dispEvrakNo').innerText = aktifEvrak.no;
+    
+    // Veritabanını güncelle
+    let exIdx = db_evraklar.findIndex(e => e.no === aktifEvrak.no);
+    if(exIdx > -1) {
+        db_evraklar[exIdx] = aktifEvrak;
+        localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
+    }
+    
     openPage('alisPage');
 }
 
