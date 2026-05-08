@@ -452,30 +452,34 @@ function kameraAc() {
         urunBul();
     });
 }
-function stopKamera() { if(html5QrCode) { html5QrCode.stop(); html5QrCode = null; } }
-
-// --- DİĞER ---
-function stokListele() {
-    let ara = document.getElementById('stokAra').value.toLowerCase();
-    let h = "";
-    db_stok.filter(s => s.ad.toLowerCase().includes(ara) || s.barkod.includes(ara)).forEach(s => {
-        h += `<div class="card"><div><b>${s.ad}</b><br><small>${s.barkod}</small></div><b>${s.stok}</b></div>`;
+function kameraAcStok() {
+    stopKamera();
+    html5QrCode = new Html5Qrcode("readerStok");
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
+        document.getElementById("newBarkodInp").value = text;
+        stopKamera();
     });
-    document.getElementById('stokListesi').innerHTML = h;
 }
+function stopKamera() { if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().then(() => html5QrCode.clear()); } }
 
-function cariEkle() {
-    let n = document.getElementById('cariName').value;
-    if(n) { db_cari.push(n); localStorage.setItem("db_cari", JSON.stringify(db_cari)); cariListele(); }
-}
-function cariListele() {
-    let ara = document.getElementById('cariAraKutusu').value.toLowerCase();
+function openCariSec() { cariFiltreleSec(); openPage('cariSecPage'); }
+function cariFiltreleSec() {
+    let ara = document.getElementById('cariSecAra').value.toLowerCase();
     let h = "";
     db_cari.filter(c => c.toLowerCase().includes(ara)).forEach(c => {
-        h += `<div class="card"><b>${c}</b></div>`;
+        h += `<div class="card" onclick="cariSecildi('${c}')">${c}</div>`;
     });
-    document.getElementById('cariListesi').innerHTML = h;
+    document.getElementById('cariSecListesi').innerHTML = h;
 }
+function cariSecildi(c) { aktifEvrak.cari = c; document.getElementById('dispCari').innerText = c; openPage('alisPage'); }
+function barkodGirisAc() { if(!aktifEvrak.cari) return showToast("Cari Seç!"); openPage('barkodGirisPage'); }
+function islemSatirlariKontrol() { 
+    let h = "";
+    aktifEvrak.kalemler.forEach(k => h += `<tr><td>${k.barkod}</td><td>${k.ad}</td><td>${k.miktar}</td></tr>`);
+    document.getElementById('islemTabloGövde').innerHTML = h;
+    openPage('islemSatirlariPage'); 
+}
+function belgeKaydet() { aktifEvrak.sira = document.getElementById('belgeDinamik').value; aktifEvrak.no = "EVR-" + aktifEvrak.sira; document.getElementById('dispEvrakNo').innerText = aktifEvrak.no; openPage('alisPage'); }
 </script>
 </body>
-</html>
+</html> 
