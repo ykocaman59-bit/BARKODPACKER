@@ -13,21 +13,21 @@
             --white: #ffffff;
         }
 
-        /* Başlangıçta Giriş Dışındaki Her Şeyi Gizle */
+        /* Başlangıçta sadece login görünsün */
         .box, #navBar, #homePage, .modal { display: none; }
         #loginPage { display: block; }
 
-        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f7f9; -webkit-user-select: none; user-select: none; }
-        .navbar { background: var(--primary-blue); color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f9; -webkit-user-select: none; user-select: none; }
+        .navbar { background: var(--primary-blue); color: white; padding: 10px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; position: sticky; top: 0; z-index: 100; }
         .box { padding: 15px; }
         .hidden { display: none !important; }
 
         button {
             width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 40px;
             background: var(--primary-blue); color: white; font-weight: bold; font-size: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; transition: 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer;
         }
-        button:active { transform: scale(0.98); }
+        button:active { transform: scale(0.98); opacity: 0.9; }
 
         input, select {
             width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd;
@@ -37,9 +37,10 @@
         .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--primary-blue); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         
         #reader, #readerStok { width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 10px; background: #000; }
-        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; font-size: 12px; }
-        th, td { padding: 10px; border: 1px solid #ddd; text-align: center; }
+        table { width: 100%; border-collapse: collapse; background: white; margin-top: 10px; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 11px; }
         
+        /* Bildirim Kutusu */
         #toast {
             visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
             text-align: center; border-radius: 10px; padding: 16px; position: fixed;
@@ -47,7 +48,8 @@
         }
         #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
 
-        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:10000; display:none; }
+        /* Onay Penceresi */
+        .modal { position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:10000; }
         .modal-content { background:white; padding:25px; border-radius:20px; width:80%; text-align:center; }
 
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
@@ -60,7 +62,7 @@
 
 <div id="modalOnay" class="modal">
     <div class="modal-content">
-        <h3 style="color:#333;">Silmek istediğinize emin misiniz?</h3>
+        <h3>Silmek istediğinize emin misiniz?</h3>
         <button id="confirmBtn" style="background:#28a745;">EVET, SİL</button>
         <button onclick="closeModal('modalOnay')" style="background:var(--danger-red); margin-top:10px;">HAYIR, İPTAL</button>
     </div>
@@ -71,7 +73,7 @@
         <h4 id="secilenCariAdi" style="color:var(--primary-blue);">Cari Seçildi</h4>
         <button onclick="islemBaslat('ALIS')">Alış İrsaliyesi</button>
         <button onclick="islemBaslat('SATIS')" style="background:var(--secondary-blue);">Satış İrsaliyesi</button>
-        <button onclick="closeModal('modalSecim')" style="background:var(--danger-red); margin-top:10px;">İPTAL</button>
+        <button onclick="closeModal('modalSecim')" style="background:var(--danger-red); margin-top:10px;">VAZGEÇ</button>
     </div>
 </div>
 
@@ -96,31 +98,33 @@
 <div id="homePage" class="box">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
         <button onclick="openPage('stokPage')">Stok Detay</button>
-        <button onclick="openPage('cariPage')" style="background:var(--secondary-blue);">Cari İşlemler</button>
-        <button onclick="yeniAlisBaslat()">Yeni Alış</button>
-        <button onclick="showToast('Hazırlanıyor...')" style="background:var(--secondary-blue);">Sayım Fişi</button>
+        <button style="background:var(--secondary-blue);" onclick="showToast('Hazırlanıyor...')">Sayım Fişi</button>
+        <button onclick="showToast('Hazırlanıyor...')">Deposevk</button>
+        <button style="background:var(--secondary-blue);" onclick="showToast('Satış İrsaliyesi')">Satış İrsaliyesi</button>
+        <button onclick="yeniAlisBaslat()">Alış İrsaliyesi</button>
+        <button style="background:var(--secondary-blue);" onclick="openPage('cariPage')">Cari</button>
     </div>
-    <button onclick="location.reload()" style="background:var(--danger-red); margin-top:40px;">Çıkış Yap</button>
+    <button style="background:var(--danger-red); margin-top:40px;" onclick="location.reload()">Çıkış Yap</button>
 </div>
 
 <div id="stokPage" class="box">
     <h3>STOK LİSTESİ</h3>
-    <button onclick="openPage('stokEklePage')" style="background: #28a745;">➕ YENİ STOK</button>
+    <button onclick="openPage('stokEklePage')" style="background: #28a745;">➕ YENİ STOK EKLE</button>
     <input id="stokAra" placeholder="Ürün Ara..." oninput="stokListele()">
     <div id="stokListesi"></div>
-    <button onclick="goHome()" style="background:var(--secondary-blue);">GERİ</button>
+    <button style="background:var(--secondary-blue);" onclick="goHome()">GERİ</button>
 </div>
 
 <div id="stokEklePage" class="box">
     <h3 id="stokFormBaslik">YENİ STOK KARTI</h3>
     <div id="readerStok"></div>
-    <div style="display:flex; gap:5px;">
+    <div style="display: flex; gap: 5px;">
         <input id="newBarkodInp" placeholder="Barkod No">
-        <button onclick="kameraAcStok()" style="width:60px;">📷</button>
+        <button onclick="kameraAcStok()" style="width: 60px;">📷</button>
     </div>
     <input id="newAdInp" placeholder="Ürün Adı">
-    <button onclick="stokYeniKaydet()" style="background:#28a745;">KAYDET</button>
-    <button onclick="openPage('stokPage')" style="background:var(--secondary-blue);">İPTAL</button>
+    <button id="btnStokKaydet" onclick="stokYeniKaydet()" style="background: #28a745;">KAYDET</button>
+    <button style="background:var(--secondary-blue);" onclick="openPage('stokPage')">İPTAL</button>
 </div>
 
 <div id="cariPage" class="box">
@@ -130,13 +134,13 @@
     <hr>
     <input id="cariAraKutusu" placeholder="Cari Ara..." oninput="cariListele()">
     <div id="cariListesi"></div>
-    <button onclick="goHome()" style="background:var(--secondary-blue);">GERİ</button>
+    <button style="background:var(--secondary-blue);" onclick="goHome()">GERİ</button>
 </div>
 
 <div id="cariSecPage" class="box">
     <input id="cariSecAra" placeholder="Cari Bul..." oninput="cariFiltreleSec()">
     <div id="cariSecListesi"></div>
-    <button onclick="openPage('alisPage')" style="background:var(--secondary-blue);">GERİ</button>
+    <button style="background:var(--secondary-blue);" onclick="openPage('alisPage')">GERİ</button>
 </div>
 
 <div id="alisPage" class="box">
@@ -157,9 +161,9 @@
 </div>
 
 <div id="barkodGirisPage" class="box">
-    <div style="display:flex; gap:5px;">
+    <div style="display: flex; gap: 5px;">
         <input id="barcodeInp" placeholder="Barkod Girin">
-        <button onclick="kameraAc()" style="width:60px;">📷</button>
+        <button onclick="kameraAc()" style="width: 60px;">📷</button>
     </div>
     <div id="reader"></div>
     <div id="urunDetay" class="hidden">
@@ -167,13 +171,13 @@
         <input id="adetInp" type="number" placeholder="Miktar">
         <button onclick="evragaEkle()" style="background:#28a745">EKLE</button>
     </div>
-    <button onclick="islemSatirlariKontrol()" style="background:var(--secondary-blue);">📋 SATIRLAR</button>
-    <button onclick="openPage('alisPage')" style="background:var(--secondary-blue);">GERİ</button>
+    <button style="background:var(--secondary-blue);" onclick="islemSatirlariKontrol()">📋 SATIRLAR</button>
+    <button style="background:var(--secondary-blue);" onclick="openPage('alisPage')">GERİ</button>
 </div>
 
 <div id="evrakListesiPage" class="box">
     <h3>EVRAK SORGULAMA</h3>
-    <div style="display:flex; gap:5px;">
+    <div style="display: flex; gap: 5px;">
         <input type="date" id="filterBasTar">
         <input type="date" id="filterBitTar">
     </div>
@@ -182,7 +186,7 @@
         <thead><tr><th>Tarih</th><th>No</th><th>Cari</th></tr></thead>
         <tbody id="evrakSorguGövde"></tbody>
     </table>
-    <button onclick="openPage('alisPage')" style="background:var(--secondary-blue); margin-top:10px;">GERİ</button>
+    <button style="background:var(--secondary-blue); margin-top:10px;" onclick="openPage('alisPage')">GERİ</button>
 </div>
 
 <div id="islemSatirlariPage" class="box">
@@ -194,9 +198,9 @@
 </div>
 
 <div id="belgeNoPage" class="box">
-    <input id="belgeDinamik" placeholder="Sıra No">
+    <input id="belgeDinamik" placeholder="Sıra No Giriniz">
     <button onclick="belgeKaydet()">KAYDET</button>
-    <button onclick="openPage('alisPage')" style="background:var(--secondary-blue);">GERİ</button>
+    <button style="background:var(--secondary-blue);" onclick="openPage('alisPage')">GERİ</button>
 </div>
 
 <script>
@@ -205,7 +209,6 @@ let db_cari = JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda"]');
 let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
 let aktifEvrak = { no: "", cari: "", kalemler: [], tarih: "", tur: "ALIS" };
 let html5QrCode = null;
-let editIndex = -1;
 
 function showToast(msg) {
     let x = document.getElementById("toast");
@@ -213,12 +216,18 @@ function showToast(msg) {
     setTimeout(() => { x.className = ""; }, 3000);
 }
 
+// GİRİŞ: FİRMA ZORUNLU
 function login() {
-    if(document.getElementById('userInp').value === "admin" && document.getElementById('passInp').value === "1234") {
+    const u = document.getElementById('userInp').value;
+    const p = document.getElementById('passInp').value;
+    const f = document.getElementById('firmaInp').value;
+    if (u === "admin" && p === "1234" && f !== "") {
         document.getElementById('loginPage').style.display = 'none';
         goHome();
-        showToast("Başarılı");
-    } else { showToast("Hatalı Giriş!"); }
+        showToast("Giriş Yapıldı");
+    } else {
+        showToast(f === "" ? "Lütfen Firma Seçiniz!" : "Hatalı Bilgi!");
+    }
 }
 
 function openPage(id) {
@@ -228,7 +237,6 @@ function openPage(id) {
     stopKamera();
     if(id === 'stokPage') stokListele();
     if(id === 'cariPage') cariListele();
-    if(id === 'cariSecPage') cariFiltreleSec();
 }
 
 function goHome() {
@@ -240,7 +248,7 @@ function goHome() {
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 function toggleMenu() { document.getElementById('alisMenu').classList.toggle('hidden'); }
 
-// SİLME ONAYI
+// SİLME ONAYI (MODAL)
 function confirmSil(tip, index) {
     const modal = document.getElementById('modalOnay');
     modal.style.display = 'flex';
@@ -265,7 +273,7 @@ function stokListele() {
         html += `<div class="card"><div><b>${s.ad}</b><br><small>Stok: ${s.stok}</small></div>
         <button onclick="confirmSil('STOK', ${i})" style="width:auto; background:var(--danger-red); padding:5px 10px;">X</button></div>`;
     });
-    document.getElementById('stokListesi').innerHTML = html;
+    document.getElementById('stokListesi').innerHTML = html || "Kayıt yok.";
 }
 function stokYeniKaydet() {
     let b = document.getElementById('newBarkodInp').value;
@@ -284,7 +292,7 @@ function cariListele() {
 }
 function cariEkle() {
     let ad = document.getElementById('cariName').value;
-    if(ad) { db_cari.push(ad); localStorage.setItem("db_cari", JSON.stringify(db_cari)); cariListele(); }
+    if(ad) { db_cari.push(ad); localStorage.setItem("db_cari", JSON.stringify(db_cari)); document.getElementById('cariName').value=""; cariListele(); }
 }
 function cariFiltreleSec() {
     let html = "";
@@ -303,7 +311,7 @@ function islemBaslat(tur) {
     closeModal('modalSecim'); openPage('alisPage');
 }
 
-// İRSALİYE / EVRAK
+// EVRAK
 function yeniAlisBaslat() { yeniEvrak(); openPage('alisPage'); }
 function yeniEvrak() {
     let rnd = Math.floor(Math.random()*9000+1000);
@@ -332,15 +340,15 @@ function evrakSorgula() {
     db_evraklar.filter(e => e.tarih >= bas && e.tarih <= bit).forEach(e => {
         html += `<tr onclick="evrakYukle('${e.no}')"><td>${e.tarih}</td><td>${e.no}</td><td>${e.cari}</td></tr>`;
     });
-    document.getElementById('evrakSorguGövde').innerHTML = html;
+    document.getElementById('evrakSorguGövde').innerHTML = html || "<tr><td colspan='3'>Kayıt yok</td></tr>";
 }
 function evrakYukle(no) {
     let e = db_evraklar.find(x => x.no === no);
     if(e) { aktifEvrak = e; document.getElementById('dispEvrakNo').innerText = e.no; document.getElementById('dispCari').innerText = e.cari; openPage('alisPage'); document.getElementById('btnEvrakSil').classList.remove('hidden'); }
 }
 
-// DİĞER
-function barkodGirisAc() { if(!aktifEvrak.cari) return showToast("Cari Seç!"); openPage('barkodGirisPage'); }
+// BARKOD & KAMERA
+function barkodGirisAc() { if(!aktifEvrak.cari) return showToast("Cari Seçiniz!"); openPage('barkodGirisPage'); }
 function islemSatirlariKontrol() { 
     let html = ""; 
     aktifEvrak.kalemler.forEach(k => html += `<tr><td>${k.ad}</td><td>${k.miktar}</td></tr>`);
@@ -352,7 +360,7 @@ function kameraAcStok() { stopKamera(); html5QrCode = new Html5Qrcode("readerSto
 function stopKamera() { if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().then(() => html5QrCode.clear()); } }
 function urunBul() {
     let u = db_stok.find(x => x.barkod == document.getElementById('barcodeInp').value);
-    if(u) { document.getElementById('urunBilgiText').innerText = u.ad; document.getElementById('urunDetay').classList.remove('hidden'); } else showToast("Kayıtsız!");
+    if(u) { document.getElementById('urunBilgiText').innerText = u.ad; document.getElementById('urunDetay').classList.remove('hidden'); } else showToast("Kayıtsız Barkod!");
 }
 function belgeKaydet() { aktifEvrak.no = "DENEME-"+document.getElementById('belgeDinamik').value; document.getElementById('dispEvrakNo').innerText = aktifEvrak.no; openPage('alisPage'); }
 </script>
