@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
 <title>BARKODPACKER ERP</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
+
 :root{
     --primary-blue:#4a90e2;
     --secondary-blue:#5cb8d1;
@@ -89,9 +91,6 @@ input,select{
     border-radius:12px;
     margin-bottom:10px;
     border-left:5px solid var(--primary-blue);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
     box-shadow:0 2px 4px rgba(0,0,0,0.05);
 }
 
@@ -177,7 +176,7 @@ td{
 
 #toast.show{
     visibility:visible;
-    animation:fadein 0.5s,fadeout 0.5s 2.5s;
+    animation:fadein 0.5s, fadeout 0.5s 2.5s;
 }
 
 @keyframes fadein{
@@ -189,6 +188,7 @@ td{
     from{bottom:30px;opacity:1;}
     to{bottom:0;opacity:0;}
 }
+
 </style>
 </head>
 
@@ -199,9 +199,13 @@ td{
 <!-- LOGIN -->
 
 <div id="loginPage" class="box" style="text-align:center;margin-top:50px;">
-    <h2 style="color:var(--primary-blue);">BARKODPACKER</h2>
+
+    <h2 style="color:var(--primary-blue);">
+        BARKODPACKER
+    </h2>
 
     <input id="userInp" placeholder="Kullanıcı Adı">
+
     <input id="passInp" type="password" placeholder="Şifre">
 
     <select id="firmaInp">
@@ -211,13 +215,22 @@ td{
     </select>
 
     <button onclick="login()">GİRİŞ</button>
+
 </div>
 
-<!-- NAV -->
+<!-- NAVBAR -->
 
 <div class="navbar hidden" id="navBar">
+
     <span>Online</span>
-    <button style="width:auto;padding:5px 15px;margin:0;" onclick="goHome()">🏠</button>
+
+    <button
+        style="width:auto;padding:5px 15px;margin:0;"
+        onclick="goHome()"
+    >
+        🏠
+    </button>
+
 </div>
 
 <!-- HOME -->
@@ -226,7 +239,9 @@ td{
 
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
 
-        <button onclick="openPage('stokPage')">Stok Detay</button>
+        <button onclick="openPage('stokPage')">
+            Stok Detay
+        </button>
 
         <button class="btn-secondary">
             Sayım Fişi
@@ -244,7 +259,7 @@ td{
             Alış İrsaliyesi
         </button>
 
-        <button class="btn-secondary" onclick="openPage('cariPage')">
+        <button onclick="openPage('cariPage')" class="btn-secondary">
             Cari
         </button>
 
@@ -262,27 +277,40 @@ td{
 
     <h3>STOK LİSTESİ</h3>
 
-    <button onclick="stokEkleMenuAc()" style="background:#28a745;">
+    <button
+        onclick="stokEkleMenuAc()"
+        style="background:#28a745;"
+    >
         + STOK EKLE
     </button>
 
-    <input id="stokAra" placeholder="Ürün Ara..." oninput="stokListele()">
+    <input
+        id="stokAra"
+        placeholder="Ürün Ara..."
+        oninput="stokListele()"
+    >
 
     <div id="stokListesi"></div>
 
-    <button class="btn-secondary" onclick="goHome()">
+    <button
+        class="btn-secondary"
+        onclick="goHome()"
+    >
         GERİ
     </button>
 
 </div>
 
-<!-- CARİ PAGE -->
+<!-- CARİ -->
 
 <div id="cariPage" class="box hidden">
 
     <h3>CARİ YÖNETİMİ</h3>
 
-    <input id="cariName" placeholder="Yeni Cari Adı">
+    <input
+        id="cariName"
+        placeholder="Yeni Cari Adı"
+    >
 
     <button onclick="cariEkle()">
         EKLE
@@ -290,34 +318,46 @@ td{
 
     <hr>
 
-    <input id="cariAraKutusu" placeholder="Cari Ara..." oninput="cariListeleHepsini()">
+    <input
+        id="cariAraKutusu"
+        placeholder="Cari Ara..."
+        oninput="cariListeleHepsini()"
+    >
 
     <div id="cariListesi"></div>
 
-    <button class="btn-secondary" onclick="goHome()">
+    <button
+        class="btn-secondary"
+        onclick="goHome()"
+    >
         GERİ
     </button>
 
 </div>
 
-<!-- STOK EKLE MENU -->
+<!-- STOK EKLE MODAL -->
 
-<div id="stokEkleModal" class="modal">
+<div id="stokEkleSecimModal" class="modal">
 
     <div class="modal-content">
 
-        <h3>STOK EKLE</h3>
+        <h3>Stok Ekle</h3>
 
-        <button onclick="manuelStokAc()" style="background:#28a745;">
+        <button onclick="manuelStokFormAc()">
             Manuel Stok Ekle
         </button>
 
-        <button onclick="barkodluStokAc()">
+        <button
+            onclick="barkodluStokFormAc()"
+            style="background:#28a745;"
+        >
             Barkod Okuyucu ile Ekle
         </button>
 
-        <button class="btn-secondary"
-        onclick="kapatModal('stokEkleModal')">
+        <button
+            class="btn-secondary"
+            onclick="kapatModal('stokEkleSecimModal')"
+        >
             İPTAL
         </button>
 
@@ -325,24 +365,35 @@ td{
 
 </div>
 
-<!-- MANUEL -->
+<!-- MANUEL STOK -->
 
 <div id="manuelStokModal" class="modal">
 
     <div class="modal-content">
 
-        <h3>MANUEL STOK EKLE</h3>
+        <h3>Manuel Stok Ekle</h3>
 
-        <input id="manuelBarkod" placeholder="Barkod No">
+        <input
+            id="manuelBarkodInp"
+            placeholder="Barkod No"
+        >
 
-        <input id="manuelUrunAdi" placeholder="Ürün Adı">
+        <input
+            id="manuelUrunInp"
+            placeholder="Ürün Adı"
+        >
 
-        <button onclick="manuelStokKaydet()" style="background:#28a745;">
+        <button
+            onclick="manuelStokKaydet()"
+            style="background:#28a745;"
+        >
             EKLE VE KAYDET
         </button>
 
-        <button class="btn-secondary"
-        onclick="kapatModal('manuelStokModal')">
+        <button
+            class="btn-secondary"
+            onclick="kapatModal('manuelStokModal')"
+        >
             İPTAL
         </button>
 
@@ -350,23 +401,38 @@ td{
 
 </div>
 
-<!-- BARKODLU -->
+<!-- BARKODLU STOK -->
 
 <div id="barkodluStokModal" class="modal">
 
     <div class="modal-content">
 
-        <h3>BARKOD OKUT</h3>
+        <h3>Barkod Okut</h3>
 
         <div id="readerStok"></div>
 
-        <input id="barkodluUrunAdi" placeholder="Ürün Adı">
+        <input
+            id="okutulanBarkodInp"
+            placeholder="Okutulan Barkod"
+            readonly
+        >
 
-        <button onclick="barkodluStokKaydet()" style="background:#28a745;">
+        <input
+            id="okutulanUrunInp"
+            placeholder="Ürün Adı"
+        >
+
+        <button
+            onclick="barkodluStokKaydet()"
+            style="background:#28a745;"
+        >
             EKLE VE KAYDET
         </button>
 
-        <button class="btn-secondary" onclick="stokKameraKapat()">
+        <button
+            class="btn-secondary"
+            onclick="stokKameraKapat()"
+        >
             İPTAL
         </button>
 
@@ -382,8 +448,6 @@ let db_cari = JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda"]');
 
 let html5QrCodeStok = null;
 
-let stokBarkod = "";
-
 /* TOAST */
 
 function showToast(msg){
@@ -394,7 +458,7 @@ function showToast(msg){
 
     x.className = "show";
 
-    setTimeout(()=>{
+    setTimeout(() => {
         x.className = "";
     },3000);
 }
@@ -427,15 +491,12 @@ function login(){
 
         goHome();
 
-        showToast("Giriş başarılı");
+        showToast("Giriş Başarılı");
 
     }else{
-
         showToast("Hatalı giriş");
     }
 }
-
-/* LOGOUT */
 
 function logout(){
     location.reload();
@@ -481,29 +542,39 @@ function stokListele(){
 
             h += `
             <div class="card">
-                <div>
-                    <b>${s.ad}</b>
-                    <br>
-                    <small>
-                        ${s.barkod} | Stok: ${s.stok}
-                    </small>
-                </div>
+
+                <b>${s.ad}</b>
+
+                <br>
+
+                <small>
+                    Barkod: ${s.barkod}
+                </small>
+
+                <br>
+
+                <small>
+                    Stok: ${s.stok}
+                </small>
+
             </div>
             `;
         }
+
     });
 
     document.getElementById('stokListesi').innerHTML =
-    h || "Kayıt Yok";
+        h || "Kayıt Yok";
 }
 
 /* CARİ */
 
 function cariListeleHepsini(){
 
-    let ara =
-    (document.getElementById('cariAraKutusu')?.value || "")
-    .toLowerCase();
+    let ara = document
+        .getElementById('cariAraKutusu')
+        .value
+        .toLowerCase();
 
     let h = "";
 
@@ -517,6 +588,7 @@ function cariListeleHepsini(){
             </div>
             `;
         }
+
     });
 
     document.getElementById('cariListesi').innerHTML = h;
@@ -530,7 +602,10 @@ function cariEkle(){
 
     db_cari.push(c);
 
-    localStorage.setItem("db_cari",JSON.stringify(db_cari));
+    localStorage.setItem(
+        "db_cari",
+        JSON.stringify(db_cari)
+    );
 
     document.getElementById('cariName').value = "";
 
@@ -542,50 +617,63 @@ function cariEkle(){
 /* MODAL */
 
 function kapatModal(id){
-    document.getElementById(id).style.display = 'none';
+    document.getElementById(id).style.display = "none";
 }
 
 /* STOK EKLE */
 
 function stokEkleMenuAc(){
 
-    document.getElementById('stokEkleModal').style.display='flex';
+    document.getElementById(
+        "stokEkleSecimModal"
+    ).style.display = "flex";
 }
 
 /* MANUEL */
 
-function manuelStokAc(){
+function manuelStokFormAc(){
 
-    kapatModal('stokEkleModal');
+    kapatModal("stokEkleSecimModal");
 
-    document.getElementById('manuelStokModal').style.display='flex';
+    document.getElementById(
+        "manuelBarkodInp"
+    ).value = "";
 
-    document.getElementById('manuelBarkod').value = "";
+    document.getElementById(
+        "manuelUrunInp"
+    ).value = "";
 
-    document.getElementById('manuelUrunAdi').value = "";
+    document.getElementById(
+        "manuelStokModal"
+    ).style.display = "flex";
 }
 
 function manuelStokKaydet(){
 
-    let barkod =
-    document.getElementById('manuelBarkod').value.trim();
+    let barkod = document
+        .getElementById("manuelBarkodInp")
+        .value
+        .trim();
 
-    let ad =
-    document.getElementById('manuelUrunAdi').value.trim();
+    let urun = document
+        .getElementById("manuelUrunInp")
+        .value
+        .trim();
 
-    if(!barkod || !ad){
+    if(!barkod || !urun){
 
-        showToast("Bilgileri doldurunuz");
+        showToast("Tüm alanları doldurun");
 
         return;
     }
 
-    let varmi =
-    db_stok.find(x=>x.barkod == barkod);
+    let varMi = db_stok.find(
+        x => x.barkod == barkod
+    );
 
-    if(varmi){
+    if(varMi){
 
-        showToast("Bu barkod kayıtlı");
+        showToast("Bu barkod zaten kayıtlı");
 
         return;
     }
@@ -593,10 +681,9 @@ function manuelStokKaydet(){
     db_stok.push({
 
         barkod:barkod,
-
-        ad:ad,
-
+        ad:urun,
         stok:0
+
     });
 
     localStorage.setItem(
@@ -604,7 +691,7 @@ function manuelStokKaydet(){
         JSON.stringify(db_stok)
     );
 
-    kapatModal('manuelStokModal');
+    kapatModal("manuelStokModal");
 
     stokListele();
 
@@ -613,15 +700,30 @@ function manuelStokKaydet(){
 
 /* BARKODLU */
 
-function barkodluStokAc(){
+function barkodluStokFormAc(){
 
-    kapatModal('stokEkleModal');
+    kapatModal("stokEkleSecimModal");
 
-    document.getElementById('barkodluStokModal').style.display='flex';
+    document.getElementById(
+        "okutulanBarkodInp"
+    ).value = "";
 
-    document.getElementById('barkodluUrunAdi').value = "";
+    document.getElementById(
+        "okutulanUrunInp"
+    ).value = "";
 
-    stokBarkod = "";
+    document.getElementById(
+        "barkodluStokModal"
+    ).style.display = "flex";
+
+    stokKameraAc();
+}
+
+/* KAMERA */
+
+function stokKameraAc(){
+
+    stokKameraDurdur();
 
     html5QrCodeStok = new Html5Qrcode("readerStok");
 
@@ -634,40 +736,72 @@ function barkodluStokAc(){
             qrbox:250
         },
 
-        (text)=>{
+        (decodedText)=>{
 
-            stokBarkod = text;
+            document.getElementById(
+                "okutulanBarkodInp"
+            ).value = decodedText;
+
+            stokKameraDurdur();
 
             showToast("Barkod okundu");
-
-            html5QrCodeStok.stop();
         }
     );
 }
 
+function stokKameraDurdur(){
+
+    if(html5QrCodeStok){
+
+        html5QrCodeStok
+        .stop()
+        .then(()=>{
+            html5QrCodeStok.clear();
+        })
+        .catch(err=>{});
+    }
+}
+
+function stokKameraKapat(){
+
+    stokKameraDurdur();
+
+    kapatModal("barkodluStokModal");
+}
+
+/* BARKODLU KAYDET */
+
 function barkodluStokKaydet(){
 
-    let ad =
-    document.getElementById('barkodluUrunAdi').value.trim();
+    let barkod = document
+        .getElementById("okutulanBarkodInp")
+        .value
+        .trim();
 
-    if(!stokBarkod){
+    let urun = document
+        .getElementById("okutulanUrunInp")
+        .value
+        .trim();
 
-        showToast("Önce barkod okutunuz");
+    if(!barkod){
+
+        showToast("Önce barkod okut");
 
         return;
     }
 
-    if(!ad){
+    if(!urun){
 
-        showToast("Ürün adı giriniz");
+        showToast("Ürün adı gir");
 
         return;
     }
 
-    let varmi =
-    db_stok.find(x=>x.barkod == stokBarkod);
+    let varMi = db_stok.find(
+        x => x.barkod == barkod
+    );
 
-    if(varmi){
+    if(varMi){
 
         showToast("Bu barkod kayıtlı");
 
@@ -676,11 +810,10 @@ function barkodluStokKaydet(){
 
     db_stok.push({
 
-        barkod:stokBarkod,
-
-        ad:ad,
-
+        barkod:barkod,
+        ad:urun,
         stok:0
+
     });
 
     localStorage.setItem(
@@ -688,25 +821,11 @@ function barkodluStokKaydet(){
         JSON.stringify(db_stok)
     );
 
-    stokListele();
-
     stokKameraKapat();
 
+    stokListele();
+
     showToast("Stok eklendi");
-}
-
-function stokKameraKapat(){
-
-    if(html5QrCodeStok){
-
-        html5QrCodeStok.stop()
-        .then(()=>{
-            html5QrCodeStok.clear();
-        })
-        .catch(()=>{});
-    }
-
-    kapatModal('barkodluStokModal');
 }
 
 </script>
