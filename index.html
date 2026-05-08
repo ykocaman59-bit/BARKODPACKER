@@ -2,204 +2,88 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BARKODPACKER ERP</title>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
 <style>
 
-:root{
-    --primary-blue:#4a90e2;
-    --secondary-blue:#5cb8d1;
-    --danger-red:#ff5e5e;
-    --white:#ffffff;
-}
-
-/* KOPYALAMAYI ENGELLE */
-body,button,label,span,td,th{
-    -webkit-user-select:none;
-    -moz-user-select:none;
-    -ms-user-select:none;
-    user-select:none;
-}
-
 body{
     margin:0;
-    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
-    background:#f4f7f9;
+    font-family:Arial;
+    background:#f1f5f9;
 }
+
+.hidden{display:none;}
 
 .navbar{
-    background:linear-gradient(90deg,#4a90e2,#5cb8d1);
+    background:#2563eb;
     color:white;
-    padding:10px;
+    padding:12px;
     display:flex;
-    align-items:center;
     justify-content:space-between;
+    align-items:center;
     font-weight:bold;
-    box-shadow:0 2px 8px rgba(0,0,0,0.15);
 }
 
-.box{
-    padding:15px;
-}
-
-.hidden{
-    display:none !important;
-}
+.box{padding:15px;}
 
 button{
     width:100%;
-    padding:15px;
-    margin:8px 0;
+    padding:14px;
     border:none;
-    border-radius:40px;
-    background:var(--primary-blue);
-    color:white;
-    font-weight:bold;
+    border-radius:14px;
+    margin-top:8px;
     font-size:16px;
-    box-shadow:0 4px 6px rgba(0,0,0,0.1);
-    cursor:pointer;
-    transition:0.2s;
-}
-
-button:active{
-    transform:scale(0.98);
-}
-
-.btn-secondary{
-    background:var(--secondary-blue);
-}
-
-.btn-exit{
-    background:var(--danger-red);
-    margin-top:20px;
-}
-
-.btn-danger-sm{
-    background:var(--danger-red);
-    width:auto;
-    padding:8px 12px;
-    border-radius:8px;
-    font-size:12px;
+    font-weight:bold;
     color:white;
-    margin-left:5px;
+    background:#2563eb;
 }
 
-.btn-edit-sm{
-    background:#f39c12;
-    width:auto;
-    padding:8px 12px;
-    border-radius:8px;
-    font-size:12px;
-    color:white;
-}
+.btn-red{background:#ef4444;}
+.btn-green{background:#22c55e;}
+.btn-orange{background:#f59e0b;}
+.btn-gray{background:#64748b;}
 
 input,select{
     width:100%;
     padding:12px;
-    margin:8px 0;
-    border:1px solid #ddd;
     border-radius:12px;
+    border:1px solid #ccc;
+    margin-top:8px;
     box-sizing:border-box;
 }
 
 .card{
     background:white;
-    padding:15px;
+    padding:12px;
     border-radius:12px;
-    margin-bottom:10px;
-    border-left:5px solid var(--primary-blue);
+    margin-top:10px;
     display:flex;
     justify-content:space-between;
     align-items:center;
-    box-shadow:0 2px 4px rgba(0,0,0,0.05);
 }
 
-/* MODAL */
-.modal{
-    position:fixed;
-    top:0;
-    left:0;
+.smallBtn{
+    width:auto;
+    padding:8px 10px;
+    border-radius:8px;
+    margin-left:5px;
+}
+
+table{
     width:100%;
-    height:100%;
-    background:rgba(0,0,0,0.6);
-    display:none;
-    justify-content:center;
-    align-items:center;
-    z-index:10001;
-}
-
-.modal-content{
     background:white;
-    padding:20px;
-    border-radius:15px;
-    width:85%;
-    text-align:center;
-}
-
-#toast{
-    visibility:hidden;
-    min-width:250px;
-    background-color:#333;
-    color:#fff;
-    text-align:center;
     border-radius:10px;
-    padding:16px;
-    position:fixed;
-    z-index:11000;
-    left:50%;
-    bottom:30px;
-    transform:translateX(-50%);
-}
-
-#toast.show{
-    visibility:visible;
-    animation:fadein 0.5s,fadeout 0.5s 2.5s;
-}
-
-@keyframes fadein{
-    from{
-        bottom:0;
-        opacity:0;
-    }
-    to{
-        bottom:30px;
-        opacity:1;
-    }
-}
-
-@keyframes fadeout{
-    from{
-        bottom:30px;
-        opacity:1;
-    }
-    to{
-        bottom:0;
-        opacity:0;
-    }
-}
-
-#evrakTable{
-    width:100%;
-    background:white;
-    border-radius:12px;
-    overflow:hidden;
     margin-top:10px;
-    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    border-collapse:collapse;
 }
 
-#evrakTable th{
-    background:#4a90e2;
-    color:white;
+th,td{
     padding:10px;
-}
-
-#evrakTable td{
-    padding:10px;
-    border-bottom:1px solid #eee;
+    border-bottom:1px solid #ddd;
+    text-align:left;
 }
 
 </style>
@@ -207,671 +91,121 @@ input,select{
 
 <body>
 
-<div id="toast">Bildirim</div>
-
-<div id="customConfirm" class="modal">
-
-    <div class="modal-content">
-
-        <h3>Emin misiniz?</h3>
-
-        <p id="confirmText">
-            Bu işlem geri alınamaz.
-        </p>
-
-        <button id="confirmYes"
-                style="background:#28a745;">
-
-            EVET
-
-        </button>
-
-        <button onclick="closeConfirm()"
-                style="background:#ff5e5e;">
-
-            HAYIR
-
-        </button>
-
-    </div>
-
+<div class="navbar hidden" id="navbar">
+    <span>BARKODPACKER ERP</span>
 </div>
 
-<!-- LOGIN -->
-
-<div id="loginPage"
-     class="box"
-     style="text-align:center;margin-top:50px;">
-
-    <h2 style="color:#4a90e2;">
-        BARKODPACKER
-    </h2>
-
-    <input id="userInp"
-           placeholder="Kullanıcı Adı">
-
-    <input id="passInp"
-           type="password"
-           placeholder="Şifre">
-
+<div id="loginPage" class="box">
+    <h2>Giriş</h2>
+    <input id="userInp">
+    <input id="passInp" type="password">
     <select id="firmaInp">
-
-        <option value="">
-            Firma Seçiniz
-        </option>
-
-        <option value="Demo">
-            Demo
-        </option>
-
-        <option value="Test">
-            Test LTD
-        </option>
-
+        <option value="">Firma</option>
+        <option>Demo</option>
     </select>
-
-    <button onclick="login()">
-        GİRİŞ
-    </button>
-
+    <button onclick="login()">GİRİŞ</button>
 </div>
 
-<!-- NAVBAR -->
-
-<div class="navbar hidden"
-     id="navBar">
-
-    <div style="width:60px;">
-        Online
-    </div>
-
-    <div style="
-        flex:1;
-        display:flex;
-        justify-content:center;">
-
-        <button onclick="goHome()"
-                style="
-                width:55px;
-                height:55px;
-                border-radius:50%;
-                padding:0;
-                margin:0;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                font-size:24px;">
-
-            🏠
-
-        </button>
-
-    </div>
-
-    <div style="
-        width:60px;
-        text-align:right;
-        font-size:24px;">
-
-        •••
-
-    </div>
-
+<div id="homePage" class="box hidden">
+    <button onclick="openPage('evrakListesiPage')">EVRAK GETİR</button>
 </div>
 
-<!-- HOME -->
+<div id="evrakListesiPage" class="box hidden">
 
-<div id="homePage"
-     class="box hidden">
+    <h3>EVRAK SORGULAMA</h3>
 
-    <div style="
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:10px;">
+    <label>İlk Tarih</label>
+    <input type="date" id="filterBasTar">
 
-        <button onclick="openPage('stokPage')">
-            Stok Detay
-        </button>
+    <label>Son Tarih</label>
+    <input type="date" id="filterBitTar">
 
-        <button class="btn-secondary">
-            Sayım Fişi
-        </button>
+    <button onclick="evrakSorgula()" style="background:#22c55e;">EVRAKLARI GETİR</button>
 
-        <button>
-            Deposevk
-        </button>
-
-        <button class="btn-secondary">
-            Satış İrsaliyesi
-        </button>
-
-        <button onclick="yeniAlisBaslat()">
-            Alış İrsaliyesi
-        </button>
-
-        <button class="btn-secondary"
-                onclick="openPage('cariPage')">
-
-            Cari
-
-        </button>
-
-    </div>
-
-    <button class="btn-exit"
-            onclick="logout()">
-
-        Çıkış
-
-    </button>
-
-</div>
-
-<!-- STOK -->
-
-<div id="stokPage"
-     class="box hidden">
-
-    <h3>STOK LİSTESİ</h3>
-
-    <button onclick="openPage('stokEklePage')"
-            style="background:#28a745;">
-
-        ➕ YENİ STOK EKLE
-
-    </button>
-
-    <input id="stokAra"
-           placeholder="Ürün veya Barkod Ara..."
-           oninput="stokListele()">
-
-    <div id="stokListesi"></div>
-
-    <button class="btn-secondary"
-            onclick="goHome()">
-
-        GERİ
-
-    </button>
-
-</div>
-
-<!-- STOK EKLE -->
-
-<div id="stokEklePage"
-     class="box hidden">
-
-    <h3 id="stokFormBaslik">
-        YENİ STOK KARTI
-    </h3>
-
-    <div id="readerStok"></div>
-
-    <div style="display:flex;gap:5px;">
-
-        <input id="newBarkodInp"
-               placeholder="Barkod No">
-
-        <button onclick="kameraAcStok()"
-                style="width:60px;">
-
-            📷
-
-        </button>
-
-    </div>
-
-    <input id="newAdInp"
-           placeholder="Ürün Adı">
-
-    <button id="btnStokKaydet"
-            onclick="stokYeniKaydet()"
-            style="background:#28a745;">
-
-        KAYDET
-
-    </button>
-
-    <button class="btn-secondary"
-            onclick="openPage('stokPage')">
-
-        İPTAL
-
-    </button>
-
-</div>
-
-<!-- CARİ -->
-
-<div id="cariPage"
-     class="box hidden">
-
-    <h3>CARİ YÖNETİMİ</h3>
-
-    <input id="cariName"
-           placeholder="Yeni Cari Adı">
-
-    <button id="btnCariEkle"
-            onclick="cariEkle()">
-
-        EKLE
-
-    </button>
-
-    <hr>
-
-    <input id="cariAraKutusu"
-           placeholder="Cari Ara..."
-           oninput="cariListeleHepsini()">
-
-    <div id="cariListesi"></div>
-
-    <button class="btn-secondary"
-            onclick="goHome()">
-
-        GERİ
-
-    </button>
-
-</div>
-
-<!-- EVRAK SORGULAMA -->
-
-<div id="evrakListesiPage"
-     class="box hidden">
-
-    <h3 style="color:#4a90e2;">
-        EVRAK SORGULAMA
-    </h3>
-
-    <div style="display:flex;gap:10px;">
-
-        <div style="flex:1;">
-
-            <label>İlk Tarih</label>
-
-            <input type="date"
-                   id="filterBasTar">
-
-        </div>
-
-        <div style="flex:1;">
-
-            <label>Son Tarih</label>
-
-            <input type="date"
-                   id="filterBitTar">
-
-        </div>
-
-    </div>
-
-    <button onclick="evrakSorgula()"
-            style="background:#28a745;">
-
-        EVRAKLARI GETİR
-
-    </button>
-
-    <table id="evrakTable">
-
+    <table>
         <thead>
-
             <tr>
-
-                <th>TARİH</th>
-                <th>SIRA</th>
-                <th>CARİ</th>
-
+                <th>Tarih</th>
+                <th>No</th>
+                <th>Cari</th>
             </tr>
-
         </thead>
-
         <tbody id="evrakSorguGövde"></tbody>
-
     </table>
-
-    <button class="btn-secondary"
-            onclick="openPage('alisPage')">
-
-        GERİ
-
-    </button>
-
-</div>
-
-<!-- ALIŞ -->
-
-<div id="alisPage"
-     class="box hidden">
-
-    <div style="
-        background:#fff;
-        padding:10px;
-        border-radius:12px;
-        margin-bottom:10px;
-        border:1px solid #ddd;">
-
-        <b>No:</b>
-
-        <span id="dispEvrakNo">-</span>
-
-        |
-
-        <b>Cari:</b>
-
-        <span id="dispCari">
-            Seçilmedi
-        </span>
-
-    </div>
-
-    <button onclick="openPage('belgeNoPage')">
-        Belge Bilgisi
-    </button>
-
-    <button onclick="openCariSec()">
-        Cari Seç
-    </button>
-
-    <button onclick="barkodGirisAc()">
-        Barkod Giriş
-    </button>
-
-    <button onclick="islemSatirlariKontrol()">
-        İşlem Satırları
-    </button>
-
-    <button onclick="openEvrakGetir()"
-            style="background:#f39c12;">
-
-        📂 EVRAK GETİR
-
-    </button>
-
-    <button id="btnEvrakSil"
-            class="btn-exit hidden"
-            onclick="confirmAction(
-            'Bu evrakı silmek istediğinize emin misiniz?',
-            evrakSil)">
-
-        BU EVRAKI SİL
-
-    </button>
 
 </div>
 
 <script>
 
-let db_stok = JSON.parse(localStorage.getItem("db_stok") || '[]');
-
-let db_cari = JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda"]');
-
-let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
-
-let aktifEvrak = {
-    no:"",
-    sira:"",
-    cari:"",
-    kalemler:[],
-    tarih:""
-};
-
-let html5QrCode = null;
-
-function showToast(msg){
-
-    let x = document.getElementById("toast");
-
-    x.innerText = msg;
-
-    x.className = "show";
-
-    setTimeout(() => {
-
-        x.className = "";
-
-    },3000);
-
-}
+let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || "[]");
 
 function login(){
-
-    let f = document.getElementById('firmaInp').value;
-
-    if(
-        document.getElementById('userInp').value === "admin"
-        &&
-        document.getElementById('passInp').value === "1234"
-        &&
-        f !== ""
-    ){
-
-        document.getElementById('loginPage')
-        .classList.add('hidden');
-
-        document.getElementById('navBar')
-        .classList.remove('hidden');
-
-        goHome();
-
-    }else{
-
-        showToast("Bilgileri kontrol edin!");
-
-    }
-
-}
-
-function logout(){
-
-    location.reload();
-
-}
-
-function confirmAction(text,callback){
-
-    document.getElementById('confirmText')
-    .innerText = text;
-
-    document.getElementById('customConfirm')
-    .style.display = 'flex';
-
-    document.getElementById('confirmYes')
-    .onclick = function(){
-
-        callback();
-
-        closeConfirm();
-
-    };
-
-}
-
-function closeConfirm(){
-
-    document.getElementById('customConfirm')
-    .style.display = 'none';
-
+    document.getElementById("loginPage").classList.add("hidden");
+    document.getElementById("navbar").classList.remove("hidden");
+    openPage("homePage");
 }
 
 function openPage(id){
-
-    document.querySelectorAll('.box')
-    .forEach(b => b.classList.add('hidden'));
-
-    document.getElementById(id)
-    .classList.remove('hidden');
-
+    document.querySelectorAll(".box").forEach(x=>x.classList.add("hidden"));
+    document.getElementById(id).classList.remove("hidden");
+    stopCamera?.();
 }
 
-function goHome(){
+/* =======================
+   🔥 DÜZELTİLEN KISIM 1
+======================= */
+function openEvrakGetir() {
 
-    openPage('homePage');
+    let bugunStr = new Date().toISOString().split('T')[0];
 
-}
+    document.getElementById('filterBasTar').value = bugunStr;
+    document.getElementById('filterBitTar').value = bugunStr;
 
-function yeniAlisBaslat(){
-
-    let rnd = Math.floor(
-        Math.random()*9000+1000
-    );
-
-    aktifEvrak = {
-
-        no:"DENEME-" + rnd,
-        sira:rnd.toString(),
-        cari:"",
-        kalemler:[],
-        tarih:new Date()
-        .toISOString()
-        .split('T')[0]
-
-    };
-
-    document.getElementById('dispEvrakNo')
-    .innerText = aktifEvrak.no;
-
-    document.getElementById('dispCari')
-    .innerText = "Seçilmedi";
-
-    openPage('alisPage');
-
-}
-
-/* EVRAK GETİR */
-
-function openEvrakGetir(){
-
-    let bugun = new Date();
-
-    let yil = bugun.getFullYear();
-
-    let ay = String(
-        bugun.getMonth()+1
-    ).padStart(2,'0');
-
-    let gun = String(
-        bugun.getDate()
-    ).padStart(2,'0');
-
-    let bugunFormat =
-        yil + "-" + ay + "-" + gun;
-
-    document.getElementById(
-        'filterBasTar'
-    ).value = bugunFormat;
-
-    document.getElementById(
-        'filterBitTar'
-    ).value = bugunFormat;
+    document.getElementById('evrakSorguGövde').innerHTML = "";
 
     openPage('evrakListesiPage');
-
-    evrakSorgula();
-
 }
 
-/* EVRAK SORGULA */
+/* =======================
+   🔥 DÜZELTİLEN KISIM 2
+======================= */
+function evrakSorgula() {
 
-function evrakSorgula(){
+    let bas = document.getElementById('filterBasTar').value;
+    let bit = document.getElementById('filterBitTar').value;
 
-    let bas = document.getElementById(
-        'filterBasTar'
-    ).value;
-
-    let bit = document.getElementById(
-        'filterBitTar'
-    ).value;
+    let basT = new Date(bas);
+    let bitT = new Date(bit);
 
     let html = "";
 
-    let filtrelenen =
-        db_evraklar.filter(e => {
-
-        return e.tarih >= bas
-        &&
-        e.tarih <= bit;
-
+    let filtre = db_evraklar.filter(e => {
+        let t = new Date(e.tarih);
+        return t >= basT && t <= bitT;
     });
 
-    filtrelenen.sort((a,b)=>
-        b.tarih.localeCompare(a.tarih)
-    );
-
-    if(filtrelenen.length > 0){
-
-        filtrelenen.forEach(e => {
-
+    if (filtre.length > 0) {
+        filtre.forEach(e => {
             html += `
-
-            <tr onclick="evrakYukle('${e.no}')"
-                style="cursor:pointer;">
-
+            <tr>
                 <td>${e.tarih}</td>
-
-                <td>${e.sira}</td>
-
-                <td>${e.cari || '-'}</td>
-
-            </tr>
-
-            `;
-
+                <td>${e.no}</td>
+                <td>${e.cari}</td>
+            </tr>`;
         });
-
-    }else{
-
+    } else {
         html = `
-
         <tr>
-
-            <td colspan="3"
-                style="
-                text-align:center;
-                color:red;
-                padding:20px;">
-
-                Bu tarihlerde evrak bulunamadı
-
+            <td colspan="3" style="color:red; padding:15px;">
+                Evrak bulunamadı
             </td>
-
-        </tr>
-
-        `;
-
+        </tr>`;
     }
 
-    document.getElementById(
-        'evrakSorguGövde'
-    ).innerHTML = html;
-
+    document.getElementById('evrakSorguGövde').innerHTML = html;
 }
 
-function evrakYukle(no){
-
-    let e = db_evraklar.find(
-        x => x.no === no
-    );
-
-    if(e){
-
-        aktifEvrak =
-            JSON.parse(JSON.stringify(e));
-
-        document.getElementById(
-            'dispEvrakNo'
-        ).innerText = e.no;
-
-        document.getElementById(
-            'dispCari'
-        ).innerText = e.cari;
-
-        openPage('alisPage');
-
-    }
-
-}
+function stopCamera(){}
 
 </script>
 
