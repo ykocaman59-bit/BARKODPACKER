@@ -17,12 +17,8 @@
     --white:#ffffff;
 }
 
-body,
-button,
-label,
-span,
-td,
-th{
+/* KOPYALAMAYI ENGELLE */
+body,button,label,span,td,th{
     -webkit-user-select:none;
     -moz-user-select:none;
     -ms-user-select:none;
@@ -36,13 +32,14 @@ body{
 }
 
 .navbar{
-    background:var(--primary-blue);
+    background:linear-gradient(90deg,#4a90e2,#5cb8d1);
     color:white;
     padding:10px;
     display:flex;
-    justify-content:space-between;
     align-items:center;
+    justify-content:space-between;
     font-weight:bold;
+    box-shadow:0 2px 8px rgba(0,0,0,0.15);
 }
 
 .box{
@@ -65,6 +62,11 @@ button{
     font-size:16px;
     box-shadow:0 4px 6px rgba(0,0,0,0.1);
     cursor:pointer;
+    transition:0.2s;
+}
+
+button:active{
+    transform:scale(0.98);
 }
 
 .btn-secondary{
@@ -95,8 +97,7 @@ button{
     color:white;
 }
 
-input,
-select{
+input,select{
     width:100%;
     padding:12px;
     margin:8px 0;
@@ -117,6 +118,7 @@ select{
     box-shadow:0 2px 4px rgba(0,0,0,0.05);
 }
 
+/* MODAL */
 .modal{
     position:fixed;
     top:0;
@@ -155,36 +157,49 @@ select{
 
 #toast.show{
     visibility:visible;
-    animation:fadein 0.5s, fadeout 0.5s 2.5s;
+    animation:fadein 0.5s,fadeout 0.5s 2.5s;
 }
 
 @keyframes fadein{
-    from{bottom:0;opacity:0;}
-    to{bottom:30px;opacity:1;}
+    from{
+        bottom:0;
+        opacity:0;
+    }
+    to{
+        bottom:30px;
+        opacity:1;
+    }
 }
 
 @keyframes fadeout{
-    from{bottom:30px;opacity:1;}
-    to{bottom:0;opacity:0;}
+    from{
+        bottom:30px;
+        opacity:1;
+    }
+    to{
+        bottom:0;
+        opacity:0;
+    }
 }
 
-table{
+#evrakTable{
     width:100%;
     background:white;
-    border-radius:10px;
+    border-radius:12px;
+    overflow:hidden;
     margin-top:10px;
-    border-collapse:collapse;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
 }
 
-th{
+#evrakTable th{
     background:#4a90e2;
     color:white;
     padding:10px;
 }
 
-td{
+#evrakTable td{
     padding:10px;
-    border-bottom:1px solid #ddd;
+    border-bottom:1px solid #eee;
 }
 
 </style>
@@ -200,30 +215,35 @@ td{
 
         <h3>Emin misiniz?</h3>
 
-        <p id="confirmText"></p>
+        <p id="confirmText">
+            Bu işlem geri alınamaz.
+        </p>
 
-        <button id="confirmYes" style="background:#28a745;">
+        <button id="confirmYes"
+                style="background:#28a745;">
+
             EVET
+
         </button>
 
         <button onclick="closeConfirm()"
-                style="background:var(--danger-red);">
+                style="background:#ff5e5e;">
+
             HAYIR
+
         </button>
 
     </div>
 
 </div>
 
-
-
 <!-- LOGIN -->
 
 <div id="loginPage"
      class="box"
-     style="text-align:center; margin-top:50px;">
+     style="text-align:center;margin-top:50px;">
 
-    <h2 style="color:var(--primary-blue);">
+    <h2 style="color:#4a90e2;">
         BARKODPACKER
     </h2>
 
@@ -244,6 +264,10 @@ td{
             Demo
         </option>
 
+        <option value="Test">
+            Test LTD
+        </option>
+
     </select>
 
     <button onclick="login()">
@@ -252,25 +276,50 @@ td{
 
 </div>
 
-
-
 <!-- NAVBAR -->
 
 <div class="navbar hidden"
      id="navBar">
 
-    <span>Online</span>
+    <div style="width:60px;">
+        Online
+    </div>
 
-    <button style="width:auto; padding:5px 15px; margin:0;"
-            onclick="goHome()">
-        🏠
-    </button>
+    <div style="
+        flex:1;
+        display:flex;
+        justify-content:center;">
+
+        <button onclick="goHome()"
+                style="
+                width:55px;
+                height:55px;
+                border-radius:50%;
+                padding:0;
+                margin:0;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:24px;">
+
+            🏠
+
+        </button>
+
+    </div>
+
+    <div style="
+        width:60px;
+        text-align:right;
+        font-size:24px;">
+
+        •••
+
+    </div>
 
 </div>
 
-
-
-<!-- ANASAYFA -->
+<!-- HOME -->
 
 <div id="homePage"
      class="box hidden">
@@ -278,11 +327,22 @@ td{
     <div style="
         display:grid;
         grid-template-columns:1fr 1fr;
-        gap:10px;
-    ">
+        gap:10px;">
 
         <button onclick="openPage('stokPage')">
             Stok Detay
+        </button>
+
+        <button class="btn-secondary">
+            Sayım Fişi
+        </button>
+
+        <button>
+            Deposevk
+        </button>
+
+        <button class="btn-secondary">
+            Satış İrsaliyesi
         </button>
 
         <button onclick="yeniAlisBaslat()">
@@ -291,16 +351,9 @@ td{
 
         <button class="btn-secondary"
                 onclick="openPage('cariPage')">
+
             Cari
-        </button>
 
-        <button class="btn-secondary"
-                onclick="showToast('Hazırlanıyor')">
-            Sayım Fişi
-        </button>
-
-        <button onclick="showToast('Hazırlanıyor')">
-            Satış İrsaliyesi
         </button>
 
     </div>
@@ -308,13 +361,11 @@ td{
     <button class="btn-exit"
             onclick="logout()">
 
-        ÇIKIŞ
+        Çıkış
 
     </button>
 
 </div>
-
-
 
 <!-- STOK -->
 
@@ -331,7 +382,7 @@ td{
     </button>
 
     <input id="stokAra"
-           placeholder="Ara"
+           placeholder="Ürün veya Barkod Ara..."
            oninput="stokListele()">
 
     <div id="stokListesi"></div>
@@ -345,8 +396,6 @@ td{
 
 </div>
 
-
-
 <!-- STOK EKLE -->
 
 <div id="stokEklePage"
@@ -358,14 +407,16 @@ td{
 
     <div id="readerStok"></div>
 
-    <div style="display:flex; gap:5px;">
+    <div style="display:flex;gap:5px;">
 
         <input id="newBarkodInp"
-               placeholder="Barkod">
+               placeholder="Barkod No">
 
         <button onclick="kameraAcStok()"
                 style="width:60px;">
+
             📷
+
         </button>
 
     </div>
@@ -390,8 +441,6 @@ td{
 
 </div>
 
-
-
 <!-- CARİ -->
 
 <div id="cariPage"
@@ -400,7 +449,7 @@ td{
     <h3>CARİ YÖNETİMİ</h3>
 
     <input id="cariName"
-           placeholder="Cari Adı">
+           placeholder="Yeni Cari Adı">
 
     <button id="btnCariEkle"
             onclick="cariEkle()">
@@ -412,7 +461,7 @@ td{
     <hr>
 
     <input id="cariAraKutusu"
-           placeholder="Cari Ara"
+           placeholder="Cari Ara..."
            oninput="cariListeleHepsini()">
 
     <div id="cariListesi"></div>
@@ -426,7 +475,70 @@ td{
 
 </div>
 
+<!-- EVRAK SORGULAMA -->
 
+<div id="evrakListesiPage"
+     class="box hidden">
+
+    <h3 style="color:#4a90e2;">
+        EVRAK SORGULAMA
+    </h3>
+
+    <div style="display:flex;gap:10px;">
+
+        <div style="flex:1;">
+
+            <label>İlk Tarih</label>
+
+            <input type="date"
+                   id="filterBasTar">
+
+        </div>
+
+        <div style="flex:1;">
+
+            <label>Son Tarih</label>
+
+            <input type="date"
+                   id="filterBitTar">
+
+        </div>
+
+    </div>
+
+    <button onclick="evrakSorgula()"
+            style="background:#28a745;">
+
+        EVRAKLARI GETİR
+
+    </button>
+
+    <table id="evrakTable">
+
+        <thead>
+
+            <tr>
+
+                <th>TARİH</th>
+                <th>SIRA</th>
+                <th>CARİ</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="evrakSorguGövde"></tbody>
+
+    </table>
+
+    <button class="btn-secondary"
+            onclick="openPage('alisPage')">
+
+        GERİ
+
+    </button>
+
+</div>
 
 <!-- ALIŞ -->
 
@@ -436,17 +548,18 @@ td{
     <div style="
         background:#fff;
         padding:10px;
-        border-radius:10px;
+        border-radius:12px;
         margin-bottom:10px;
-        border:1px solid #ddd;
-    ">
+        border:1px solid #ddd;">
 
         <b>No:</b>
+
         <span id="dispEvrakNo">-</span>
 
         |
 
         <b>Cari:</b>
+
         <span id="dispCari">
             Seçilmedi
         </span>
@@ -479,9 +592,8 @@ td{
     <button id="btnEvrakSil"
             class="btn-exit hidden"
             onclick="confirmAction(
-                'Bu evrak silinsin mi?',
-                evrakSil
-            )">
+            'Bu evrakı silmek istediğinize emin misiniz?',
+            evrakSil)">
 
         BU EVRAKI SİL
 
@@ -489,85 +601,13 @@ td{
 
 </div>
 
-
-
-<!-- EVRAK GETİR -->
-
-<div id="evrakListesiPage"
-     class="box hidden">
-
-    <h3>EVRAK SORGULAMA</h3>
-
-    <div style="display:flex; gap:5px;">
-
-        <div style="flex:1">
-
-            <label>İlk Tarih</label>
-
-            <input type="date"
-                   id="filterBasTar">
-
-        </div>
-
-        <div style="flex:1">
-
-            <label>Son Tarih</label>
-
-            <input type="date"
-                   id="filterBitTar">
-
-        </div>
-
-    </div>
-
-    <button onclick="evrakSorgula()"
-            style="background:#28a745;">
-
-        EVRAKLARI GETİR
-
-    </button>
-
-    <table>
-
-        <thead>
-
-            <tr>
-
-                <th>TARİH</th>
-                <th>SIRA</th>
-                <th>CARİ</th>
-
-            </tr>
-
-        </thead>
-
-        <tbody id="evrakSorguGövde">
-
-        </tbody>
-
-    </table>
-
-    <button class="btn-secondary"
-            onclick="openPage('alisPage')">
-
-        GERİ
-
-    </button>
-
-</div>
-
-
-
 <script>
 
-let db_stok =
-JSON.parse(localStorage.getItem("db_stok") || '[]');
+let db_stok = JSON.parse(localStorage.getItem("db_stok") || '[]');
 
-let db_cari =
-JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda"]');
+let db_cari = JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda"]');
 
-let db_evraklar =
-JSON.parse(localStorage.getItem("db_evraklar") || '[]');
+let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
 
 let aktifEvrak = {
     no:"",
@@ -577,15 +617,11 @@ let aktifEvrak = {
     tarih:""
 };
 
-let editIndex = -1;
 let html5QrCode = null;
-
-
 
 function showToast(msg){
 
-    let x =
-    document.getElementById("toast");
+    let x = document.getElementById("toast");
 
     x.innerText = msg;
 
@@ -599,12 +635,9 @@ function showToast(msg){
 
 }
 
-
-
 function login(){
 
-    let f =
-    document.getElementById('firmaInp').value;
+    let f = document.getElementById('firmaInp').value;
 
     if(
         document.getElementById('userInp').value === "admin"
@@ -614,25 +647,21 @@ function login(){
         f !== ""
     ){
 
-        document.getElementById(
-            'loginPage'
-        ).classList.add('hidden');
+        document.getElementById('loginPage')
+        .classList.add('hidden');
 
-        document.getElementById(
-            'navBar'
-        ).classList.remove('hidden');
+        document.getElementById('navBar')
+        .classList.remove('hidden');
 
         goHome();
 
     }else{
 
-        showToast("Bilgileri kontrol edin");
+        showToast("Bilgileri kontrol edin!");
 
     }
 
 }
-
-
 
 function logout(){
 
@@ -640,21 +669,16 @@ function logout(){
 
 }
 
-
-
 function confirmAction(text,callback){
 
-    document.getElementById(
-        'confirmText'
-    ).innerText = text;
+    document.getElementById('confirmText')
+    .innerText = text;
 
-    document.getElementById(
-        'customConfirm'
-    ).style.display = 'flex';
+    document.getElementById('customConfirm')
+    .style.display = 'flex';
 
-    document.getElementById(
-        'confirmYes'
-    ).onclick = function(){
+    document.getElementById('confirmYes')
+    .onclick = function(){
 
         callback();
 
@@ -664,17 +688,12 @@ function confirmAction(text,callback){
 
 }
 
-
-
 function closeConfirm(){
 
-    document.getElementById(
-        'customConfirm'
-    ).style.display = 'none';
+    document.getElementById('customConfirm')
+    .style.display = 'none';
 
 }
-
-
 
 function openPage(id){
 
@@ -686,15 +705,39 @@ function openPage(id){
 
 }
 
-
-
 function goHome(){
 
     openPage('homePage');
 
 }
 
+function yeniAlisBaslat(){
 
+    let rnd = Math.floor(
+        Math.random()*9000+1000
+    );
+
+    aktifEvrak = {
+
+        no:"DENEME-" + rnd,
+        sira:rnd.toString(),
+        cari:"",
+        kalemler:[],
+        tarih:new Date()
+        .toISOString()
+        .split('T')[0]
+
+    };
+
+    document.getElementById('dispEvrakNo')
+    .innerText = aktifEvrak.no;
+
+    document.getElementById('dispCari')
+    .innerText = "Seçilmedi";
+
+    openPage('alisPage');
+
+}
 
 /* EVRAK GETİR */
 
@@ -712,20 +755,16 @@ function openEvrakGetir(){
         bugun.getDate()
     ).padStart(2,'0');
 
-    let tarih =
-    yil + "-" + ay + "-" + gun;
+    let bugunFormat =
+        yil + "-" + ay + "-" + gun;
 
     document.getElementById(
         'filterBasTar'
-    ).value = tarih;
+    ).value = bugunFormat;
 
     document.getElementById(
         'filterBitTar'
-    ).value = tarih;
-
-    document.getElementById(
-        'evrakSorguGövde'
-    ).innerHTML = "";
+    ).value = bugunFormat;
 
     openPage('evrakListesiPage');
 
@@ -733,26 +772,22 @@ function openEvrakGetir(){
 
 }
 
-
-
 /* EVRAK SORGULA */
 
 function evrakSorgula(){
 
-    let bas =
-    document.getElementById(
+    let bas = document.getElementById(
         'filterBasTar'
     ).value;
 
-    let bit =
-    document.getElementById(
+    let bit = document.getElementById(
         'filterBitTar'
     ).value;
 
     let html = "";
 
     let filtrelenen =
-    db_evraklar.filter(e => {
+        db_evraklar.filter(e => {
 
         return e.tarih >= bas
         &&
@@ -760,21 +795,24 @@ function evrakSorgula(){
 
     });
 
+    filtrelenen.sort((a,b)=>
+        b.tarih.localeCompare(a.tarih)
+    );
+
     if(filtrelenen.length > 0){
 
         filtrelenen.forEach(e => {
 
             html += `
 
-            <tr
-            onclick="evrakYukle('${e.no}')"
-            style="cursor:pointer;">
+            <tr onclick="evrakYukle('${e.no}')"
+                style="cursor:pointer;">
 
                 <td>${e.tarih}</td>
 
                 <td>${e.sira}</td>
 
-                <td>${e.cari}</td>
+                <td>${e.cari || '-'}</td>
 
             </tr>
 
@@ -790,11 +828,11 @@ function evrakSorgula(){
 
             <td colspan="3"
                 style="
-                    color:red;
-                    text-align:center;
-                ">
+                text-align:center;
+                color:red;
+                padding:20px;">
 
-                Evrak Bulunamadı
+                Bu tarihlerde evrak bulunamadı
 
             </td>
 
@@ -810,38 +848,28 @@ function evrakSorgula(){
 
 }
 
+function evrakYukle(no){
 
+    let e = db_evraklar.find(
+        x => x.no === no
+    );
 
-function yeniAlisBaslat(){
+    if(e){
 
-    let rnd =
-    Math.floor(Math.random()*9000+1000);
+        aktifEvrak =
+            JSON.parse(JSON.stringify(e));
 
-    aktifEvrak = {
+        document.getElementById(
+            'dispEvrakNo'
+        ).innerText = e.no;
 
-        no:"DENEME-"+rnd,
+        document.getElementById(
+            'dispCari'
+        ).innerText = e.cari;
 
-        sira:rnd.toString(),
+        openPage('alisPage');
 
-        cari:"",
-
-        kalemler:[],
-
-        tarih:new Date()
-        .toISOString()
-        .split('T')[0]
-
-    };
-
-    document.getElementById(
-        'dispEvrakNo'
-    ).innerText = aktifEvrak.no;
-
-    document.getElementById(
-        'dispCari'
-    ).innerText = "Seçilmedi";
-
-    openPage('alisPage');
+    }
 
 }
 
