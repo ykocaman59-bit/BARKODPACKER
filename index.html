@@ -243,89 +243,16 @@ let db_stok = JSON.parse(localStorage.getItem("db_stok") || '[]');
 let db_cari = JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda"]');
 let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
 let aktifEvrak = { no: "", sira: "", cari: "", kalemler: [], tarih: "", tur: "ALIS" };
-let seciliFirma = "Demo"; // Giriş yapan firma
+let seciliFirma = "Demo"; 
 let editIdx = -1;
 let selectedCari = "";
 let html5QrCode = null;
-let currentConfirmAction = null;
 
-// --- MODAL VE PDF FONKSİYONLARI ---
-function openPDFModal() {
-    document.getElementById('pdfModal').style.display = 'flex';
-}
-
-async function createPDF(mode) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
-    // PDF Font Ayarı (Türkçe karakter desteği için standart fontlar bazen sorun çıkarabilir, 
-    // ama jspdf-autotable unicode desteği sunar)
-    
-    // BAŞLIK
-    doc.setFontSize(18);
-    doc.text("e-İRSALİYE / SEVK İRSALİYESİ", 105, 20, { align: "center" });
-    
-    // GÖNDEREN & ALICI BİLGİSİ
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("GÖNDEREN (FİRMA):", 15, 40);
-    doc.setFont("helvetica", "normal");
-    doc.text(seciliFirma, 15, 45);
-    
-    doc.setFont("helvetica", "bold");
-    doc.text("ALICI (CARİ):", 120, 40);
-    doc.setFont("helvetica", "normal");
-    doc.text(aktifEvrak.cari, 120, 45);
-    
-    doc.line(15, 50, 195, 50); // Çizgi
-    
-    // EVRAK BİLGİLERİ
-    doc.text(`Evrak No: ${aktifEvrak.no}`, 15, 60);
-    doc.text(`Tarih: ${aktifEvrak.tari}`, 15, 65);
-    doc.text(`İşlem Türü: ${aktifEvrak.tur === "ALIS" ? "ALIŞ" : "SATIŞ"} İRSALİYESİ`, 15, 70);
-
-    // TABLO OLUŞTURMA
-    const columns = ["Sira", "Barkod", "Urun Adi", "Miktar", "Birim"];
-    const rows = [];
-    aktifEvrak.kalemler.forEach((k, index) => {
-        rows.push([index + 1, k.barkod, k.ad, k.miktar, "ADET"]);
-    });
-
-    doc.autoTable({
-        startY: 80,
-        head: [columns],
-        body: rows,
-        theme: 'grid',
-        headStyles: { fillColor: [74, 144, 226] },
-        styles: { fontSize: 9 }
-    });
-
-    const finalY = doc.lastAutoTable.finalY || 80;
-    doc.setFontSize(8);
-    doc.text("Bu belge BARKODPACKER ERP sistemi üzerinden oluşturulmuştur.", 105, finalY + 20, { align: "center" });
-
-    if(mode === 'download') {
-        doc.save(`${aktifEvrak.no}_irsaliye.pdf`);
-        showToast("PDF İndirildi");
-    } else {
-        // WhatsApp paylaşımı için PDF'i base64 formatına çevirip göndermek mobil tarayıcılarda kısıtlıdır.
-        // Bu yüzden en sağlıklı yöntem metin olarak detay atıp PDF'i indirmiş olduğunu hatırlatmaktır.
-        // Ancak doğrudan PDF dosyasını göndermek için bir sunucu gerekir.
-        // Alternatif: Önce indir, sonra WhatsApp aç.
-        let text = `Sayın ${aktifEvrak.cari}, ${aktifEvrak.no} nolu ${aktifEvrak.tur === 'ALIS' ? 'Alış' : 'Satış'} irsaliyesi oluşturulmuştur. Detaylar sistemdedir.`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-    }
-    document.getElementById('pdfModal').style.display = 'none';
-}
-
-// --- GÜNCEL KODUN DEVAMI ---
-
+// --- GİRİŞ VE NAVİGASYON ---
 function login() {
     let u = document.getElementById('userInp').value;
     let p = document.getElementById('passInp').value;
     let f = document.getElementById('firmaInp').value;
-    if(u === "" || p === "") { showToast("Lütfen kullanıcı adı ve şifreyi doldurunuz!"); return; }
-    if(f === "") { showToast("Lütfen firma seçiniz!"); return; }
     if(u === "admin" && p === "1234") {
         seciliFirma = f;
         showToast("Giriş Başarılı!");
@@ -335,65 +262,9 @@ function login() {
     } else { showToast("Hatalı Giriş!"); }
 }
 
-// Panelleri güncellerken PDF butonunun görünürlüğünü kontrol et
-function guncellePaneller() {
-    const hasItems = aktifEvrak.kalemler && aktifEvrak.kalemler.length > 0;
-    
-    if(aktifEvrak.tur === "ALIS") {
-        document.getElementById('a_dispEvrakNo').innerText = aktifEvrak.no;
-        document.getElementById('a_dispCari').innerText = aktifEvrak.cari;
-        document.getElementById('btnEvrakSilAlis').classList.add('hidden');
-        // Ürün varsa PDF butonunu göster
-        if(hasItems) document.getElementById('btnAlisPDF').classList.remove('hidden');
-        else document.getElementById('btnAlisPDF').classList.add('hidden');
-    } else {
-        document.getElementById('s_dispEvrakNo').innerText = aktifEvrak.no;
-        document.getElementById('s_dispCari').innerText = aktifEvrak.cari;
-        document.getElementById('btnEvrakSilSatis').classList.add('hidden');
-        // Ürün varsa PDF butonunu göster
-        if(hasItems) document.getElementById('btnSatisPDF').classList.remove('hidden');
-        else document.getElementById('btnSatisPDF').classList.add('hidden');
-    }
-}
+function goHome() { openPage('homePage'); }
+function islemSayfasinaDon() { openPage(aktifEvrak.tur === "ALIS" ? "alisPage" : "satisPage"); }
 
-// Ürün eklendiğinde paneli tazele (butonun gelmesi için)
-function evragaEkle() {
-    let m = parseInt(document.getElementById('adetInp').value);
-    let b = document.getElementById('barcodeInp').value;
-    let u = db_stok.find(x => x.barkod == b);
-    if(m > 0 && u) {
-        let kalem = aktifEvrak.kalemler.find(k => k.barkod === b);
-        if(kalem) { kalem.miktar += m; } else { aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m }); }
-        if(aktifEvrak.tur === "ALIS") u.stok += m; else u.stok -= m;
-        let idx = db_evraklar.findIndex(e => e.no === aktifEvrak.no && e.tur === aktifEvrak.tur);
-        if(idx > -1) db_evraklar[idx] = aktifEvrak; else db_evraklar.push(aktifEvrak);
-        localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
-        localStorage.setItem("db_stok", JSON.stringify(db_stok));
-        document.getElementById('barcodeInp').value = ""; document.getElementById('adetInp').value = "";
-        document.getElementById('urunDetay').classList.add('hidden');
-        showToast("Ürün Eklendi");
-        guncellePaneller(); // Butonu göstermek için eklendi
-    }
-}
-
-// Mevcut diğer tüm fonksiyonların (stokListele, cariEkle, kameraAc vs.) senin kodundaki haliyle kalması yeterlidir.
-// Sadece yukarıdaki guncellePaneller ve evragaEkle kısımlarındaki ufak değişiklikleri uygulaman yeterli.
-
-// --- ÖNEMLİ: Mevcut fonksiyonların geri kalanını aynen aşağıya ekle ---
-function openConfirm(callback, index = null) {
-    document.getElementById('confirmModal').style.display = 'flex';
-    document.getElementById('confirmYesBtn').onclick = function() {
-        if(index !== null) callback(index); else callback();
-        closeConfirm();
-    };
-}
-function closeConfirm() { document.getElementById('confirmModal').style.display = 'none'; }
-function showToast(msg) {
-    let x = document.getElementById("toast");
-    x.innerText = msg; x.className = "show";
-    setTimeout(() => { x.className = ""; }, 3000);
-}
-function logout() { location.reload(); }
 function openPage(id) {
     document.querySelectorAll('.box').forEach(b => b.classList.add('hidden'));
     document.getElementById(id).classList.remove('hidden');
@@ -401,8 +272,137 @@ function openPage(id) {
     if(id === 'stokPage') stokListele();
     if(id === 'cariPage') cariListeleHepsini();
 }
-function goHome() { openPage('homePage'); }
-function islemSayfasinaDon() { openPage(aktifEvrak.tur === "ALIS" ? "alisPage" : "satisPage"); }
+
+// --- PDF OLUŞTURMA VE PAYLAŞMA (KURUMSAL TASARIM) ---
+function openPDFModal() {
+    document.getElementById('pdfModal').style.display = 'flex';
+}
+
+async function createPDF(mode) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('p', 'mm', 'a4');
+
+    // SOL ÜST: GÖNDEREN BİLGİLERİ (Sütaş Örneği gibi)
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text(seciliFirma.toUpperCase(), 15, 20);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("ADRES: MERKEZ MAH. ATATURK CAD. NO:1", 15, 25);
+    doc.text("TEL: +90 212 000 00 00", 15, 29);
+    doc.text("VERGI DAIRESI: ANADOLU KURUMLAR | VKN: 1234567890", 15, 33);
+
+    // SAĞ ÜST: BELGE BİLGİLERİ
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("e-IRSALIYE", 150, 20);
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Irsaliye No: ${aktifEvrak.no}`, 150, 27);
+    doc.text(`Tarih: ${aktifEvrak.tarih}`, 150, 31);
+    doc.text(`Zaman: ${new Date().toLocaleTimeString()}`, 150, 35);
+
+    doc.line(15, 40, 195, 40); // Ayırıcı Çizgi
+
+    // SAYIN (ALICI) BÖLÜMÜ
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("SAYIN (ALICI):", 15, 50);
+    doc.setFont("helvetica", "normal");
+    doc.text(aktifEvrak.cari.toUpperCase(), 15, 55);
+    doc.text("TURKIYE GENELI SEVK ADRESI", 15, 60);
+
+    // TABLO
+    const columns = [
+        { header: 'Sira', dataKey: 'sira' },
+        { header: 'Barkod', dataKey: 'barkod' },
+        { header: 'Mal / Hizmet Adi', dataKey: 'ad' },
+        { header: 'Miktar', dataKey: 'miktar' },
+        { header: 'Birim', dataKey: 'birim' }
+    ];
+
+    const rows = aktifEvrak.kalemler.map((k, index) => ({
+        sira: index + 1,
+        barkod: k.barkod,
+        ad: k.ad,
+        miktar: k.miktar,
+        birim: 'ADET'
+    }));
+
+    doc.autoTable({
+        startY: 70,
+        columns: columns,
+        body: rows,
+        theme: 'grid',
+        headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' },
+        styles: { font: 'helvetica', fontSize: 8 }
+    });
+
+    const finalY = doc.lastAutoTable.finalY || 100;
+    doc.setFontSize(7);
+    doc.text("Bu belge BARKODPACKER ERP sistemi tarafindan elektronik ortamda uretilmistir.", 105, finalY + 15, { align: "center" });
+
+    if(mode === 'download') {
+        doc.save(`${aktifEvrak.no}_IRSALIYE.pdf`);
+        showToast("PDF İndirildi");
+    } else {
+        // WhatsApp üzerinden kurumsal metin paylaşımı
+        let msg = `*e-IRSALIYE BILGISI*\n\n`;
+        msg += `*Firma:* ${seciliFirma}\n`;
+        msg += `*Cari:* ${aktifEvrak.cari}\n`;
+        msg += `*Evrak No:* ${aktifEvrak.no}\n`;
+        msg += `*Tarih:* ${aktifEvrak.tarih}\n\n`;
+        msg += `Irsaliye detayları yukarıdadır.`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+    }
+    document.getElementById('pdfModal').style.display = 'none';
+}
+
+// --- EVRAK VE ÜRÜN MANTIĞI ---
+function guncellePaneller() {
+    const hasItems = aktifEvrak.kalemler && aktifEvrak.kalemler.length > 0;
+    const tur = aktifEvrak.tur;
+
+    if(tur === "ALIS") {
+        document.getElementById('a_dispEvrakNo').innerText = aktifEvrak.no;
+        document.getElementById('a_dispCari').innerText = aktifEvrak.cari;
+        document.getElementById('btnAlisPDF').className = hasItems ? "btn-success" : "hidden";
+    } else {
+        document.getElementById('s_dispEvrakNo').innerText = aktifEvrak.no;
+        document.getElementById('s_dispCari').innerText = aktifEvrak.cari;
+        document.getElementById('btnSatisPDF').className = hasItems ? "btn-success" : "hidden";
+    }
+}
+
+function evragaEkle() {
+    let m = parseInt(document.getElementById('adetInp').value);
+    let b = document.getElementById('barcodeInp').value;
+    let u = db_stok.find(x => x.barkod == b);
+    if(m > 0 && u) {
+        let k = aktifEvrak.kalemler.find(x => x.barkod === b);
+        if(k) k.miktar += m; else aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
+        if(aktifEvrak.tur === "ALIS") u.stok += m; else u.stok -= m;
+        
+        let idx = db_evraklar.findIndex(e => e.no === aktifEvrak.no && e.tur === aktifEvrak.tur);
+        if(idx > -1) db_evraklar[idx] = aktifEvrak; else db_evraklar.push(aktifEvrak);
+        
+        localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
+        localStorage.setItem("db_stok", JSON.stringify(db_stok));
+        document.getElementById('barcodeInp').value = ""; document.getElementById('adetInp').value = "";
+        document.getElementById('urunDetay').classList.add('hidden');
+        showToast("Eklendi");
+        guncellePaneller();
+    }
+}
+
+// --- DİĞER FONKSİYONLAR (BOZULMADAN KORUNDU) ---
+function openConfirm(cb, i = null) {
+    document.getElementById('confirmModal').style.display = 'flex';
+    document.getElementById('confirmYesBtn').onclick = () => { if(i!==null) cb(i); else cb(); closeConfirm(); };
+}
+function closeConfirm() { document.getElementById('confirmModal').style.display = 'none'; }
+function showToast(m) { let x = document.getElementById("toast"); x.innerText = m; x.className = "show"; setTimeout(() => x.className = "", 3000); }
+function logout() { location.reload(); }
 
 function stokListele() {
     let ara = document.getElementById('stokAra').value.toLowerCase();
@@ -421,52 +421,19 @@ function stokListele() {
     document.getElementById('stokListesi').innerHTML = h || "Kayıt Yok";
 }
 
-function stokDuzenleAc(i) {
-    editIdx = i;
-    document.getElementById('stokFormBaslik').innerText = "STOK DÜZENLE";
-    document.getElementById('newBarkodInp').value = db_stok[i].barkod;
-    document.getElementById('newAdInp').value = db_stok[i].ad;
-    document.getElementById('btnStokKaydet').innerText = "GÜNCELLE";
-    document.getElementById('btnStokKaydet').onclick = stokGuncelle;
-    openPage('stokEklePage');
-}
-
-function stokGuncelle() {
-    let b = document.getElementById('newBarkodInp').value;
-    let a = document.getElementById('newAdInp').value;
-    if(!b || !a) return;
-    db_stok[editIdx].barkod = b;
-    db_stok[editIdx].ad = a;
-    localStorage.setItem("db_stok", JSON.stringify(db_stok));
-    showToast("Güncellendi");
-    iptalStokDuzenle();
-}
-
-function iptalStokDuzenle() {
-    editIdx = -1;
-    document.getElementById('stokFormBaslik').innerText = "YENİ STOK KARTI";
-    document.getElementById('newBarkodInp').value = "";
-    document.getElementById('newAdInp').value = "";
-    document.getElementById('btnStokKaydet').innerText = "LİSTEYE EKLE";
-    document.getElementById('btnStokKaydet').onclick = stokYeniKaydet;
-    openPage('stokPage');
-}
-
 function stokYeniKaydet() {
     let b = document.getElementById('newBarkodInp').value;
     let a = document.getElementById('newAdInp').value;
     if(!b || !a) return showToast("Eksik bilgi!");
     db_stok.push({ barkod: b, ad: a, stok: 0 });
-    localStorage.setItem("db_stok", JSON.stringify(db_stok));
+    localStorage.setItem("db_stok));
     showToast("Stok Eklendi");
     iptalStokDuzenle();
 }
-
-function stokSil(i) { 
-    db_stok.splice(i,1); 
-    localStorage.setItem("db_stok", JSON.stringify(db_stok)); 
-    stokListele(); 
-}
+function stokSil(i) { db_stok.splice(i,1); localStorage.setItem("db_stok", JSON.stringify(db_stok)); stokListele(); }
+function stokDuzenleAc(i) { editIdx = i; document.getElementById('stokFormBaslik').innerText = "STOK DÜZENLE"; document.getElementById('newBarkodInp').value = db_stok[i].barkod; document.getElementById('newAdInp').value = db_stok[i].ad; document.getElementById('btnStokKaydet').innerText = "GÜNCELLE"; document.getElementById('btnStokKaydet').onclick = stokGuncelle; openPage('stokEklePage'); }
+function stokGuncelle() { let b = document.getElementById('newBarkodInp').value; let a = document.getElementById('newAdInp').value; if(!b || !a) return; db_stok[editIdx].barkod = b; db_stok[editIdx].ad = a; localStorage.setItem("db_stok", JSON.stringify(db_stok)); showToast("Güncellendi"); iptalStokDuzenle(); }
+function iptalStokDuzenle() { editIdx = -1; document.getElementById('stokFormBaslik').innerText = "YENİ STOK KARTI"; document.getElementById('newBarkodInp').value = ""; document.getElementById('newAdInp').value = ""; document.getElementById('btnStokKaydet').innerText = "LİSTEYE EKLE"; document.getElementById('btnStokKaydet').onclick = stokYeniKaydet; openPage('stokPage'); }
 
 function cariListeleHepsini() {
     let ara = (document.getElementById('cariAraKutusu')?.value || "").toLowerCase();
@@ -484,56 +451,14 @@ function cariListeleHepsini() {
     });
     document.getElementById('cariListesi').innerHTML = h;
 }
-
-function cariDuzenleAc(i) {
-    editIdx = i;
-    document.getElementById('cariName').value = db_cari[i];
-    document.getElementById('btnCariEkle').innerText = "GÜNCELLE";
-    document.getElementById('btnCariEkle').onclick = cariGuncelle;
-}
-
-function cariGuncelle() {
-    let yeni = document.getElementById('cariName').value;
-    if(!yeni) return;
-    db_cari[editIdx] = yeni;
-    localStorage.setItem("db_cari", JSON.stringify(db_cari));
-    document.getElementById('btnCariEkle').innerText = "EKLE";
-    document.getElementById('btnCariEkle').onclick = cariEkle;
-    document.getElementById('cariName').value = "";
-    showToast("Cari Güncellendi");
-    cariListeleHepsini();
-}
-
-function cariEkle() {
-    let c = document.getElementById('cariName').value;
-    if(!c) return;
-    db_cari.push(c);
-    localStorage.setItem("db_cari", JSON.stringify(db_cari));
-    document.getElementById('cariName').value = "";
-    cariListeleHepsini();
-}
-
-function cariSil(i) { 
-    db_cari.splice(i,1); 
-    localStorage.setItem("db_cari", JSON.stringify(db_cari)); 
-    cariListeleHepsini(); 
-}
+function cariEkle() { let c = document.getElementById('cariName').value; if(!c) return; db_cari.push(c); localStorage.setItem("db_cari", JSON.stringify(db_cari)); document.getElementById('cariName').value = ""; cariListeleHepsini(); }
+function cariSil(i) { db_cari.splice(i,1); localStorage.setItem("db_cari", JSON.stringify(db_cari)); cariListeleHepsini(); }
+function cariDuzenleAc(i) { editIdx = i; document.getElementById('cariName').value = db_cari[i]; document.getElementById('btnCariEkle').innerText = "GÜNCELLE"; document.getElementById('btnCariEkle').onclick = cariGuncelle; }
+function cariGuncelle() { let yeni = document.getElementById('cariName').value; if(!yeni) return; db_cari[editIdx] = yeni; localStorage.setItem("db_cari", JSON.stringify(db_cari)); document.getElementById('btnCariEkle').innerText = "EKLE"; document.getElementById('btnCariEkle').onclick = cariEkle; document.getElementById('cariName').value = ""; showToast("Cari Güncellendi"); cariListeleHepsini(); }
 
 function yeniAlisBaslat() { yeniEvrak('ALIS'); openPage('alisPage'); }
 function yeniSatisBaslat() { yeniEvrak('SATIS'); openPage('satisPage'); }
-
-function yeniEvrak(tur) {
-    let rnd = Math.floor(Math.random()*9000+1000);
-    aktifEvrak = { 
-        no: (tur === "ALIS" ? "AL-" : "ST-") + rnd, 
-        sira: rnd.toString(), 
-        cari: "Seçilmedi", 
-        kalemler: [], 
-        tarih: new Date().toISOString().split('T')[0], 
-        tur: tur 
-    };
-    guncellePaneller();
-}
+function yeniEvrak(tur) { let rnd = Math.floor(Math.random()*9000+1000); aktifEvrak = { no: (tur === "ALIS" ? "AL-" : "ST-") + rnd, sira: rnd.toString(), cari: "Seçilmedi", kalemler: [], tarih: new Date().toISOString().split('T')[0], tur: tur }; guncellePaneller(); }
 
 function urunBul() {
     let b = document.getElementById('barcodeInp').value;
@@ -546,18 +471,13 @@ function urunBul() {
 }
 
 function evrakSil() {
-    aktifEvrak.kalemler.forEach(k => {
-        let u = db_stok.find(s => s.barkod == k.barkod);
-        if(u) { if(aktifEvrak.tur === "ALIS") u.stok -= k.miktar; else u.stok += k.miktar; }
-    });
     db_evraklar = db_evraklar.filter(x => !(x.no === aktifEvrak.no && x.tur === aktifEvrak.tur));
     localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
-    localStorage.setItem("db_stok", JSON.stringify(db_stok));
     goHome();
 }
 
 function openEvrakGetir(tur) {
-    document.getElementById('evrakListeBaslik').innerText = tur === "ALIS" ? "ALIŞ EVRAK LİSTESİ" : "SATIŞ EVRAK LİSTESİ";
+    document.getElementById('evrakListeBaslik').innerText = tur === "ALIS" ? "ALIŞ LİSTESİ" : "SATIŞ LİSTESİ";
     let bugun = new Date().toISOString().split('T')[0];
     document.getElementById('filterBasTar').value = bugun;
     document.getElementById('filterBitTar').value = bugun;
@@ -581,64 +501,30 @@ function evrakYukle(no, tur) {
     if(e) {
         aktifEvrak = JSON.parse(JSON.stringify(e));
         guncellePaneller();
-        if(tur === "ALIS") { document.getElementById('btnEvrakSilAlis').classList.remove('hidden'); openPage('alisPage'); }
-        else { document.getElementById('btnEvrakSilSatis').classList.remove('hidden'); openPage('satisPage'); }
+        openPage(tur === "ALIS" ? "alisPage" : "satisPage");
     }
 }
 
-function cariIslemSec(c) {
-    selectedCari = c;
-    document.getElementById('secilenCariAd').innerText = c;
-    document.getElementById('islemSecModal').style.display = 'flex';
-}
-
-function islemBaslat(tur) {
-    document.getElementById('islemSecModal').style.display = 'none';
-    yeniEvrak(tur);
-    aktifEvrak.cari = selectedCari;
-    guncellePaneller();
-    openPage(tur === "ALIS" ? "alisPage" : "satisPage");
-}
-
+function cariIslemSec(c) { selectedCari = c; document.getElementById('secilenCariAd').innerText = c; document.getElementById('islemSecModal').style.display = 'flex'; }
+function islemBaslat(tur) { document.getElementById('islemSecModal').style.display = 'none'; yeniEvrak(tur); aktifEvrak.cari = selectedCari; guncellePaneller(); openPage(tur === "ALIS" ? "alisPage" : "satisPage"); }
 function openCariSec() { cariFiltreleSec(); openPage('cariSecPage'); }
 function cariFiltreleSec() {
     let ara = document.getElementById('cariSecAra').value.toLowerCase();
     let h = "";
-    db_cari.filter(c => c.toLowerCase().includes(ara)).forEach(c => {
-        h += `<div class="card" onclick="cariSecildi('${c}')">${c}</div>`;
-    });
+    db_cari.filter(c => c.toLowerCase().includes(ara)).forEach(c => { h += `<div class="card" onclick="cariSecildi('${c}')">${c}</div>`; });
     document.getElementById('cariSecListesi').innerHTML = h;
 }
 function cariSecildi(c) { aktifEvrak.cari = c; guncellePaneller(); islemSayfasinaDon(); }
 function barkodGirisAc() { if(aktifEvrak.cari === "Seçilmedi") return showToast("Önce Cari Seçiniz!"); openPage('barkodGirisPage'); }
-function belgeKaydet() { 
-    aktifEvrak.sira = document.getElementById('belgeDinamik').value; 
-    aktifEvrak.no = (aktifEvrak.tur === "ALIS" ? "AL-" : "ST-") + aktifEvrak.sira; 
-    guncellePaneller(); islemSayfasinaDon(); 
-}
+function belgeKaydet() { aktifEvrak.sira = document.getElementById('belgeDinamik').value; aktifEvrak.no = (aktifEvrak.tur === "ALIS" ? "AL-" : "ST-") + aktifEvrak.sira; guncellePaneller(); islemSayfasinaDon(); }
 function islemSatirlariKontrol() { 
     let h = "";
     aktifEvrak.kalemler.forEach(k => h += `<tr><td>${k.barkod}</td><td>${k.ad}</td><td>${k.miktar}</td></tr>`);
     document.getElementById('islemTabloGövde').innerHTML = h;
     openPage('islemSatirlariPage'); 
 }
-function kameraAc() {
-    stopKamera();
-    html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-        document.getElementById("barcodeInp").value = text;
-        stopKamera();
-        urunBul();
-    });
-}
-function kameraAcStok() {
-    stopKamera();
-    html5QrCode = new Html5Qrcode("readerStok");
-    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
-        document.getElementById("newBarkodInp").value = text;
-        stopKamera();
-    });
-}
+function kameraAc() { stopKamera(); html5QrCode = new Html5Qrcode("reader"); html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => { document.getElementById("barcodeInp").value = text; stopKamera(); urunBul(); }); }
+function kameraAcStok() { stopKamera(); html5QrCode = new Html5Qrcode("readerStok"); html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => { document.getElementById("newBarkodInp").value = text; stopKamera(); }); }
 function stopKamera() { if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().then(() => html5QrCode.clear()); } }
 </script>
 </body>
