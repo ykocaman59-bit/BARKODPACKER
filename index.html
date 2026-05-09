@@ -250,16 +250,24 @@ let html5QrCode = null;
 
 // --- GİRİŞ VE NAVİGASYON ---
 function login() {
-    let u = document.getElementById('userInp').value;
-    let p = document.getElementById('passInp').value;
+    // Inputlardan gelen verileri alıyoruz
+    let u = document.getElementById('userInp').value.trim();
+    let p = document.getElementById('passInp').value.trim();
     let f = document.getElementById('firmaInp').value;
+
+    // KONTROL: Senin belirlediğin admin ve 1234 bilgileri
     if(u === "admin" && p === "1234") {
-        seciliFirma = f;
-        showToast("Giriş Başarılı!");
+        seciliFirma = f || "Demo"; // Eğer firma seçilmediyse hata verme, "Demo" de geç.
+        
+        showToast("Giriş Başarılı! Hoşgeldiniz.");
+        
+        // Sayfa geçişleri
         document.getElementById('loginPage').classList.add('hidden');
         document.getElementById('navBar').classList.remove('hidden');
         goHome();
-    } else { showToast("Hatalı Giriş!"); }
+    } else { 
+        showToast("Hatalı Giriş! Lütfen bilgilerinizi kontrol edin."); 
+    }
 }
 
 function goHome() { openPage('homePage'); }
