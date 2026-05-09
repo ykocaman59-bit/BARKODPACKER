@@ -63,6 +63,16 @@
 
 <div id="toast">Bildirim Mesajı</div>
 
+<div id="confirmModal" class="modal">
+    <div class="modal-content">
+        <h3 style="color: #333;">Silmek<br>istediğinize eminmisiniz?</h3>
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button id="confirmYesBtn" style="background: var(--danger-red); margin: 0;">EVET</button>
+            <button onclick="closeConfirm()" class="btn-secondary" style="margin: 0;">HAYIR</button>
+        </div>
+    </div>
+</div>
+
 <div id="islemSecModal" class="modal">
     <div class="modal-content">
         <h3 id="secilenCariAd">Cari İşlemi</h3>
@@ -114,7 +124,7 @@
     <button onclick="openCariSec()">Cari Seç</button>
     <button onclick="barkodGirisAc()">Barkod Giriş</button>
     <button onclick="islemSatirlariKontrol()">İşlem Satırları</button>
-    <button id="btnEvrakSilAlis" class="btn-exit hidden" onclick="evrakSil()">BU EVRAKI SİL</button>
+    <button id="btnEvrakSilAlis" class="btn-exit hidden" onclick="openConfirm(evrakSil)">BU EVRAKI SİL</button>
 </div>
 
 <div id="satisPage" class="box hidden">
@@ -129,7 +139,7 @@
     <button onclick="openCariSec()">Cari Seç</button>
     <button onclick="barkodGirisAc()" style="background: var(--danger-red);">Barkod Giriş</button>
     <button onclick="islemSatirlariKontrol()">İşlem Satırları</button>
-    <button id="btnEvrakSilSatis" class="btn-exit hidden" onclick="evrakSil()">BU EVRAKI SİL</button>
+    <button id="btnEvrakSilSatis" class="btn-exit hidden" onclick="openConfirm(evrakSil)">BU EVRAKI SİL</button>
 </div>
 
 <div id="stokPage" class="box hidden">
@@ -220,6 +230,17 @@ let aktifEvrak = { no: "", sira: "", cari: "", kalemler: [], tarih: "", tur: "AL
 let editIdx = -1;
 let selectedCari = "";
 let html5QrCode = null;
+let currentConfirmAction = null;
+
+// --- ÖZEL MODAL FONKSİYONLARI ---
+function openConfirm(callback, index = null) {
+    document.getElementById('confirmModal').style.display = 'flex';
+    document.getElementById('confirmYesBtn').onclick = function() {
+        if(index !== null) callback(index); else callback();
+        closeConfirm();
+    };
+}
+function closeConfirm() { document.getElementById('confirmModal').style.display = 'none'; }
 
 function showToast(msg) {
     let x = document.getElementById("toast");
@@ -263,7 +284,7 @@ function stokListele() {
                 <div><b>${s.ad}</b><br><small>${s.barkod} | Stok: ${s.stok}</small></div>
                 <div style="display:flex; gap:5px;">
                     <button class="btn-edit-sm" onclick="stokDuzenleAc(${i})">✎</button>
-                    <button class="btn-danger-sm" onclick="stokSil(${i})">✖</button>
+                    <button class="btn-danger-sm" onclick="openConfirm(stokSil, ${i})">✖</button>
                 </div>
             </div>`;
         }
@@ -313,11 +334,9 @@ function stokYeniKaydet() {
 }
 
 function stokSil(i) { 
-    if(confirm("Silmek \nistediğinize eminmisiniz?")) { 
-        db_stok.splice(i,1); 
-        localStorage.setItem("db_stok", JSON.stringify(db_stok)); 
-        stokListele(); 
-    } 
+    db_stok.splice(i,1); 
+    localStorage.setItem("db_stok", JSON.stringify(db_stok)); 
+    stokListele(); 
 }
 
 // --- CARİ İŞLEMLERİ ---
@@ -330,7 +349,7 @@ function cariListeleHepsini() {
                 <div style="flex:1" onclick="cariIslemSec('${c}')"><b>${c}</b></div>
                 <div style="display:flex; gap:5px;">
                     <button class="btn-edit-sm" onclick="cariDuzenleAc(${i})">✎</button>
-                    <button class="btn-danger-sm" onclick="cariSil(${i})">✖</button>
+                    <button class="btn-danger-sm" onclick="openConfirm(cariSil, ${i})">✖</button>
                 </div>
             </div>`;
         }
@@ -367,11 +386,9 @@ function cariEkle() {
 }
 
 function cariSil(i) { 
-    if(confirm("Silmek \nistediğinize eminmisiniz?")) { 
-        db_cari.splice(i,1); 
-        localStorage.setItem("db_cari", JSON.stringify(db_cari)); 
-        cariListeleHepsini(); 
-    } 
+    db_cari.splice(i,1); 
+    localStorage.setItem("db_cari", JSON.stringify(db_cari)); 
+    cariListeleHepsini(); 
 }
 
 // --- EVRAK VE DİĞER MANTIK ---
@@ -432,7 +449,6 @@ function evragaEkle() {
 }
 
 function evrakSil() {
-    if(!confirm("Silmek \nistediğinize eminmisiniz?")) return;
     aktifEvrak.kalemler.forEach(k => {
         let u = db_stok.find(s => s.barkod == k.barkod);
         if(u) { if(aktifEvrak.tur === "ALIS") u.stok -= k.miktar; else u.stok += k.miktar; }
