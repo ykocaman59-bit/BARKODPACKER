@@ -546,12 +546,22 @@ function belgeKaydet() {
     aktifEvrak.no = (aktifEvrak.tur === "ALIS" ? "AL-" : "ST-") + aktifEvrak.sira; 
     guncellePaneller(); islemSayfasinaDon(); 
 }
+
+// GÜNCELLENEN BÖLÜM: İşlem satırları kontrolü
 function islemSatirlariKontrol() { 
+    // Eğer kalemler listesi boşsa uyarı ver ve fonksiyonu durdur
+    if (!aktifEvrak.kalemler || aktifEvrak.kalemler.length === 0) {
+        showToast("Gösterilecek evrak yok!");
+        return; 
+    }
+    
+    // Eğer liste doluysa tabloyu oluştur ve sayfayı aç
     let h = "";
     aktifEvrak.kalemler.forEach(k => h += `<tr><td>${k.barkod}</td><td>${k.ad}</td><td>${k.miktar}</td></tr>`);
     document.getElementById('islemTabloGövde').innerHTML = h;
     openPage('islemSatirlariPage'); 
 }
+
 function kameraAc() {
     stopKamera();
     html5QrCode = new Html5Qrcode("reader");
