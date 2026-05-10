@@ -134,6 +134,8 @@
         <button class="btn-secondary" onclick="yeniSatisBaslat()">📤 Satış İrsaliyesi</button>
         
         <button onclick="showToast('Evrak Geçmişi Hazırlanıyor')">📜 Evrak Geçmişi</button>
+        <button onclick="openEvrakGetir('ALIS')">Evrak Getir</button>
+        <button onclick="openEvrakGetir('SATIS')">Evrak Getir</button>
         <button class="btn-secondary" onclick="openPage('cariPage')">👥 Cari Kartlar</button>
     </div>
     <button class="btn-exit" onclick="logout()">ÇIKIŞ YAP</button>
@@ -168,11 +170,7 @@
     <button onclick="islemSatirlariKontrol()">İşlem Satırları</button>
     <button id="btnEvrakSilSatis" class="btn-exit hidden" onclick="openConfirm(evrakSil)">BU EVRAKI SİL</button>
 </div>
-    <div id="EvrakgecmisiPage" class="box hidden">
-    <div class="info-panel" style="border-left: 5px solid #28a745;">
-        <button onclick="openEvrakGetir('ALIS')">Evrak Getir</button>
-        <button onclick="openEvrakGetir('SATIS')">Evrak Getir</button>
-
+    
 <div id="stokPage" class="box hidden">
     <h3>STOK LİSTESİ</h3>
     <button onclick="openPage('stokEklePage')" style="background: #28a745; margin-bottom:15px;">➕ YENİ STOK EKLE</button>
