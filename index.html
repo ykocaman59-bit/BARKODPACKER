@@ -134,13 +134,16 @@
         <button class="btn-secondary" onclick="yeniSatisBaslat()">📤 Satış İrsaliyesi</button>
         
         <button onclick="showToast('Evrak Geçmişi Hazırlanıyor')">📜 Evrak Geçmişi</button>
-        <button onclick="openEvrakGetir('ALIS')">Evrak Getir</button>
-        <button onclick="openEvrakGetir('SATIS')">Evrak Getir</button>
         <button class="btn-secondary" onclick="openPage('cariPage')">👥 Cari Kartlar</button>
     </div>
     <button class="btn-exit" onclick="logout()">ÇIKIŞ YAP</button>
 </div>
 
+    <div id="📜 Evrak Geçmişi" class="box hidden">
+    <div class="info-panel" style="border-left: 5px solid #28a745;">
+        <button onclick="openEvrakGetir('ALIS')">Evrak Getir</button>
+        <button onclick="openEvrakGetir('SATIS')">Evrak Getir</button>
+        
 <div id="alisPage" class="box hidden">
     <div class="info-panel" style="border-left: 5px solid #28a745;">
         <b>Bölüm:</b> <span style="color:#28a745">ALIŞ İRSALİYESİ</span><br>
