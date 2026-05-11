@@ -11,6 +11,7 @@
             --secondary-blue: #5cb8d1;
             --danger-red: #ff5e5e;
             --white: #ffffff;
+            --pda-blue: #3b82f6;
         }
 
         /* KOPYALAMAYI ENGELLE */
@@ -19,64 +20,42 @@
 
         body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f4f7f9; }
         
-        .navbar { 
-            background: var(--primary-blue); 
-            color: white; 
-            padding: 10px 15px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            font-weight: bold; 
-            position: relative;
+        /* --- İNTERNET YOK EKRANI (SPLASH) --- */
+        #offlineOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--pda-blue); z-index: 20000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        
-        .nav-home-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            border-radius: 8px;
-            padding: 5px 12px;
-            color: white;
-            font-size: 18px;
-            cursor: pointer;
-            margin-left: auto;
-            margin-right: 20px;
-        }
+        .lines-container { display: flex; align-items: center; gap: 6px; height: 60px; }
+        .line { width: 5px; height: 20px; background: white; border-radius: 10px; animation: wave 1.2s infinite ease-in-out; }
+        .line:nth-child(1) { animation-delay: 0.0s; }
+        .line:nth-child(2) { animation-delay: 0.1s; }
+        .line:nth-child(3) { animation-delay: 0.2s; }
+        .line:nth-child(4) { animation-delay: 0.3s; }
+        .line:nth-child(5) { animation-delay: 0.4s; }
+        @keyframes wave { 0%, 100% { height: 20px; } 50% { height: 50px; } }
+        .splash-text { color: white; font-size: 28px; font-weight: bold; margin-bottom: 40px; }
+        .splash-text span { color: #f97316; }
 
+        .navbar { background: var(--primary-blue); color: white; padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; position: relative; }
+        .nav-home-btn { background: rgba(255,255,255,0.2); border: none; border-radius: 8px; padding: 5px 12px; color: white; font-size: 18px; cursor: pointer; margin-left: auto; margin-right: 20px; }
         .box { padding: 15px; }
         .hidden { display: none !important; }
-
-        button {
-            width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 40px;
-            background: var(--primary-blue); color: white; font-weight: bold; font-size: 16px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer;
-        }
-
+        button { width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 40px; background: var(--primary-blue); color: white; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); cursor: pointer; }
         .btn-secondary { background: var(--secondary-blue); }
         .btn-exit { background: var(--danger-red); margin-top: 20px; border-radius: 40px; }
         .btn-danger-sm { background: var(--danger-red); width: auto; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: white; margin-left:5px; }
         .btn-edit-sm { background: #f39c12; width: auto; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: white; }
-        
-        input, select {
-            width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd;
-            border-radius: 12px; box-sizing: border-box;
-        }
-
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; }
         .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; border-left: 5px solid var(--primary-blue); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .info-panel { background: #fff; padding: 10px; border-radius: 8px; margin-bottom: 10px; font-size: 14px; color: #333; line-height: 1.6; border-bottom: 2px solid #eee; }
-        
         #reader, #readerStok { width: 100%; border-radius: 10px; overflow: hidden; margin-bottom: 10px; background: #000; }
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; margin-top: 10px;}
         th { background: #eee; padding: 10px; font-size: 12px; border: 1px solid #ddd; }
         td { padding: 10px; border: 1px solid #ddd; text-align: center; font-size: 12px; }
-        
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 10001; }
         .modal-content { background: white; padding: 20px; border-radius: 15px; width: 85%; text-align: center; }
-
-        #toast {
-            visibility: hidden; min-width: 250px; background-color: #333; color: #fff;
-            text-align: center; border-radius: 10px; padding: 15px; position: fixed;
-            z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px;
-        }
+        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 10px; padding: 15px; position: fixed; z-index: 9999; left: 50%; bottom: 30px; transform: translateX(-50%); font-size: 14px; }
         #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
@@ -84,11 +63,22 @@
 </head>
 <body oncontextmenu="return false;">
 
+<div id="offlineOverlay" class="hidden">
+    <div class="splash-text">BARKOD<span>PACKER</span></div>
+    <div class="lines-container">
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+    </div>
+</div>
+
 <div id="toast">Bildirim Mesajı</div>
 
 <div id="confirmModal" class="modal">
     <div class="modal-content">
-        <h3 style="color: #333;">Silmek<br>istediğinize eminmisiniz?</h3>
+        <h3 style="color: #333;">Silmek<br>istediğinize emin misiniz?</h3>
         <div style="display: flex; gap: 10px; margin-top: 20px;">
             <button id="confirmYesBtn" style="background: var(--danger-red); margin: 0;">EVET</button>
             <button onclick="closeConfirm()" class="btn-secondary" style="margin: 0;">HAYIR</button>
@@ -120,17 +110,14 @@
 <div class="navbar hidden" id="navBar">
     <span id="navTitle">Online</span>
     <button class="nav-home-btn" onclick="goHome()">🏠 ANA SAYFA</button>
-    <span id="dots" onclick="toggleMenu()" style="cursor:pointer; font-size: 20px; padding-left: 10px;">•••</span>
 </div>
 
 <div id="homePage" class="box hidden">
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <button onclick="openPage('stokPage')">📦 Stok Kartları</button>
         <button class="btn-secondary" onclick="showToast('Sayım Fişi Hazırlanıyor')">📊 Sayım</button>
-        
         <button onclick="yeniAlisBaslat()">📥 Alış İrsaliyesi</button>
         <button class="btn-secondary" onclick="yeniSatisBaslat()">📤 Satış İrsaliyesi</button>
-        
         <button onclick="openPage('gecmisSecimPage')">📜 Evrak Geçmişi</button>
         <button class="btn-secondary" onclick="openPage('cariPage')">👥 Cari Kartlar</button>
     </div>
@@ -139,7 +126,6 @@
 
 <div id="gecmisSecimPage" class="box hidden">
     <h3>EVRAK GEÇMİŞİ</h3>
-    <p>Görüntülemek istediğiniz evrak türünü seçiniz:</p>
     <button onclick="gecmisListele('ALIS')" style="background: #28a745;">📥 ALIŞ EVRAKLARI</button>
     <button onclick="gecmisListele('SATIS')" style="background: var(--danger-red);">📤 SATIŞ EVRAKLARI</button>
     <button class="btn-secondary" onclick="goHome()">GERİ</button>
@@ -254,10 +240,32 @@
         <thead><tr><th>Barkod</th><th>Ürün</th><th>Miktar</th></tr></thead>
         <tbody id="islemTabloGövde"></tbody>
     </table>
-    <button class="btn-secondary" onclick="openPage('barkodGirisPage')">GERİ</button>
+    <button id="btnSatirGeri" class="btn-secondary">GERİ</button>
 </div>
 
 <script>
+// --- İNTERNET VE OTO DOLDURMA ---
+function checkNetwork() {
+    const overlay = document.getElementById('offlineOverlay');
+    const u = document.getElementById('userInp');
+    const p = document.getElementById('passInp');
+    const f = document.getElementById('firmaInp');
+
+    if (!navigator.onLine) {
+        overlay.classList.remove('hidden');
+    } else {
+        overlay.classList.add('hidden');
+        if(u.value === "") u.value = "admin";
+        if(p.value === "") p.value = "1234";
+        if(f.value === "") f.value = "Demo";
+    }
+}
+window.addEventListener('online', checkNetwork);
+window.addEventListener('offline', checkNetwork);
+window.addEventListener('load', checkNetwork);
+setInterval(checkNetwork, 3000);
+
+// --- DEĞİŞKENLER ---
 let db_stok = JSON.parse(localStorage.getItem("db_stok") || '[]');
 let db_cari = JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda"]');
 let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
@@ -265,8 +273,14 @@ let aktifEvrak = { no: "", sira: "", cari: "", kalemler: [], tarih: "", tur: "AL
 let editIdx = -1;
 let selectedCari = "";
 let html5QrCode = null;
-let currentConfirmAction = null;
-let gecmisModu = false; // Geçmiş sayfasından mı gelindiğini anlamak için
+let gecmisModu = false;
+
+// --- FONKSİYONLAR ---
+function showToast(msg) {
+    let x = document.getElementById("toast");
+    x.innerText = msg; x.className = "show";
+    setTimeout(() => { x.className = ""; }, 3000);
+}
 
 function openConfirm(callback, index = null) {
     document.getElementById('confirmModal').style.display = 'flex';
@@ -277,19 +291,11 @@ function openConfirm(callback, index = null) {
 }
 function closeConfirm() { document.getElementById('confirmModal').style.display = 'none'; }
 
-function showToast(msg) {
-    let x = document.getElementById("toast");
-    x.innerText = msg; x.className = "show";
-    setTimeout(() => { x.className = ""; }, 3000);
-}
-
 function login() {
     let u = document.getElementById('userInp').value;
     let p = document.getElementById('passInp').value;
     let f = document.getElementById('firmaInp').value;
-    if(u === "" || p === "") { showToast("Lütfen kullanıcı adı ve şifreyi doldurunuz!"); return; }
-    if(f === "") { showToast("Lütfen firma seçiniz!"); return; }
-    if(u === "admin" && p === "1234") {
+    if(u === "admin" && p === "1234" && f !== "") {
         showToast("Giriş Başarılı!");
         document.getElementById('loginPage').classList.add('hidden');
         document.getElementById('navBar').classList.remove('hidden');
@@ -305,19 +311,14 @@ function openPage(id) {
     if(id === 'stokPage') stokListele();
     if(id === 'cariPage') cariListeleHepsini();
 }
-function goHome() { 
-    gecmisModu = false; 
-    openPage('homePage'); 
-}
+
+function goHome() { gecmisModu = false; openPage('homePage'); }
 function islemSayfasinaDon() { 
-    if(gecmisModu) {
-        openPage('gecmisSecimPage');
-    } else {
-        openPage(aktifEvrak.tur === "ALIS" ? "alisPage" : "satisPage"); 
-    }
+    if(gecmisModu) openPage('gecmisSecimPage');
+    else openPage(aktifEvrak.tur === "ALIS" ? "alisPage" : "satisPage"); 
 }
 
-// --- STOK VE CARİ FONKSİYONLARI (DEĞİŞMEDİ) ---
+// --- STOK & CARİ ---
 function stokListele() {
     let ara = document.getElementById('stokAra').value.toLowerCase();
     let h = "";
@@ -334,48 +335,32 @@ function stokListele() {
     });
     document.getElementById('stokListesi').innerHTML = h || "Kayıt Yok";
 }
-function stokDuzenleAc(i) {
-    editIdx = i;
-    document.getElementById('stokFormBaslik').innerText = "STOK DÜZENLE";
-    document.getElementById('newBarkodInp').value = db_stok[i].barkod;
-    document.getElementById('newAdInp').value = db_stok[i].ad;
-    document.getElementById('btnStokKaydet').innerText = "GÜNCELLE";
-    document.getElementById('btnStokKaydet').onclick = stokGuncelle;
-    openPage('stokEklePage');
-}
-function stokGuncelle() {
-    let b = document.getElementById('newBarkodInp').value;
-    let a = document.getElementById('newAdInp').value;
-    if(!b || !a) return;
-    db_stok[editIdx].barkod = b;
-    db_stok[editIdx].ad = a;
-    localStorage.setItem("db_stok", JSON.stringify(db_stok));
-    showToast("Güncellendi");
-    iptalStokDuzenle();
-}
-function iptalStokDuzenle() {
-    editIdx = -1;
-    document.getElementById('stokFormBaslik').innerText = "YENİ STOK KARTI";
-    document.getElementById('newBarkodInp').value = "";
-    document.getElementById('newAdInp').value = "";
-    document.getElementById('btnStokKaydet').innerText = "LİSTEYE EKLE";
-    document.getElementById('btnStokKaydet').onclick = stokYeniKaydet;
-    openPage('stokPage');
-}
 function stokYeniKaydet() {
     let b = document.getElementById('newBarkodInp').value;
     let a = document.getElementById('newAdInp').value;
     if(!b || !a) return showToast("Eksik bilgi!");
     db_stok.push({ barkod: b, ad: a, stok: 0 });
     localStorage.setItem("db_stok", JSON.stringify(db_stok));
-    showToast("Stok Eklendi");
+    showToast("Eklendi");
     iptalStokDuzenle();
 }
-function stokSil(i) { 
-    db_stok.splice(i,1); 
-    localStorage.setItem("db_stok", JSON.stringify(db_stok)); 
-    stokListele(); 
+function stokDuzenleAc(i) {
+    editIdx = i;
+    document.getElementById('stokFormBaslik').innerText = "DÜZENLE";
+    document.getElementById('newBarkodInp').value = db_stok[i].barkod;
+    document.getElementById('newAdInp').value = db_stok[i].ad;
+    document.getElementById('btnStokKaydet').onclick = stokGuncelle;
+    openPage('stokEklePage');
 }
+function stokGuncelle() {
+    db_stok[editIdx].barkod = document.getElementById('newBarkodInp').value;
+    db_stok[editIdx].ad = document.getElementById('newAdInp').value;
+    localStorage.setItem("db_stok", JSON.stringify(db_stok));
+    iptalStokDuzenle();
+}
+function iptalStokDuzenle() { editIdx = -1; openPage('stokPage'); }
+function stokSil(i) { db_stok.splice(i,1); localStorage.setItem("db_stok", JSON.stringify(db_stok)); stokListele(); }
+
 function cariListeleHepsini() {
     let ara = (document.getElementById('cariAraKutusu')?.value || "").toLowerCase();
     let h = "";
@@ -383,31 +368,11 @@ function cariListeleHepsini() {
         if(c.toLowerCase().includes(ara)) {
             h += `<div class="card">
                 <div style="flex:1" onclick="cariIslemSec('${c}')"><b>${c}</b></div>
-                <div style="display:flex; gap:5px;">
-                    <button class="btn-edit-sm" onclick="cariDuzenleAc(${i})">✎</button>
-                    <button class="btn-danger-sm" onclick="openConfirm(cariSil, ${i})">✖</button>
-                </div>
+                <button class="btn-danger-sm" onclick="openConfirm(cariSil, ${i})">✖</button>
             </div>`;
         }
     });
     document.getElementById('cariListesi').innerHTML = h;
-}
-function cariDuzenleAc(i) {
-    editIdx = i;
-    document.getElementById('cariName').value = db_cari[i];
-    document.getElementById('btnCariEkle').innerText = "GÜNCELLE";
-    document.getElementById('btnCariEkle').onclick = cariGuncelle;
-}
-function cariGuncelle() {
-    let yeni = document.getElementById('cariName').value;
-    if(!yeni) return;
-    db_cari[editIdx] = yeni;
-    localStorage.setItem("db_cari", JSON.stringify(db_cari));
-    document.getElementById('btnCariEkle').innerText = "EKLE";
-    document.getElementById('btnCariEkle').onclick = cariEkle;
-    document.getElementById('cariName').value = "";
-    showToast("Cari Güncellendi");
-    cariListeleHepsini();
 }
 function cariEkle() {
     let c = document.getElementById('cariName').value;
@@ -417,138 +382,75 @@ function cariEkle() {
     document.getElementById('cariName').value = "";
     cariListeleHepsini();
 }
-function cariSil(i) { 
-    db_cari.splice(i,1); 
-    localStorage.setItem("db_cari", JSON.stringify(db_cari)); 
-    cariListeleHepsini(); 
-}
+function cariSil(i) { db_cari.splice(i,1); localStorage.setItem("db_cari", JSON.stringify(db_cari)); cariListeleHepsini(); }
 
-// --- EVRAK İŞLEMLERİ ---
+// --- EVRAK ---
 function yeniAlisBaslat() { gecmisModu = false; yeniEvrak('ALIS'); openPage('alisPage'); }
 function yeniSatisBaslat() { gecmisModu = false; yeniEvrak('SATIS'); openPage('satisPage'); }
 
 function yeniEvrak(tur) {
     let rnd = Math.floor(Math.random()*9000+1000);
-    aktifEvrak = { 
-        no: (tur === "ALIS" ? "AL-" : "ST-") + rnd, 
-        sira: rnd.toString(), 
-        cari: "Seçilmedi", 
-        kalemler: [], 
-        tarih: new Date().toISOString().split('T')[0], 
-        tur: tur 
-    };
+    aktifEvrak = { no: (tur === "ALIS" ? "AL-" : "ST-") + rnd, sira: rnd.toString(), cari: "Seçilmedi", kalemler: [], tarih: new Date().toISOString().split('T')[0], tur: tur };
     guncellePaneller();
 }
-
 function guncellePaneller() {
-    if(aktifEvrak.tur === "ALIS") {
-        document.getElementById('a_dispEvrakNo').innerText = aktifEvrak.no;
-        document.getElementById('a_dispCari').innerText = aktifEvrak.cari;
-        document.getElementById('btnEvrakSilAlis').classList.add('hidden');
-    } else {
-        document.getElementById('s_dispEvrakNo').innerText = aktifEvrak.no;
-        document.getElementById('s_dispCari').innerText = aktifEvrak.cari;
-        document.getElementById('btnEvrakSilSatis').classList.add('hidden');
-    }
+    let prefix = aktifEvrak.tur === "ALIS" ? "a_" : "s_";
+    document.getElementById(prefix + 'dispEvrakNo').innerText = aktifEvrak.no;
+    document.getElementById(prefix + 'dispCari').innerText = aktifEvrak.cari;
 }
 
 function urunBul() {
     let b = document.getElementById('barcodeInp').value;
     let u = db_stok.find(x => x.barkod == b);
     if(u) {
-        document.getElementById('urunBilgiText').innerHTML = `<b>${u.ad}</b><br><small>Mevcut Stok: ${u.stok}</small>`;
+        document.getElementById('urunBilgiText').innerHTML = `<b>${u.ad}</b><br><small>Stok: ${u.stok}</small>`;
         document.getElementById('urunDetay').classList.remove('hidden');
-        document.getElementById('btnEvragaEkle').style.background = aktifEvrak.tur === "ALIS" ? "#28a745" : "var(--danger-red)";
-    } else { showToast("Kayıtsız Barkod!"); }
+    } else showToast("Kayıtsız Barkod!");
 }
-
 function evragaEkle() {
     let m = parseInt(document.getElementById('adetInp').value);
     let b = document.getElementById('barcodeInp').value;
-    let u = db_stok.find(x => x.barkod == b);
+  let u = db_stok.find(x => x.barkod == b);
     if(m > 0 && u) {
-        let kalem = aktifEvrak.kalemler.find(k => k.barkod === b);
-        if(kalem) { kalem.miktar += m; } else { aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m }); }
+        aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
         if(aktifEvrak.tur === "ALIS") u.stok += m; else u.stok -= m;
-        let idx = db_evraklar.findIndex(e => e.no === aktifEvrak.no && e.tur === aktifEvrak.tur);
+        let idx = db_evraklar.findIndex(e => e.no === aktifEvrak.no);
         if(idx > -1) db_evraklar[idx] = aktifEvrak; else db_evraklar.push(aktifEvrak);
         localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
         localStorage.setItem("db_stok", JSON.stringify(db_stok));
-        document.getElementById('barcodeInp').value = ""; document.getElementById('adetInp').value = "";
         document.getElementById('urunDetay').classList.add('hidden');
-        showToast("Ürün Eklendi");
+        showToast("Eklendi");
     }
 }
-
 function evrakSil() {
-    aktifEvrak.kalemler.forEach(k => {
-        let u = db_stok.find(s => s.barkod == k.barkod);
-        if(u) { if(aktifEvrak.tur === "ALIS") u.stok -= k.miktar; else u.stok += k.miktar; }
-    });
-    db_evraklar = db_evraklar.filter(x => !(x.no === aktifEvrak.no && x.tur === aktifEvrak.tur));
+    db_evraklar = db_evraklar.filter(x => x.no !== aktifEvrak.no);
     localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
-    localStorage.setItem("db_stok", JSON.stringify(db_stok));
     goHome();
 }
 
-// --- YENİ: EVRAK GEÇMİŞİ LİSTELEME ---
 function gecmisListele(tur) {
     gecmisModu = true;
-    document.getElementById('evrakListeBaslik').innerText = tur === "ALIS" ? "TÜM ALIŞ EVRAKLARI" : "TÜM SATIŞ EVRAKLARI";
-    document.getElementById('filtreAlani').style.display = 'none'; // Tarih filtrelerini gizle
-    
-    // Evrakları tarihe göre (en yeni en üstte) sırala
-    let liste = db_evraklar
-        .filter(e => e.tur === tur)
-        .sort((a, b) => new Date(b.tarih) - new Date(a.tarih));
-
+    document.getElementById('evrakListeBaslik').innerText = "GEÇMİŞ: " + tur;
+    document.getElementById('filtreAlani').style.display = 'none';
     let h = "";
-    liste.forEach(e => {
+    db_evraklar.filter(e => e.tur === tur).forEach(e => {
         h += `<tr onclick="evrakYukle('${e.no}', '${e.tur}')"><td>${e.tarih}</td><td>${e.no}</td><td>${e.cari}</td></tr>`;
     });
-    
     document.getElementById('evrakSorguGövde').innerHTML = h || "<tr><td colspan='3'>Kayıt yok</td></tr>";
-    document.getElementById('btnEvrakGeri').onclick = function() { openPage('gecmisSecimPage'); };
     openPage('evrakListesiPage');
 }
-
-// İşlem sayfalarındaki "Evrak Getir" butonu için eski mantık
 function openEvrakGetir(tur) {
     gecmisModu = false;
-    document.getElementById('evrakListeBaslik').innerText = tur === "ALIS" ? "ALIŞ EVRAK LİSTESİ" : "SATIŞ EVRAK LİSTESİ";
-    document.getElementById('filtreAlani').style.display = 'block'; // Filtreyi göster
-    let bugun = new Date().toISOString().split('T')[0];
-    document.getElementById('filterBasTar').value = bugun;
-    document.getElementById('filterBitTar').value = bugun;
-    evrakSorgula(tur);
-    document.getElementById('btnEvrakGeri').onclick = function() { islemSayfasinaDon(); };
+    document.getElementById('filtreAlani').style.display = 'block';
     openPage('evrakListesiPage');
 }
-
-function evrakSorgula(turZorunlu = null) {
-    let tur = turZorunlu || aktifEvrak.tur;
-    let bas = document.getElementById('filterBasTar').value;
-    let bit = document.getElementById('filterBitTar').value;
-    let h = "";
-    db_evraklar.filter(e => e.tarih >= bas && e.tarih <= bit && e.tur === tur).forEach(e => {
-        h += `<tr onclick="evrakYukle('${e.no}', '${e.tur}')"><td>${e.tarih}</td><td>${e.no}</td><td>${e.cari}</td></tr>`;
-    });
-    document.getElementById('evrakSorguGövde').innerHTML = h || "<tr><td colspan='3'>Kayıt yok</td></tr>";
-}
-
 function evrakYukle(no, tur) {
-    let e = db_evraklar.find(x => x.no === no && x.tur === tur);
+    let e = db_evraklar.find(x => x.no === no);
     if(e) {
         aktifEvrak = JSON.parse(JSON.stringify(e));
         guncellePaneller();
-        if(gecmisModu) {
-            // Geçmişten bakıyorsak sadece satırları gösterelim
-            islemSatirlariKontrol();
-        } else {
-            // Normal moddaysa düzenleme sayfasına git
-            if(tur === "ALIS") { document.getElementById('btnEvrakSilAlis').classList.remove('hidden'); openPage('alisPage'); }
-            else { document.getElementById('btnEvrakSilSatis').classList.remove('hidden'); openPage('satisPage'); }
-        }
+        if(gecmisModu) islemSatirlariKontrol();
+        else openPage(tur === "ALIS" ? "alisPage" : "satisPage");
     }
 }
 
@@ -557,7 +459,6 @@ function cariIslemSec(c) {
     document.getElementById('secilenCariAd').innerText = c;
     document.getElementById('islemSecModal').style.display = 'flex';
 }
-
 function islemBaslat(tur) {
     document.getElementById('islemSecModal').style.display = 'none';
     yeniEvrak(tur);
@@ -565,7 +466,6 @@ function islemBaslat(tur) {
     guncellePaneller();
     openPage(tur === "ALIS" ? "alisPage" : "satisPage");
 }
-
 function openCariSec() { cariFiltreleSec(); openPage('cariSecPage'); }
 function cariFiltreleSec() {
     let ara = document.getElementById('cariSecAra').value.toLowerCase();
@@ -577,28 +477,12 @@ function cariFiltreleSec() {
 }
 function cariSecildi(c) { aktifEvrak.cari = c; guncellePaneller(); islemSayfasinaDon(); }
 function barkodGirisAc() { if(aktifEvrak.cari === "Seçilmedi") return showToast("Önce Cari Seçiniz!"); openPage('barkodGirisPage'); }
-function belgeKaydet() { 
-    aktifEvrak.sira = document.getElementById('belgeDinamik').value; 
-    aktifEvrak.no = (aktifEvrak.tur === "ALIS" ? "AL-" : "ST-") + aktifEvrak.sira; 
-    guncellePaneller(); islemSayfasinaDon(); 
-}
 
 function islemSatirlariKontrol() { 
-    if (!aktifEvrak.kalemler || aktifEvrak.kalemler.length === 0) {
-        showToast("Gösterilecek evrak yok!");
-        return; 
-    }
     let h = "";
     aktifEvrak.kalemler.forEach(k => h += `<tr><td>${k.barkod}</td><td>${k.ad}</td><td>${k.miktar}</td></tr>`);
     document.getElementById('islemTabloGövde').innerHTML = h;
-    
-    // Eğer geçmiş modundaysak geri butonu seçim sayfasına atsın
-    if(gecmisModu) {
-        document.querySelector("#islemSatirlariPage button").onclick = function() { openPage('evrakListesiPage'); };
-    } else {
-        document.querySelector("#islemSatirlariPage button").onclick = function() { openPage('barkodGirisPage'); };
-    }
-    
+    document.getElementById('btnSatirGeri').onclick = () => { if(gecmisModu) openPage('evrakListesiPage'); else openPage('barkodGirisPage'); };
     openPage('islemSatirlariPage'); 
 }
 
@@ -607,8 +491,7 @@ function kameraAc() {
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (text) => {
         document.getElementById("barcodeInp").value = text;
-        stopKamera();
-        urunBul();
+        stopKamera(); urunBul();
     });
 }
 function kameraAcStok() {
