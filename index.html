@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>BARKODPACKER ERP</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
     <style>
         :root {
@@ -44,6 +46,7 @@
         .hidden { display: none !important; }
         button { width: 100%; padding: 15px; margin: 8px 0; border: none; border-radius: 40px; background: var(--primary-blue); color: white; font-weight: bold; font-size: 16px; cursor: pointer; }
         .btn-secondary { background: var(--secondary-blue); }
+        .btn-success { background: #28a745; }
         .btn-exit { background: var(--danger-red); margin-top: 20px; border-radius: 40px; }
         .btn-danger-sm { background: var(--danger-red); width: auto; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: white; }
         .btn-edit-sm { background: #f39c12; width: auto; padding: 5px 10px; border-radius: 8px; font-size: 12px; color: white; }
@@ -64,6 +67,9 @@
         #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
+
+        /* PDF Önizleme Alanı */
+        #pdfModal { background: white; overflow-y: auto; display: none; flex-direction: column; position: fixed; top:0; left:0; width:100%; height:100%; z-index: 20000; }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -74,6 +80,19 @@
 </div>
 
 <div id="toast">Mesaj</div>
+
+<div id="pdfModal">
+    <div class="navbar">
+        <span>PDF ÖNİZLEME</span>
+        <button class="nav-home-btn" onclick="closePdfModal()">❌ KAPAT</button>
+    </div>
+    <div class="box">
+        <div id="pdfContent" style="background:white; min-height: 300px; padding: 10px; border: 1px solid #ccc; font-size: 10px;">
+            </div>
+        <button class="btn-success" onclick="downloadPdf()">📥 TELEFONA İNDİR</button>
+        <button style="background: #25D366;" onclick="shareWhatsapp()">📱 WHATSAPP İLE PAYLAŞ</button>
+    </div>
+</div>
 
 <div id="confirmModal" class="modal">
     <div class="modal-content">
@@ -206,7 +225,10 @@
 </div>
 
 <div id="islemSatirlariPage" class="box hidden">
-    <h3>İŞLEM SATIRLARI</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h3>İŞLEM SATIRLARI</h3>
+        <button onclick="generatePdf()" style="width: 120px; background: #5a32a8; padding: 10px; margin: 0; font-size: 12px;">📄 PDF OLUŞTUR</button>
+    </div>
     <table style="width:100%">
         <thead><tr><th>Barkod</th><th>Ürün</th><th>Miktar</th></tr></thead>
         <tbody id="islemTabloGövde"></tbody>
@@ -243,6 +265,83 @@
 </div>
 
 <script>
+// --- PDF MANTIĞI ---
+let lastPdfBlob = null;
+
+function generatePdf() {
+    if (!aktifEvrak.kalemler || aktifEvrak.kalemler.length === 0) {
+        showToast("Gösterilecek evrak yok! (Önce ürün ekleyin)");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // ÜST BAŞLIK (BARKODPACKER)
+    doc.setFontSize(22);
+    doc.setTextColor(74, 144, 226); // Primary Blue
+    doc.text("BARKODPACKER", 105, 20, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.setTextColor(0, 0, 0);
+    doc.text("E-İRSALİYE BELGESİ", 105, 28, { align: "center" });
+    doc.line(10, 32, 200, 32);
+
+    // EVRAK BİLGİLERİ
+    doc.setFontSize(10);
+    doc.text(`EVRAK TÜRÜ: ${aktifEvrak.tur === 'ALIS' ? 'ALIŞ İRSALİYESİ' : 'SATIŞ İRSALİYESİ'}`, 10, 40);
+    doc.text(`EVRAK NO: ${aktifEvrak.no}`, 10, 47);
+    doc.text(`TARİH: ${aktifEvrak.tarih}`, 10, 54);
+    doc.text(`CARİ ÜNVAN: ${aktifEvrak.cari}`, 10, 61);
+
+    // TABLO
+    const tableData = aktifEvrak.kalemler.map(item => [item.barkod, item.ad, item.miktar]);
+    doc.autoTable({
+        startY: 70,
+        head: [['BARKOD', 'ÜRÜN ADI', 'MİKTAR']],
+        body: tableData,
+        theme: 'striped',
+        headStyles: { fillColor: [74, 144, 226] }
+    });
+
+    // ÖNİZLEME VE KAYIT
+    lastPdfBlob = doc.output('blob');
+    const pdfUrl = URL.createObjectURL(lastPdfBlob);
+    
+    // Önizleme kutusuna içeriği dök
+    let previewHtml = `
+        <h2 style="color:var(--primary-blue)">BARKODPACKER</h2>
+        <p><b>Evrak No:</b> ${aktifEvrak.no}</p>
+        <p><b>Cari:</b> ${aktifEvrak.cari}</p>
+        <hr>
+        <table style="width:100%; border:1px solid #ddd; font-size:10px;">
+            <tr style="background:#eee"><td>Ürün</td><td>Adet</td></tr>
+            ${aktifEvrak.kalemler.map(k => `<tr><td>${k.ad}</td><td>${k.miktar}</td></tr>`).join('')}
+        </table>
+    `;
+    document.getElementById('pdfContent').innerHTML = previewHtml;
+    document.getElementById('pdfModal').style.display = 'flex';
+}
+
+function downloadPdf() {
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(lastPdfBlob);
+    link.download = `${aktifEvrak.no}_BARKODPACKER.pdf`;
+    link.click();
+    showToast("PDF İndirildi");
+}
+
+function shareWhatsapp() {
+    // Mobil tarayıcılarda doğrudan dosya paylaşımı kısıtlıdır, 
+    // bu yüzden metin tabanlı bir bilgilendirme ve dosya ismi gönderilir.
+    const text = encodeURIComponent(`BARKODPACKER ERP - ${aktifEvrak.no} nolu ${aktifEvrak.tur} evrakı PDF olarak oluşturulmuştur.`);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+}
+
+function closePdfModal() {
+    document.getElementById('pdfModal').style.display = 'none';
+}
+
 // --- SİSTEM & NETWORK ---
 function checkNet() {
     const overlay = document.getElementById('offlineOverlay');
@@ -322,7 +421,7 @@ function stokListele() {
 }
 function stokYeniKaydet() {
     let b = document.getElementById('newBarkodInp').value;
-    let a = document.getElementById('newAdInp').value;
+ let a = document.getElementById('newAdInp').value;
     if(!b || !a) return showToast("Eksik bilgi!");
     db_stok.push({ barkod: b, ad: a, stok: 0 });
     localStorage.setItem("db_stok", JSON.stringify(db_stok));
@@ -344,7 +443,7 @@ function stokGuncelle() {
 }
 function stokSil(i) { db_stok.splice(i,1); localStorage.setItem("db_stok", JSON.stringify(db_stok)); stokListele(); }
 
-// --- CARİ İŞLEMLERİ (DÜZENLEME EKLENDİ) ---
+// --- CARİ İŞLEMLERİ ---
 function cariListeleHepsini() {
     let ara = document.getElementById('cariAra').value.toLowerCase();
     let h = "";
@@ -426,19 +525,14 @@ function evragaEkle() {
     }
 }
 
-// --- İŞLEM SATIRLARI KONTROLÜ (İSTEĞİN ÜZERİNE DÜZELTİLDİ) ---
 function islemSatirlariKontrol() {
-    // Ürün yoksa sayfayı açma ve uyarı ver
     if (!aktifEvrak.kalemler || aktifEvrak.kalemler.length === 0) {
         showToast("Gösterilecek evrak yok! (Önce ürün ekleyin)");
         return; 
     }
-    
-    // Ürün varsa tabloyu doldur ve sayfayı aç
     let h = "";
     aktifEvrak.kalemler.forEach(k => h += `<tr><td>${k.barkod}</td><td>${k.ad}</td><td>${k.miktar}</td></tr>`);
     document.getElementById('islemTabloGövde').innerHTML = h;
-    
     document.getElementById('btnSatirGeri').onclick = () => {
         if(gecmisModu) openPage('evrakListesiPage');
         else openPage(aktifEvrak.tur === "ALIS" ? "alisPage" : "satisPage");
@@ -457,7 +551,6 @@ function evrakSil() {
     goHome();
 }
 
-// --- GEÇMİŞ ---
 function gecmisListele(tur) {
     gecmisModu = true;
     document.getElementById('evrakListeBaslik').innerText = "GEÇMİŞ: " + tur;
@@ -507,7 +600,6 @@ function cariFiltreleSec() {
 function cariSecildi(c) { aktifEvrak.cari = c; guncellePaneller(); islemSayfasinaDon(); }
 function belgeKaydet() { aktifEvrak.sira = document.getElementById('belgeDinamik').value; islemSayfasinaDon(); }
 
-// --- KAMERA ---
 function kameraAc() {
     stopKamera();
     html5QrCode = new Html5Qrcode("reader");
