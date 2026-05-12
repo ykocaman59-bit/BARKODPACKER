@@ -73,6 +73,11 @@
 
         .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 30000; }
         .modal-content { background: white; padding: 25px; border-radius: 20px; width: 85%; text-align: center; }
+
+        /* Yeni Belge No Stili */
+        .belge-no-input-container { display: flex; align-items: center; background: #eee; border-radius: 12px; padding-left: 10px; margin: 10px 0; }
+        .belge-no-prefix { font-weight: bold; color: #555; }
+        .belge-no-input-container input { background: transparent; border: none; margin: 0; }
     </style>
 </head>
 <body>
@@ -126,6 +131,7 @@
     <button class="btn-exit" onclick="logout()">GÜVENLİ ÇIKIŞ</button>
 </div>
 
+<!-- İŞLEM SAYFASI (BELGE NO BUTONU EKLENDİ) -->
 <div id="islemPage" class="box hidden">
     <div class="info-panel" id="islemPanel">
         <div style="font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 10px; padding-bottom: 5px;">
@@ -136,17 +142,27 @@
         <b>Tarih:</b> <span id="dispTarih">-</span>
     </div>
     
-    <div style="display: flex; gap: 5px;">
-        <input id="belgeNoInp" placeholder="Belge No Girin" style="margin:0; flex:2">
-        <button onclick="belgeNoGuncelle()" style="margin:0; flex:1">KAYDET</button>
-    </div>
-
+    <button onclick="openBelgeNoDuzenle()" style="background: #2c3e50;">🧾 BELGE NO DÜZENLE</button>
     <button onclick="yeniEvrak(aktifEvrak.tur)" class="btn-success">➕ YENİ EVRAK</button>
     <button onclick="openEvrakGetir(aktifEvrak.tur)">🔍 EVRAK GETİR</button>
     <button onclick="openCariSec()" id="btnCariSec" style="background: #34495e;">👤 CARİ SEÇİMİ YAP</button>
     <button onclick="barkodGirisAc()" class="btn-warning">🏷️ BARKOD / ÜRÜN GİRİŞİ</button>
     <button onclick="islemSatirlariKontrol()" class="btn-secondary">📋 İŞLEM SATIRLARI</button>
     <button id="btnEvrakSil" class="btn-exit hidden" onclick="openConfirm('Evrak Silinsin mi?', 'Bu evrak kalıcı olarak silinecek.', evrakSil)">🗑️ EVRAKI SİSTEMDEN SİL</button>
+</div>
+
+<!-- YENİ BELGE NO DÜZENLEME SAYFASI -->
+<div id="belgeNoPage" class="box hidden">
+    <h3 id="belgeNoBaslik">Belge No Düzenle</h3>
+    <div class="belge-no-input-container">
+        <span class="belge-no-prefix" id="belgePrefixLabel">prefix-</span>
+        <input id="belgeNoSadeceNumara" placeholder="Numara" type="text">
+    </div>
+    <div class="belge-no-input-container" style="background: #f9f9f9; border: 1px dashed #ccc;">
+        <input placeholder="Ek Bilgi (Opsiyonel)" readonly style="color:#aaa" value="Boş Alan">
+    </div>
+    <button onclick="belgeNoKaydetVeDon()" class="btn-success">KAYDET VE DÖN</button>
+    <button onclick="openPage('islemPage')" class="btn-secondary">İPTAL</button>
 </div>
 
 <div id="barkodGirisPage" class="box hidden">
@@ -196,12 +212,12 @@
             <tbody id="evrakSorguGövde"></tbody>
         </table>
     </div>
-    <button class="btn-secondary" style="margin-top:15px;" onclick="islemSayfasinaDon()">GERİ</button>
+    <button id="evrakArsivGeriBtn" class="btn-secondary" style="margin-top:15px;">GERİ</button>
 </div>
 
 <div id="gecmisSecimPage" class="box hidden">
-    <button onclick="openEvrakGetir('ALIS')" style="background: var(--success-green); height: 70px;">📥 ALIŞ ARŞİVİ</button>
-    <button onclick="openEvrakGetir('SATIS')" style="background: var(--danger-red); height: 70px;">📤 SATIŞ ARŞİVİ</button>
+    <button onclick="openEvrakGetir('ALIS', true)" style="background: var(--success-green); height: 70px;">📥 ALIŞ ARŞİVİ</button>
+    <button onclick="openEvrakGetir('SATIS', true)" style="background: var(--danger-red); height: 70px;">📤 SATIŞ ARŞİVİ</button>
     <button class="btn-secondary" onclick="goHome()">ANA MENÜ</button>
 </div>
 
@@ -260,6 +276,7 @@ let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
 let aktifEvrak = { no: "", cari: "Seçilmedi", kalemler: [], tarih: "", tur: "ALIS" };
 let html5QrCode = null;
 let seciliCariIslem = "";
+let sorguTuru = "ALIS";
 
 window.addEventListener('load', () => setTimeout(() => document.getElementById('offlineOverlay').style.display = 'none', 1000));
 
@@ -296,20 +313,31 @@ function yeniAlisBaslat() { aktifEvrak.tur = "ALIS"; yeniEvrak('ALIS'); openPage
 function yeniSatisBaslat() { aktifEvrak.tur = "SATIS"; yeniEvrak('SATIS'); openPage('islemPage'); }
 
 function yeniEvrak(tur) {
-    let prefix = (tur === "ALIS" ? "AL-" : "ST-");
+    let prefix = (tur === "ALIS" ? "ALIS-" : "SATIS-");
     let randomNo = Math.floor(100000 + Math.random() * 900000);
     aktifEvrak = { no: prefix + randomNo, cari: "Seçilmedi", kalemler: [], tarih: new Date().toISOString().split('T')[0], tur: tur };
-    document.getElementById('belgeNoInp').value = aktifEvrak.no;
     guncellePaneller();
 }
 
-function belgeNoGuncelle() {
-    let yeniNo = document.getElementById('belgeNoInp').value.trim();
-    if(yeniNo) {
-        aktifEvrak.no = yeniNo;
-        guncellePaneller();
-        showToast("Belge No Güncellendi");
-    }
+// BELGE NO DÜZENLEME SİSTEMİ
+function openBelgeNoDuzenle() {
+    let prefix = aktifEvrak.tur === "ALIS" ? "ALIS-" : "SATIS-";
+    document.getElementById('belgePrefixLabel').innerText = prefix;
+    // Mevcut no'dan prefix'i çıkarıp sadece rakamı kutuya yaz
+    let numara = aktifEvrak.no.replace(prefix, "");
+    document.getElementById('belgeNoSadeceNumara').value = numara;
+    openPage('belgeNoPage');
+}
+
+function belgeNoKaydetVeDon() {
+    let prefix = aktifEvrak.tur === "ALIS" ? "ALIS-" : "SATIS-";
+    let yeniNumara = document.getElementById('belgeNoSadeceNumara').value.trim();
+    if(!yeniNumara) return showToast("Numara boş olamaz!");
+    
+    aktifEvrak.no = prefix + yeniNumara;
+    guncellePaneller();
+    showToast("Belge No Güncellendi");
+    openPage('islemPage');
 }
 
 function guncellePaneller() {
@@ -324,7 +352,7 @@ function guncellePaneller() {
     document.getElementById('btnEvrakSil').className = varMi ? "btn-exit" : "hidden";
 }
 
-// --- BARKOD & ÜRÜN İŞLEMLERİ (KUTU SİSTEMİ) ---
+// --- BARKOD & ÜRÜN İŞLEMLERİ ---
 function barkodGirisAc() {
     if(aktifEvrak.cari === "Seçilmedi") return showToast("HATA: Önce bir cari seçmelisiniz!");
     document.getElementById('urunDetay').classList.add('hidden');
@@ -341,7 +369,7 @@ function urunBul() {
         document.getElementById('urunBilgiText').innerHTML = u.ad;
         document.getElementById('urunDetay').classList.remove('hidden');
         document.getElementById('adetInp').value = 1;
-        document.getElementById('adetInp').focus(); // Kutu 2'ye geçiş
+        document.getElementById('adetInp').focus();
     } else {
         showToast("Ürün Bulunamadı!");
     }
@@ -360,7 +388,7 @@ function evragaEkle() {
         showToast("Eklendi");
         document.getElementById('urunDetay').classList.add('hidden');
         document.getElementById('barcodeInp').value = "";
-        document.getElementById('barcodeInp').focus(); // Tekrar Kutu 1'e dön
+        document.getElementById('barcodeInp').focus();
     }
 }
 
@@ -369,7 +397,7 @@ function evrakKaydet() {
     if(idx > -1) db_evraklar[idx] = JSON.parse(JSON.stringify(aktifEvrak));
     else db_evraklar.push(JSON.parse(JSON.stringify(aktifEvrak)));
     localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
-}
+    }
 
 function islemSatirlariKontrol() {
     if(aktifEvrak.cari === "Seçilmedi") return showToast("Önce cari seçilmeli!");
@@ -388,7 +416,6 @@ function satirSil(index) {
     
     aktifEvrak.kalemler.splice(index, 1);
     
-    // KRİTİK: Eğer son satır silindiyse evrakı tamamen yok et
     if(aktifEvrak.kalemler.length === 0) {
         db_evraklar = db_evraklar.filter(x => x.no !== aktifEvrak.no);
         showToast("Evrak boşaldığı için silindi");
@@ -406,7 +433,6 @@ function cariListeleHepsini() {
     let h = "";
     db_cari.sort().forEach((c, i) => {
         h += `<div class="card" onclick="cariDetayAc('${c}')">
-    
                 <b>${c}</b>
                 <div style="display:flex; gap:5px;">
                     <button onclick="event.stopPropagation(); cariDuzenleSec('${c}', ${i})" style="width:auto; padding:8px; margin:0; background:orange;">Düz</button>
@@ -511,7 +537,7 @@ function cariFiltreleSec() {
 }
 function cariSecildi(c) { aktifEvrak.cari = c; guncellePaneller(); openPage('islemPage'); }
 
-// --- DİĞER SİSTEMLER ---
+// --- EVRAK SİSTEMLERİ ---
 function evrakSil() {
     aktifEvrak.kalemler.forEach(k => {
         let u = db_stok.find(x => x.barkod == k.barkod);
@@ -523,8 +549,20 @@ function evrakSil() {
     goHome();
 }
 
-function openEvrakGetir(tur) {
+function openEvrakGetir(tur, fromGecmis = false) {
     sorguTuru = tur;
+    
+    // BAŞLIK GÜNCELLEME (İstek 2)
+    document.getElementById('evrakListeBaslik').innerText = (tur === "ALIS" ? "ALIŞ EVRAK ARŞİVİ" : "SATIŞ EVRAK ARŞİVİ");
+    
+    // GERİ DÖNÜŞ MANTIĞI (İstek 1)
+    const geriBtn = document.getElementById('evrakArsivGeriBtn');
+    if(fromGecmis) {
+        geriBtn.onclick = () => openPage('gecmisSecimPage');
+    } else {
+        geriBtn.onclick = () => openPage('islemPage');
+    }
+
     const bugun = new Date().toISOString().split('T')[0];
     document.getElementById('filterBasTar').value = bugun;
     document.getElementById('filterBitTar').value = bugun;
