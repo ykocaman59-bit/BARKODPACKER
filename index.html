@@ -436,7 +436,6 @@ function guncellePaneller() {
     document.getElementById('dispCari').innerText = aktifEvrak.cari;
     document.getElementById('dispTarih').innerText = aktifEvrak.tarih;
     
-    // Eğer kayıtlı bir evraksa silme butonu çıksın
     let varMi = db_evraklar.find(e => e.no === aktifEvrak.no);
     if(varMi) document.getElementById('btnEvrakSil').classList.remove('hidden');
     else document.getElementById('btnEvrakSil').classList.add('hidden');
@@ -470,8 +469,6 @@ function evragaEkle() {
     
     if(m > 0 && u) {
         aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
-        
-        // Stok Güncelleme
         if(aktifEvrak.tur === "ALIS") u.stok += m;
         else u.stok -= m;
         
@@ -480,7 +477,7 @@ function evragaEkle() {
         
         showToast("Eklendi: " + u.ad);
         document.getElementById('urunDetay').classList.add('hidden');
-        document.getElementById('barcodeInp').value = "";
+ document.getElementById('barcodeInp').value = "";
         document.getElementById('barcodeInp').focus();
     }
 }
@@ -559,7 +556,6 @@ function evrakYukle(no) {
 }
 
 function evrakSil() {
-    // Önce stokları geri al
     aktifEvrak.kalemler.forEach(k => {
         let u = db_stok.find(x => x.barkod == k.barkod);
         if(u) {
@@ -577,24 +573,17 @@ function evrakSil() {
 // --- PDF SİSTEMİ ---
 function pdfIndir() {
     if (aktifEvrak.kalemler.length === 0) return showToast("Boş Evrak Yazdırılamaz!");
-    
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    
-    // Başlık
     doc.setFontSize(22);
     doc.setTextColor(74, 144, 226);
     doc.text("BARKODPACKER ERP", 105, 20, { align: "center" });
-    
-    // Bilgiler
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text(`EVRAK TIPI: ${aktifEvrak.tur === 'ALIS' ? 'ALIS IRSALIYESI' : 'SATIS IRSALIYESI'}`, 15, 40);
     doc.text(`EVRAK NO: ${aktifEvrak.no}`, 15, 48);
     doc.text(`CARI: ${aktifEvrak.cari}`, 15, 56);
     doc.text(`TARIH: ${aktifEvrak.tarih}`, 15, 64);
-    
-    // Tablo
     let tabloVerisi = aktifEvrak.kalemler.map(k => [k.barkod, k.ad, k.miktar]);
     doc.autoTable({
         startY: 75,
@@ -603,7 +592,6 @@ function pdfIndir() {
         theme: 'striped',
         headStyles: { fillColor: [74, 144, 226] }
     });
-    
     doc.save(`${aktifEvrak.no}.pdf`);
     showToast("PDF Hazırlandı ve İndirildi");
 }
@@ -694,28 +682,20 @@ function stokYeniKaydet() {
 function kameraAc() {
     stopKamera();
     html5QrCode = new Html5Qrcode("reader");
-    html5QrCode.start(
-        { facingMode: "environment" }, 
-        { fps: 10, qrbox: 250 },
-        (txt) => {
-            document.getElementById("barcodeInp").value = txt;
-            stopKamera();
-            urunBul();
-        }
-    ).catch(err => showToast("Kamera Hatası!"));
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
+        document.getElementById("barcodeInp").value = txt;
+        stopKamera();
+        urunBul();
+    }).catch(err => showToast("Kamera Hatası!"));
 }
 
 function kameraAcStok() {
     stopKamera();
     html5QrCode = new Html5Qrcode("readerStok");
-    html5QrCode.start(
-        { facingMode: "environment" }, 
-        { fps: 10, qrbox: 250 },
-        (txt) => {
-            document.getElementById("newBarkodInp").value = txt;
-            stopKamera();
-        }
-    ).catch(err => showToast("Kamera Hatası!"));
+    html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (txt) => {
+        document.getElementById("newBarkodInp").value = txt;
+        stopKamera();
+    }).catch(err => showToast("Kamera Hatası!"));
 }
 
 function stopKamera() {
@@ -739,6 +719,5 @@ function closeConfirm() {
     document.getElementById('confirmModal').style.display = 'none';
 }
 </script>
-
 </body>
 </html>
