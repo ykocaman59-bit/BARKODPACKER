@@ -152,7 +152,7 @@
 <div id="barkodGirisPage" class="box hidden">
     <h3>Ürün Girişi (Kutu 1 & 2)</h3>
     <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-        <input id="barcodeInp" placeholder="Barkod (Kutu 1)" style="margin:0" onkeyup="if(event.keyCode===13) urunBul()">
+        <input id="barcodeInp" placeholder="Barkod" style="margin:0" onkeyup="if(event.keyCode===13) urunBul()">
         <button onclick="urunBul()" style="width: 70px; margin:0">BUL</button>
         <button onclick="kameraAc()" style="width: 70px; margin:0">📷</button>
     </div>
@@ -161,7 +161,7 @@
     <div id="urunDetay" class="hidden" style="margin-top: 20px; padding: 15px; background: white; border-radius: 15px; border: 2px solid var(--primary-blue);">
         <div id="urunBilgiText" style="font-weight: bold; margin-bottom: 10px;"></div>
         <div style="display: flex; align-items: center; gap: 10px;">
-            <span>MİKTAR (Kutu 2):</span>
+            <span>MİKTAR:</span>
             <input id="adetInp" type="number" value="1" style="width: 100px; text-align: center; margin:0" onkeyup="if(event.keyCode===13) evragaEkle()">
         </div>
         <button onclick="evragaEkle()" class="btn-success" style="margin-top: 15px;">KAYDET (ENTER)</button>
