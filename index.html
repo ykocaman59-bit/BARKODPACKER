@@ -3,325 +3,306 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>BARKODPACKER ERP v5.0</title>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <title>BARKODPACKER ERP - TAM SÜRÜM</title>
     <style>
-        :root { --p: #1e40af; --s: #f97316; --g: #16a34a; --r: #dc2626; --bg: #f8fafc; }
-        * { box-sizing: border-box; font-family: sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: var(--bg); }
-        
-        /* Nitrogen Splash & Setup */
-        #splash { position: fixed; inset: 0; background: #1e40af; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; }
-        .setup-modal { background: white; color: #333; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.3); }
+        :root { --p: #1e40af; --s: #f97316; --g: #16a34a; --r: #dc2626; --bg: #f1f5f9; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { margin: 0; background: var(--bg); color: #334155; }
+        .container { padding: 15px; display: none; max-width: 600px; margin: auto; }
+        .active { display: block; }
+        .hidden { display: none; }
         
         /* Navbar */
-        .nav { background: var(--p); color: white; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 100; }
+        nav { background: var(--p); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         
-        /* Layout */
-        .container { padding: 15px; display: none; animation: fadeIn 0.3s; }
-        .active { display: block; }
-        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        
-        /* Buttons & Inputs */
-        button { width: 100%; padding: 14px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 8px; }
-        .btn-p { background: var(--p); color: white; }
-        .btn-s { background: var(--s); color: white; }
-        .btn-g { background: var(--g); color: white; }
-        .btn-r { background: var(--r); color: white; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 8px; }
+        /* Card & UI Elements */
+        .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); border: 1px solid #e2e8f0; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 10px; transition: 0.2s; color: white; }
+        .btn-p { background: var(--p); }
+        .btn-s { background: var(--s); }
+        .btn-g { background: var(--g); }
+        .btn-r { background: var(--r); }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 16px; }
 
-        /* Table */
-        table { width: 100%; border-collapse: collapse; background: white; }
-        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; font-size: 13px; }
-        th { background: #f1f5f9; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; background: white; }
+        th, td { border: 1px solid #e2e8f0; padding: 12px; text-align: left; font-size: 14px; }
+        th { background: #f8fafc; }
     </style>
 </head>
 <body>
 
-<!-- NITROGEN STYLE SPLASH -->
-<div id="splash">
-    <div id="loader">
-        <h1 style="letter-spacing: 2px;">BARKOD<span style="color:var(--s)">PACKER</span></h1>
-        <p id="status">Sistem Kontrol Ediliyor...</p>
-        <button class="btn-s" style="width:auto" onclick="showSetup()">UYGULAMAYI GÜNCELLE</button>
-    </div>
+<nav id="navBar" class="hidden">
+    <div id="navFirma" style="font-weight:bold">Yükleniyor...</div>
+    <button onclick="logout()" style="width:auto; margin:0; padding:5px 15px; background:rgba(255,255,255,0.2)">Çıkış</button>
+</nav>
 
-    <div id="setupBox" class="setup-modal">
-        <h2 style="margin-top:0">Nitrogen Kurulum</h2>
-        <input id="set_ip" placeholder="Sunucu IP (Örn: 212.156.42.190)">
-        <input id="set_port" placeholder="Port (Örn: 8081)">
-        <select id="set_role">
-            <option value="">Firma Tipi Seçin</option>
+<!-- GİRİŞ EKRANI (NITROGEN TARZI) -->
+<div id="loginPage" class="container active">
+    <div class="card" style="text-align:center; margin-top:50px;">
+        <h2 style="color:var(--p)">BARKODPACKER ERP</h2>
+        <p>Lütfen devam etmek için firma/şube seçin</p>
+        <select id="firmaSecimi">
+            <option value="">Seçiniz...</option>
             <option value="Merkez Depo">Merkez Depo</option>
-            <option value="Sube 1">Şube 1</option>
-            <option value="Sube 2">Şube 2</option>
+            <option value="Sultanbeyli Şube">Sultanbeyli Şube</option>
+            <option value="Pendik Şube">Pendik Şube</option>
         </select>
-        <button class="btn-p" onclick="saveSetup()">KAYDET VE GÜNCELLE</button>
-        <button style="background:none; color: #666;" onclick="closeSetup()">Vazgeç</button>
+        <button class="btn-p" onclick="login()">SİSTEME GİRİŞ YAP</button>
     </div>
 </div>
 
-<!-- APP NAVBAR -->
-<div class="nav" id="appNav" style="display:none">
-    <div><b id="navFirmaName">Firma</b></div>
-    <button onclick="logout()" style="width:auto; margin:0; background:rgba(255,255,255,0.2); padding: 5px 12px;">ÇIKIŞ</button>
-</div>
-
-<!-- MERKEZ PANEL -->
-<div id="p_merkez" class="container">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <button class="btn-p" onclick="nav('p_merkezUrun')">📦 Ürün Tanımla</button>
-        <button class="btn-p" onclick="nav('p_merkezSubeYonetim')">👥 Şube Stokları</button>
-        <button class="btn-s" onclick="nav('p_merkezGelenSiparis')">🔔 Gelen Siparişler</button>
-        <button class="btn-g" onclick="nav('p_merkezStokGiris')">📥 Mal Kabul (Merkez)</button>
+<!-- ANA MENÜ -->
+<div id="homePage" class="container">
+    <div id="merkezMenu" class="hidden">
+        <h3 style="margin-top:0">Merkez Yönetim Paneli</h3>
+        <button class="btn-p" onclick="openPage('urunTanimlaPage')">📦 Ürün Kartı Tanımla</button>
+        <button class="btn-s" onclick="merkezSiparisListele()">🔔 Gelen Siparişler <span id="sipCount" style="background:white; color:red; padding:2px 6px; border-radius:50%; font-size:12px;">0</span></button>
+        <button class="btn-g" onclick="openPage('stokListesiPage')">📊 Genel Stok Durumu</button>
     </div>
-</div>
 
-<!-- ŞUBE PANEL -->
-<div id="p_sube" class="container">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <button class="btn-p" onclick="nav('p_subeStoklarim')">📦 Kendi Stoğum</button>
-        <button class="btn-s" onclick="nav('p_subeDepoSiparis')">🚚 Depo Siparişi</button>
-        <button class="btn-g" onclick="nav('p_subeGelenOnay')">✅ Gelen Ürünler</button>
-        <button class="btn-p" onclick="nav('p_subeMalKabul')">📥 Mal Kabul (Şube)</button>
+    <div id="subeMenu" class="hidden">
+        <h3 style="margin-top:0">Şube İşlemleri</h3>
+        <button class="btn-p" onclick="subeStokListele()">📦 Kendi Stoğum</button>
+        <button class="btn-s" onclick="depoSiparisHazirla()">🚚 Depodan Ürün İste</button>
+        <button class="btn-g" onclick="subeGelenOnayListele()">✅ Gelen Ürünleri Onayla</button>
     </div>
 </div>
 
 <!-- SAYFA: ÜRÜN TANIMLA (MERKEZ) -->
-<div id="p_merkezUrun" class="container">
-    <h3>Yeni Ürün Kartı (Global)</h3>
+<div id="urunTanimlaPage" class="container">
+    <h3>Yeni Ürün Ekle</h3>
     <div class="card">
-        <input id="m_u_barkod" placeholder="Barkod No">
-        <input id="m_u_ad" placeholder="Ürün Adı">
-        <button class="btn-g" onclick="addUrunGlobal()">SİSTEME EKLE</button>
+        <input id="u_ad" placeholder="Ürün Adı">
+        <input id="u_barkod" placeholder="Barkod">
+        <input id="u_stok" type="number" placeholder="Başlangıç Stoğu (Merkez)">
+        <button class="btn-g" onclick="urunEkle()">SİSTEME KAYDET</button>
     </div>
-    <div id="m_urun_list"></div>
-    <button onclick="goHome()">GERİ</button>
+    <button class="btn-r" onclick="goHome()">GERİ</button>
 </div>
 
-<!-- SAYFA: DEPO SİPARİŞİ (ŞUBE) -->
-<div id="p_subeDepoSiparis" class="container">
-    <h3>Depodan Sipariş Çek</h3>
-    <p style="font-size:11px; color:#666">* Sadece merkezde 500+ olan ürünler listelenir.</p>
-    <div id="sube_siparis_tablo"></div>
-    <button class="btn-s" onclick="sendSiparisToMerkez()">SİPARİŞİ TAMAMLA</button>
-    <button onclick="goHome()">VAZGEÇ</button>
+<!-- SAYFA: ŞUBE SİPARİŞ (500 ADET BARAJI) -->
+<div id="subeDepoSiparisPage" class="container">
+    <h3>Depo Siparişi</h3>
+    <p style="font-size:12px; color:#666">* Sadece merkez stoğu 500+ olan ürünler alfabetik listelenir.</p>
+    <div id="subeSiparisTabloAlani"></div>
+    <button class="btn-s" onclick="siparisGonder()">TALEBİ MERKEZE GÖNDER</button>
+    <button class="btn-r" onclick="goHome()">İPTAL</button>
 </div>
 
 <!-- SAYFA: MERKEZ GELEN SİPARİŞLER -->
-<div id="p_merkezGelenSiparis" class="container">
-    <h3>Şubelerin Talepleri</h3>
-    <div id="merkez_sip_listesi"></div>
-    <button onclick="goHome()">GERİ</button>
+<div id="merkezSiparisPage" class="container">
+    <h3>Şube Talepleri</h3>
+    <div id="merkezSiparisListesi"></div>
+    <button class="btn-r" onclick="goHome()">KAPAT</button>
 </div>
 
-<!-- SAYFA: ŞUBE GELEN ÜRÜN ONAYI -->
-<div id="p_subeGelenOnay" class="container">
-    <h3>Gelen Ürün Kontrol & Sayım</h3>
-    <div id="sube_onay_listesi"></div>
-    <button onclick="goHome()">GERİ</button>
+<!-- SAYFA: ŞUBE ONAY EKRANI -->
+<div id="subeGelenOnayPage" class="container">
+    <h3>Gelen Ürün Kontrolü</h3>
+    <div id="subeOnayListesi"></div>
+    <button class="btn-r" onclick="goHome()">GERİ</button>
+</div>
+
+<!-- SAYFA: STOK LİSTESİ -->
+<div id="stokListesiPage" class="container">
+    <h3>Stok Durumu</h3>
+    <div id="genelStokAlani"></div>
+    <button class="btn-r" onclick="goHome()">GERİ</button>
 </div>
 
 <script>
-// --- VERİ TABANI ---
-let config = JSON.parse(localStorage.getItem("bp_config") || '{"setup":false}');
-let db_urunler = JSON.parse(localStorage.getItem("db_urunler") || '[]'); // Barkod, Ad
-let db_stoklar = JSON.parse(localStorage.getItem("db_stoklar") || '{"Merkez":{}}'); // { "Sube 1": {"123": 50} }
-let db_siparisler = JSON.parse(localStorage.getItem("db_siparisler") || '[]'); // Sipariş geçmişi
+// --- VERİ MODELİ ---
+let db_stok = JSON.parse(localStorage.getItem("db_stok") || '[]'); // Merkez ürün listesi
+let db_siparisler = JSON.parse(localStorage.getItem("db_siparisler") || '[]'); // Sipariş trafiği
+let sube_stoklari = JSON.parse(localStorage.getItem("sube_stoklari") || '{}'); // Her şubenin kendi stoğu
+let config = JSON.parse(localStorage.getItem("bp_config") || '{"isLogin":false, "role":""}');
 
-// --- INITIALIZE ---
-window.onload = () => {
-    if(config.setup) {
-        startApp();
-    } else {
-        document.getElementById('loader').style.display = 'none';
-        document.getElementById('setupBox').style.display = 'block';
-    }
-};
-
-function showSetup() {
-    document.getElementById('loader').style.display = 'none';
-    document.getElementById('setupBox').style.display = 'block';
-}
-
-function saveSetup() {
-    const role = document.getElementById('set_role').value;
-    const ip = document.getElementById('set_ip').value;
-    if(!role || !ip) return alert("Lütfen bilgileri girin!");
-    
-    config = { setup: true, role: role, ip: ip };
-    localStorage.setItem("bp_config", JSON.stringify(config));
-    location.reload();
-}
-
-function startApp() {
-    document.getElementById('splash').style.display = 'none';
-    document.getElementById('appNav').style.display = 'flex';
-    document.getElementById('navFirmaName').innerText = config.role;
-    goHome();
-}
-
-function nav(id) {
-    document.querySelectorAll('.container').forEach(c => c.classList.remove('active'));
+// --- SAYFA YÖNETİMİ ---
+function openPage(id) {
+    document.querySelectorAll('.container').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
-    
-    if(id === 'p_merkezUrun') renderMerkezUrunler();
-    if(id === 'p_subeDepoSiparis') renderSubeSiparisEkrani();
-    if(id === 'p_merkezGelenSiparis') renderMerkezGelenSiparisler();
-    if(id === 'p_subeGelenOnay') renderSubeGelenOnayListesi();
 }
 
 function goHome() {
-    if(config.role === "Merkez Depo") nav('p_merkez');
-    else nav('p_sube');
+    openPage('homePage');
+    document.getElementById('sipCount').innerText = db_siparisler.filter(s => s.durum === "BEKLIYOR").length;
 }
 
-// --- MERKEZ MANTIĞI ---
-function addUrunGlobal() {
-    let b = document.getElementById('m_u_barkod').value;
-    let a = document.getElementById('m_u_ad').value;
-    if(b && a) {
-        db_urunler.push({ barkod: b, ad: a });
-        localStorage.setItem("db_urunler", JSON.stringify(db_urunler));
-        renderMerkezUrunler();
-        alert("Ürün Tanımlandı.");
-    }
-}
-
-function renderMerkezUrunler() {
-    let h = "";
-    db_urunler.forEach(u => {
-        let mStok = db_stoklar["Merkez"][u.barkod] || 0;
-        h += `<div class="card"><b>${u.ad}</b><br><small>Barkod: ${u.barkod} | Merkez Stok: ${mStok}</small></div>`;
-    });
-    document.getElementById('m_urun_list').innerHTML = h;
-}
-
-// --- ŞUBE SİPARİŞ (500 ADET BARAJI) ---
-function renderSubeSiparisEkrani() {
-    // Alfabetik sırala
-    let siraliUrunler = [...db_urunler].sort((a,b) => a.ad.localeCompare(b.ad));
-    let h = "<table><thead><tr><th>Ürün</th><th>Depo</th><th>Sipariş</th></tr></thead><tbody>";
+// --- GİRİŞ / ÇIKIŞ ---
+function login() {
+    const rol = document.getElementById('firmaSecimi').value;
+    if(!rol) return alert("Lütfen bir firma seçin!");
     
-    let urunBulundu = false;
-    siraliUrunler.forEach(u => {
-        let depoMiktari = db_stoklar["Merkez"][u.barkod] || 0;
-        if(depoMiktari >= 500) {
-            urunBulundu = true;
-            h += `<tr>
-                <td>${u.ad}</td>
-                <td>${depoMiktari}</td>
-                <td>
-                    <div style="display:flex; gap:2px;">
-                        <button onclick="chg('${u.barkod}', -1)" style="padding:5px; margin:0">-</button>
-                        <input id="qty_${u.barkod}" type="number" value="0" style="width:50px; margin:0; text-align:center">
-                        <button onclick="chg('${u.barkod}', 1)" style="padding:5px; margin:0">+</button>
-                    </div>
-                </td>
-            </tr>`;
-        }
-    });
-    h += "</tbody></table>";
-    document.getElementById('sube_siparis_tablo').innerHTML = urunBulundu ? h : "Depoda 500 adet üzerinde ürün kalmamış.";
-}
-
-function chg(id, v) {
-    let el = document.getElementById('qty_'+id);
-    let n = parseInt(el.value) + v;
-    el.value = n < 0 ? 0 : n;
-}
-
-function sendSiparisToMerkez() {
-    let sepet = [];
-    db_urunler.forEach(u => {
-        let q = parseInt(document.getElementById('qty_'+u.barkod)?.value || 0);
-        if(q > 0) sepet.push({ barkod: u.barkod, ad: u.ad, miktar: q });
-    });
-    
-    if(sepet.length > 0) {
-        db_siparisler.push({
-            id: Date.now(),
-            sube: config.role,
-            kalemler: sepet,
-            durum: "BEKLIYOR",
-            tarih: new Date().toLocaleString()
-        });
-        localStorage.setItem("db_siparisler", JSON.stringify(db_siparisler));
-        alert("Sipariş Merkeze İletildi!");
-        goHome();
-    }
-}
-
-// --- MERKEZ ONAY EKRANI ---
-function renderMerkezGelenSiparisler() {
-    let h = "";
-    db_siparisler.filter(s => s.durum === "BEKLIYOR").forEach(s => {
-        h += `<div class="card">
-            <b>${s.sube}</b> - ${s.tarih}<hr>
-            ${s.kalemler.map(k => `<div>${k.ad}: ${k.miktar} Adet</div>`).join('')}
-            <button class="btn-s" onclick="merkezSevkiyatYap(${s.id})">ONAYLA VE GÖNDER</button>
-        </div>`;
-    });
-    document.getElementById('merkez_sip_listesi').innerHTML = h || "Bekleyen talep yok.";
-}
-
-function merkezSevkiyatYap(id) {
-    let sip = db_siparisler.find(x => x.id === id);
-    sip.durum = "YOLDA";
-    localStorage.setItem("db_siparisler", JSON.stringify(db_siparisler));
-    alert("Ürünler yola çıktı. Şube onayı bekleniyor.");
-    renderMerkezGelenSiparisler();
-}
-
-// --- ŞUBE KESİN ONAY VE STOK DÜŞÜMÜ ---
-function renderSubeGelenOnayListesi() {
-    let h = "";
-    db_siparisler.filter(s => s.sube === config.role && s.durum === "YOLDA").forEach(s => {
-        h += `<div class="card">
-            <b>Sevkiyat No: ${s.id}</b><br>
-            ${s.kalemler.map(k => `
-                <div style="margin:10px 0; border-bottom:1px solid #eee; padding-bottom:5px;">
-                    <b>${k.ad}</b> (İstenen: ${k.miktar})<br>
-                    Sayılan/Gelen: <input id="final_${s.id}_${k.barkod}" type="number" value="${k.miktar}" style="width:80px">
-                </div>
-            `).join('')}
-            <button class="btn-g" onclick="finalOnayKabul(${s.id})">✅ SAYIMI ONAYLA VE STOĞA AL</button>
-        </div>`;
-    });
-    document.getElementById('sube_onay_listesi').innerHTML = h || "Yolda olan ürününüz yok.";
-}
-
-function finalOnayKabul(sid) {
-    let sip = db_siparisler.find(x => x.id === sid);
-    
-    sip.kalemler.forEach(k => {
-        let gelenMiktar = parseInt(document.getElementById(`final_${sid}_${k.barkod}`).value);
-        
-        // 1. Merkez Stoktan Düş (Hatalı/Eksik olsa bile gerçek miktar düşer)
-        if(!db_stoklar["Merkez"][k.barkod]) db_stoklar["Merkez"][k.barkod] = 0;
-        db_stoklar["Merkez"][k.barkod] -= gelenMiktar;
-        
-        // 2. Şube Stoğuna Ekle
-        if(!db_stoklar[config.role]) db_stoklar[config.role] = {};
-        let eski = db_stoklar[config.role][k.barkod] || 0;
-        db_stoklar[config.role][k.barkod] = eski + gelenMiktar;
-    });
-    
-    sip.durum = "TAMAMLANDI";
-    localStorage.setItem("db_stoklar", JSON.stringify(db_stoklar));
-    localStorage.setItem("db_siparisler", JSON.stringify(db_siparisler));
-    alert("İşlem başarıyla tamamlandı. Stoklar güncellendi.");
-    goHome();
+    config = { isLogin: true, role: rol };
+    localStorage.setItem("bp_config", JSON.stringify(config));
+    startApp();
 }
 
 function logout() {
-    if(confirm("Firmadan çıkış yapılacak?")) {
+    if(confirm("Çıkış yapmak istediğinize emin misiniz?")) {
         localStorage.removeItem("bp_config");
         location.reload();
     }
 }
+
+function startApp() {
+    document.getElementById('loginPage').classList.remove('active');
+    document.getElementById('navBar').classList.remove('hidden');
+    document.getElementById('navFirma').innerText = config.role;
+    
+    if(config.role === "Merkez Depo") {
+        document.getElementById('merkezMenu').classList.remove('hidden');
+        document.getElementById('subeMenu').classList.add('hidden');
+    } else {
+        document.getElementById('subeMenu').classList.remove('hidden');
+        document.getElementById('merkezMenu').classList.add('hidden');
+    }
+    goHome();
+}
+
+// --- MERKEZ FONKSİYONLARI ---
+function urunEkle() {
+    const ad = document.getElementById('u_ad').value;
+    const barkod = document.getElementById('u_barkod').value;
+    const stok = parseInt(document.getElementById('u_stok').value || 0);
+
+    if(ad && barkod) {
+        db_stok.push({ ad, barkod, stok });
+        localStorage.setItem("db_stok", JSON.stringify(db_stok));
+        alert("Ürün merkeze eklendi.");
+        document.getElementById('u_ad').value = "";
+        document.getElementById('u_barkod').value = "";
+        document.getElementById('u_stok').value = "";
+    }
+}
+
+function merkezSiparisListele() {
+    let h = "";
+    db_siparisler.filter(s => s.durum === "BEKLIYOR").forEach(s => {
+        h += `<div class="card" style="border-left:5px solid var(--s)">
+            <b>${s.gonderen}</b> | <small>${s.tarih}</small><br>
+            <p>${s.kalemler.map(k => `${k.ad} (${k.miktar} Adet)`).join('<br>')}</p>
+            <button class="btn-s" onclick="sevkiyatBaslat(${s.id})">ONAYLA VE YOLA ÇIKAR</button>
+        </div>`;
+    });
+    document.getElementById('merkezSiparisListesi').innerHTML = h || "Bekleyen sipariş yok.";
+    openPage('merkezSiparisPage');
+}
+
+function sevkiyatBaslat(id) {
+    let sip = db_siparisler.find(x => x.id === id);
+    if(sip) {
+        sip.durum = "YOLDA";
+        localStorage.setItem("db_siparisler", JSON.stringify(db_siparisler));
+        alert("Ürünler yola çıktı olarak işaretlendi. Şube onayı bekleniyor.");
+        merkezSiparisListele();
+    }
+}
+
+// --- ŞUBE FONKSİYONLARI ---
+function depoSiparisHazirla() {
+    let sirali = [...db_stok].sort((a,b) => a.ad.localeCompare(b.ad));
+    let h = "<table><thead><tr><th>Ürün</th><th>Depo</th><th>İstenen</th></tr></thead><tbody>";
+    let count = 0;
+
+    sirali.forEach(u => {
+        if(u.stok >= 500) {
+            count++;
+            h += `<tr>
+                <td>${u.ad}</td>
+                <td><b>${u.stok}</b></td>
+                <td><input id="qty_${u.barkod}" type="number" value="0" style="width:60px; margin:0"></td>
+            </tr>`;
+        }
+    });
+    h += "</tbody></table>";
+    document.getElementById('subeSiparisTabloAlani').innerHTML = count > 0 ? h : "Depoda 500+ stoklu ürün yok.";
+    openPage('subeDepoSiparisPage');
+}
+
+function siparisGonder() {
+    let sepet = [];
+    db_stok.forEach(u => {
+        let el = document.getElementById('qty_'+u.barkod);
+        if(el && parseInt(el.value) > 0) {
+            sepet.push({ ad: u.ad, barkod: u.barkod, miktar: parseInt(el.value) });
+        }
+    });
+
+    if(sepet.length === 0) return alert("Miktar girmediniz!");
+
+    db_siparisler.push({
+        id: Date.now(),
+        gonderen: config.role,
+        tarih: new Date().toLocaleString(),
+        kalemler: sepet,
+        durum: "BEKLIYOR"
+    });
+    localStorage.setItem("db_siparisler", JSON.stringify(db_siparisler));
+    alert("Sipariş Merkeze İletildi.");
+    goHome();
+}
+
+function subeGelenOnayListele() {
+    let h = "";
+    db_siparisler.filter(s => s.gonderen === config.role && s.durum === "YOLDA").forEach(s => {
+        h += `<div class="card">
+            <b>Sevkiyat No: ${s.id}</b><hr>
+            ${s.kalemler.map(k => `
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <span>${k.ad} (Talep: ${k.miktar})</span>
+                    <input id="final_${s.id}_${k.barkod}" type="number" value="${k.miktar}" style="width:80px; border-color:var(--p)">
+                </div>
+            `).join('')}
+            <button class="btn-g" onclick="kesinStokGiris(${s.id})">SAYIMI ONAYLA VE STOĞA AL</button>
+        </div>`;
+    });
+    document.getElementById('subeOnayListesi').innerHTML = h || "Yolda olan ürün bulunamadı.";
+    openPage('subeGelenOnayPage');
+}
+
+function kesinStokGiris(sid) {
+    let sip = db_siparisler.find(x => x.id === sid);
+    if(!sip) return;
+
+    sip.kalemler.forEach(k => {
+        let sayilan = parseInt(document.getElementById(`final_${sid}_${k.barkod}`).value);
+        
+        // Merkezden düş
+        let mUrun = db_stok.find(u => u.barkod === k.barkod);
+        if(mUrun) mUrun.stok -= sayilan;
+
+        // Şubeye ekle
+        if(!sube_stoklari[config.role]) sube_stoklari[config.role] = {};
+        sube_stoklari[config.role][k.barkod] = (sube_stoklari[config.role][k.barkod] || 0) + sayilan;
+    });
+
+    sip.durum = "TAMAMLANDI";
+    localStorage.setItem("db_stok", JSON.stringify(db_stok));
+    localStorage.setItem("db_siparisler", JSON.stringify(db_siparisler));
+    localStorage.setItem("sube_stoklari", JSON.stringify(sube_stoklari));
+    
+    alert("İşlem Başarılı: Merkez stokları düşürüldü, şube stokları güncellendi.");
+    goHome();
+}
+
+// --- GENEL LİSTE ---
+function subeStokListele() {
+    let h = "<table><thead><tr><th>Ürün</th><th>Stok</th></tr></thead><tbody>";
+    let stoklar = sube_stoklari[config.role] || {};
+    
+    db_stok.forEach(u => {
+        let adet = stoklar[u.barkod] || 0;
+        h += `<tr><td>${u.ad}</td><td><b>${adet}</b></td></tr>`;
+    });
+    h += "</tbody></table>";
+    document.getElementById('genelStokAlani').innerHTML = h;
+    openPage('stokListesiPage');
+}
+
+// Başlangıçta giriş kontrolü yap
+if(config.isLogin) startApp();
 </script>
+
 </body>
 </html>
