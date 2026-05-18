@@ -63,6 +63,7 @@
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
         th { background: #f8f9fa; padding: 10px; border: 1px solid #eee; font-size: 12px; }
         td { padding: 10px; border: 1px solid #eee; text-align: center; font-size: 12px; }
+        tr.yeni-evrak-row { background-color: #fff3cd !important; font-weight: bold; }
 
         #reader, #readerStok { width: 100%; border-radius: 15px; overflow: hidden; background: #000; margin-bottom: 10px; border: 3px solid var(--primary-blue); }
         .cam-close-btn { background: var(--danger-red); margin: 5px 0 10px 0; display: none; padding: 10px; }
@@ -79,12 +80,10 @@
         .belge-no-prefix { font-weight: bold; color: #555; }
         .belge-no-input-container input { background: transparent; border: none; margin: 0; }
 
-        /* Miktar Ayar Butonları Tasarımı */
         .qty-container { display: flex; align-items: center; justify-content: center; gap: 4px; }
         .qty-btn { width: 32px !important; height: 32px !important; padding: 0 !important; margin: 0 !important; border-radius: 8px !important; font-size: 16px !important; line-height: 32px !important; }
         .qty-input { width: 55px !important; padding: 6px !important; margin: 0 !important; text-align: center !important; font-size: 13px !important; border-radius: 8px !important; }
 
-        /* Gelişmiş Arama Arayüzü */
         .advanced-search-bar { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
         .search-criteria-btn { width: 110px; padding: 14px 5px; margin: 0; border-radius: 12px; background: #34495e; font-size: 12px; white-space: nowrap; }
     </style>
@@ -132,13 +131,11 @@
     <div style="font-size: 40px; margin-bottom: 10px;">📦</div>
     <h2 style="color: var(--primary-blue);" id="loginPageTitle">BARKODPACKER ERP</h2>
     
-    <!-- Merkez Giriş Kutuları -->
     <div id="merkezLoginArea" class="hidden">
         <input id="mUserInp" placeholder="Merkez Kullanıcı Adı">
         <input id="mPassInp" type="password" placeholder="Merkez Şifre">
     </div>
 
-    <!-- Şube Giriş Kutuları -->
     <div id="subeLoginArea" class="hidden">
         <input id="userInp" placeholder="Giriş Anahtarı 1 (Sayı)">
         <input id="passInp" type="password" placeholder="Giriş Anahtarı 2 (Sayı)">
@@ -184,7 +181,7 @@
             <button onclick="openDepoSiparisPage()" style="background: #16a085;">🛒 DEPO SİPARİŞI VER</button>
             <button onclick="openPage('subeDepoSiparisleriArsivPage')" style="background: #34495e;">📋 DEPO SİPARİŞLERİM</button>
             <button onclick="openPage('subeGelenSevkiyatPage')" style="background: #27ae60;" id="lblSubeGelenSevkiyatBtn">📥 GELEN SEVKİYATLAR</button>
-            <button onclick="openPage('subeGidenSevkiyatPage')" style="background: #e67e22;">📤 GİDEN SEVKİYATLAR</button>
+            <button onclick="openPage('subeGidenSevkiyatPage')" style="background: #e67e22;" id="lblSubeGidenSevkiyatBtn">📤 GİDEN SEVKİYATLAR</button>
             <button onclick="openDepoSevkPage()" style="background: #d35400;">🚚 ŞUBELER ARASI SEVK</button>
             <button onclick="openPage('subeBildirimPage')" style="background: #f1c40f; color:#000;">⚠️ ŞUBE BİLDİRİMLERİ (<span id="subeBildirimKont">0</span>)</button>
         </div>
@@ -235,13 +232,13 @@
     </div>
 </div>
 
-<!-- MERKEZ: GİDEN SEVKİYAT VE ARŞİV EVRAK İNCELEME MODAL -->
+<!-- MERKEZ VE ŞUBE ORTAK KULLANIM: SEVKİYAT EVRAK İNCELEME MODAL -->
 <div id="merkezGidenSevkiyatDetayModal" class="modal">
     <div class="modal-content" style="width:95%;">
         <h3 id="mGidenSevDetayBaslik">Sevkiyat Evrak Detayı</h3>
         <div style="max-height: 280px; overflow-y: auto; margin-bottom:15px;">
             <table>
-                <thead><tr><th>Ürün</th><th>Gönderilen Miktar</th></tr></thead>
+                <thead><tr><th>Ürün</th><th>Miktar</th></tr></thead>
                 <tbody id="mGidenSevDetayTabloGövde"></tbody>
             </table>
         </div>
@@ -266,15 +263,19 @@
 <!-- ŞUBE: GELEN SEVKİYATLAR PAGE -->
 <div id="subeGelenSevkiyatPage" class="box hidden">
     <h3>📥 Gelen Sevkiyatlar</h3>
-    <div id="subeGelenSevkiyatListesi"></div>
-    <button class="btn-secondary" onclick="goHome()">GERİ</button>
+    <div style="max-height:380px; overflow-y:auto; background: white;">
+        <div id="subeGelenSevkiyatListesi"></div>
+    </div>
+    <button class="btn-secondary" style="margin-top:15px;" onclick="goHome()">GERİ</button>
 </div>
 
 <!-- ŞUBE: GİDEN SEVKİYATLAR PAGE -->
 <div id="subeGidenSevkiyatPage" class="box hidden">
     <h3>📤 Giden Sevkiyatlar</h3>
-    <div id="subeGidenSevkiyatListesi"></div>
-    <button class="btn-secondary" onclick="goHome()">GERİ</button>
+    <div style="max-height:380px; overflow-y:auto; background: white;">
+        <div id="subeGidenSevkiyatListesi"></div>
+    </div>
+    <button class="btn-secondary" style="margin-top:15px;" onclick="goHome()">GERİ</button>
 </div>
 
 <!-- ŞUBE: DEPO SİPARİŞI VER PAGE -->
@@ -335,7 +336,6 @@
     <label>Hedef Firma/Şube Seçin:</label>
     <select id="sevkHedefFirmaSelect"></select>
     
-    <!-- Gelişmiş Ürün Arama Modülü -->
     <div class="advanced-search-bar">
         <button type="button" class="search-criteria-btn" id="btnSearchCriteria" onclick="toggleSearchCriteria()">🔍 Ürün Adı</button>
         <input id="sevkUrunSearchInp" placeholder="Listeyi filtrelemek için yazın..." oninput="filterSevkUrunList()" style="margin:0;">
@@ -357,7 +357,7 @@
     <button class="btn-secondary" onclick="goHome()">GERİ</button>
 </div>
 
-<!-- ESKİ KODDAN GELEN PANEL ALTYAPILARI -->
+<!-- KLASİK PANNELLER -->
 <div id="islemPage" class="box hidden">
     <div class="info-panel" id="islemPanel">
         <div style="font-weight: bold; border-bottom: 1px solid #eee; margin-bottom: 10px; padding-bottom: 5px;">
@@ -493,7 +493,6 @@
 </div>
 
 <script>
-// --- CORE VERİ TABANI ALTYAPISI ---
 let db_stok = JSON.parse(localStorage.getItem("db_stok") || '[]');
 let db_cari = JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda","Grosper Market"]');
 let db_evraklar = JSON.parse(localStorage.getItem("db_evraklar") || '[]');
@@ -502,10 +501,12 @@ let db_subeler_obj = JSON.parse(localStorage.getItem("db_subeler_obj") || '[]');
 let db_sube_stoklari = JSON.parse(localStorage.getItem("db_sube_stoklari") || '{}'); 
 let db_depo_emirleri_evrak = JSON.parse(localStorage.getItem("db_depo_emirleri_evrak") || '[]');
 
+// Görülmüş/okunmuş evrakların ID'lerini saklamak için yerel bellek takibi
+let seen_evraklar = JSON.parse(localStorage.getItem("seen_evraklar") || '[]');
+
 let db_subeler = db_subeler_obj.map(s => s.ad);
 let db_merkez_auth = JSON.parse(localStorage.getItem("db_merkez_auth") || 'null');
 
-// Sistem Değişkenleri
 let aktifEvrak = { no: "", cari: "Seçilmedi", kalemler: [], tarih: "", tur: "ALIS" };
 let html5QrCode = null;
 let seciliCariIslem = "";
@@ -515,7 +516,6 @@ let selectedSystemMode = localStorage.getItem("sys_selected_mode") || "";
 let currentLoginFirma = localStorage.getItem("sys_logged_firma") || "";
 let appIsOnline = true; 
 
-// Arama kriteri: "ad" veya "kod"
 let currentSearchCriteria = "ad"; 
 
 window.addEventListener('load', () => {
@@ -548,14 +548,6 @@ function toggleInternetSim() {
 }
 
 function checkAppRouting() {
-    if(currentLoginFirma) {
-        openLoginPageStyle();
-    } else {
-        openPage('updateScreenPage');
-    }
-}
-
-function selectAppMode(mode) {
     selectedSystemMode = mode;
     document.getElementById('btnSelectMerkez').style.border = mode === 'Merkez' ? '4px solid #fff' : 'none';
     document.getElementById('btnSelectSube').style.border = mode === 'Şube' ? '4px solid #fff' : 'none';
@@ -661,21 +653,25 @@ function openPage(id) {
 
 function guncelleBildirimRozetleri() {
     if(currentLoginFirma === "Merkez Depo") {
-        // Merkez Depo Sipariş Sayısı (BEKLEMEDE)
         let mSipSayi = db_depo_emirleri_evrak.filter(e => e.tip === "DEPO_SIPARIS" && e.durum === "BEKLEMEDE").length;
         document.getElementById('lblMerkezGuncelSiparisBtn').innerHTML = `${mSipSayi > 0 ? '(' + mSipSayi + ') ' : ''}🔔 GÜNCEL SİPARİŞLER`;
         
-        // Merkez Depo Gelen Sevk Sayısı (BEKLEMEDE)
         let mSevkSayi = db_depo_emirleri_evrak.filter(e => e.hedef === "Merkez Depo" && e.tip === "DEPO_SEVK" && e.durum === "BEKLEMEDE").length;
         document.getElementById('lblMerkezGelenSevkiyatBtn').innerHTML = `${mSevkSayi > 0 ? '(' + mSevkSayi + ') ' : ''}📥 GELEN SEVKİYATLAR / SEVKLER`;
     } else {
-        // Şubelerin kendi ekranlarındaki gelen sevkiyatlar rozeti (Sadece kendine gelen ONAYLANMIŞ sipariş ve sevkler)
-        let sSipGelen = db_depo_emirleri_evrak.filter(e => e.hedef === currentLoginFirma && e.tip === "DEPO_SIPARIS" && e.durum === "ONAYLANDI").length;
-        let sSevkGelen = db_depo_emirleri_evrak.filter(e => e.hedef === currentLoginFirma && e.tip === "DEPO_SEVK" && e.durum === "ONAYLANDI").length;
-        let toplamGelenSube = sSipGelen + sSevkGelen;
-        document.getElementById('lblSubeGelenSevkiyatBtn').innerHTML = `${toplamGelenSube > 0 ? '(' + toplamGelenSube + ') ' : ''}📥 GELEN SEVKİYATLAR`;
+        // --- BURASI İSTEDİĞİN GÜNCEL BİLDİRİM MANTIĞI ---
+        // Şubeye gelen ve ONAYLANAN evraklar arasından SEEN dizisinde OLMAYAN yeni evrakların sayısını buluyoruz.
+        let sSipGelenYeniler = db_depo_emirleri_evrak.filter(e => e.hedef === currentLoginFirma && e.tip === "DEPO_SIPARIS" && e.durum === "ONAYLANDI" && !seen_evraklar.includes(e.id)).length;
+        let sSevkGelenYeniler = db_depo_emirleri_evrak.filter(e => e.hedef === currentLoginFirma && e.tip === "DEPO_SEVK" && e.durum === "ONAYLANDI" && !seen_evraklar.includes(e.id)).length;
+        let toplamYeniGelenSube = sSipGelenYeniler + sSevkGelenYeniler;
         
-        // Şube Bildirimleri Kontrol Paneli Sayısı
+        // Eğer yeni evrak varsa butona kaç adet yeni geldiyse o yazıyor. Girip çıktığında yeni kalmayacağı için rozet kalkacak.
+        document.getElementById('lblSubeGelenSevkiyatBtn').innerHTML = `${toplamYeniGelenSube > 0 ? '(' + toplamYeniGelenSube + ') ' : ''}📥 GELEN SEVKİYATLAR`;
+        
+        // Giden sevkiyatlar/transferler için de isteğe bağlı rozet kontrolü
+        let sGidenYeniler = db_depo_emirleri_evrak.filter(e => e.kaynak === currentLoginFirma && e.tip === "DEPO_SEVK" && !seen_evraklar.includes(e.id)).length;
+        document.getElementById('lblSubeGidenSevkiyatBtn').innerHTML = `${sGidenYeniler > 0 ? '(' + sGidenYeniler + ') ' : ''}📤 GİDEN SEVKİYATLAR`;
+
         let bSayi = db_depo_emirleri_evrak.filter(e => e.hedef === currentLoginFirma && e.tip === "DEPO_SEVK" && e.durum === "BEKLEMEDE").length;
         document.getElementById('subeBildirimKont').innerText = bSayi;
     }
@@ -738,7 +734,6 @@ function stokListele() {
     }
 }
 
-// --- MERKEZ YÖNETİM: ŞUBE EKLEME, DÜZENLEME VE SİLME ---
 function openSubeEkleModal() {
     document.getElementById('subeModalTitle').innerText = "Yeni Şube Tanımla";
     document.getElementById('newSubeNameInp').value = "";
@@ -844,7 +839,6 @@ function listeleMerkezSubeler() {
     document.getElementById('subelerYonetimListesi').innerHTML = h;
 }
 
-// --- ŞUBE/MERKEZ: DEPO SİPARİŞI VE ARTI-EKSİ BUTONLARI ---
 function openDepoSiparisPage() {
     let h = "";
     let siraliStok = [...db_stok].sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
@@ -902,7 +896,7 @@ function createDepoSiparis() {
         id: Date.now(),
         evrakNo: evrakNo,
         tip: "DEPO_SIPARIS",
-        kaynak: currentLoginFirma, // Şube adı veya Merkez Depo
+        kaynak: currentLoginFirma, 
         hedef: (currentLoginFirma === "Merkez Depo") ? "Şube" : "Merkez Depo", 
         tarih: new Date().toISOString().split('T')[0],
         kalemler: kalemler,
@@ -920,9 +914,7 @@ function createDepoSiparis() {
     goHome();
 }
 
-// --- MERKEZ YÖNETİM: EVRAK BAZLI SİPARİŞ ONAYLAMA ---
 function listeleMerkezGuncelSiparis() {
-    // Önce sipariş veren şube en üstte dursun diye id bazlı (kronolojik) sıralıyoruz
     let siparisler = db_depo_emirleri_evrak.filter(e => e.tip === "DEPO_SIPARIS" && e.durum === "BEKLEMEDE").sort((a,b) => a.id - b.id);
     let h = "";
     
@@ -1003,11 +995,10 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
         let merkezUrun = db_stok.find(x => x.barkod === k.barkod);
         if(merkezUrun) merkezUrun.stok -= k.adet;
         
-        // Eğer merkez doğrudan kendisi sevk oluşturduysa hedef şube alanı emir.hedef alanındadır.
-        let hedefSube = (emir.kaynak === "Merkez Depo") ? emir.hedef : emir.kaynak;
+        let hedonSube = (emir.kaynak === "Merkez Depo") ? emir.hedef : emir.kaynak;
         
-        if(!db_sube_stoklari[hedefSube]) db_sube_stoklari[hedefSube] = {};
-        db_sube_stoklari[hedefSube][k.barkod] = (db_sube_stoklari[hedefSube][k.barkod] || 0) + k.adet;
+        if(!db_sube_stoklari[hedonSube]) db_sube_stoklari[hedonSube] = {};
+        db_sube_stoklari[hedonSube][k.barkod] = (db_sube_stoklari[hedonSube][k.barkod] || 0) + k.adet;
     });
     
     emir.durum = "ONAYLANDI";
@@ -1021,7 +1012,6 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
     listeleMerkezGuncelSiparis();
 }
 
-// --- ŞUBE: SİPARİŞ ARŞİVİ VE KİLİTLİ/İPTAL MEKANİZMASI ---
 function initSubeDepoSiparisleriSayfasi() {
     let bugun = new Date().toISOString().split('T')[0];
     document.getElementById('subeDepoFilterBasTar').value = bugun;
@@ -1093,33 +1083,82 @@ function openSubeSiparisIptalModal(id) {
     document.getElementById('subeSiparisIptalModal').style.display = 'flex';
 }
 
-// --- ŞUBE: GELEN VE GİDEN SEVKİYAT LİSTELEME ---
+// --- ŞUBE YENİLENEN GELEN SEVKİYATLAR TABLOSU ---
 function listeleSubeGelenSevkiyat() {
     let sevkler = db_depo_emirleri_evrak.filter(e => e.hedef === currentLoginFirma && e.tip === "DEPO_SIPARIS" && e.durum === "ONAYLANDI");
     let transferler = db_depo_emirleri_evrak.filter(e => e.hedef === currentLoginFirma && e.tip === "DEPO_SEVK" && e.durum === "ONAYLANDI");
     let birlesik = [...sevkler, ...transferler].sort((a,b) => b.id - a.id);
     
     let h = "<table><thead><tr><th>Tarih</th><th>Kaynak</th><th>Evrak No</th><th>Durum</th></tr></thead><tbody>";
+    
     birlesik.forEach(s => {
         let nereden = s.tip === "DEPO_SIPARIS" ? "Merkez Depo" : s.kaynak;
-        h += `<tr><td>${s.tarih}</td><td>${nereden}</td><td>${s.evrakNo}</td><td style="color:green; font-weight:bold;">GELDİ</td></tr>`;
+        // Eğer evrak daha önce görülmediyse sarı arka plan ekleyen sınıfı basıyoruz: yeni-evrak-row
+        let isNew = !seen_evraklar.includes(s.id);
+        let rowClass = isNew ? "class='yeni-evrak-row'" : "";
+        
+        h += `<tr ${rowClass} onclick="openSubeEvrakDetayModal(${s.id})" style="cursor:pointer;">
+                <td>${s.tarih}</td>
+                <td>${nereden}</td>
+                <td><b>${s.evrakNo}</b></td>
+                <td style="color:green; font-weight:bold;">GELDİ ${isNew ? '🆕' : ''}</td>
+              </tr>`;
     });
     h += "</tbody></table>";
     document.getElementById('subeGelenSevkiyatListesi').innerHTML = birlesik.length ? h : "<p style='padding:10px;'>Gelen sevkiyat bulunmuyor.</p>";
 }
 
+// --- ŞUBE YENİLENEN GİDEN SEVKİYATLAR TABLOSU ---
 function listeleSubeGidenSevkiyat() {
     let sevkler = db_depo_emirleri_evrak.filter(e => e.kaynak === currentLoginFirma && e.tip === "DEPO_SEVK");
     let h = "<table><thead><tr><th>Tarih</th><th>Hedef</th><th>Evrak No</th><th>Durum</th></tr></thead><tbody>";
+    
     sevkler.forEach(s => {
         let dRenk = s.durum === "ONAYLANDI" ? "green" : (s.durum === "BEKLEMEDE" ? "orange" : "red");
-        h += `<tr><td>${s.tarih}</td><td>${s.hedef}</td><td>${s.evrakNo}</td><td style="color:${dRenk}; font-weight:bold;">${s.durum}</td></tr>`;
+        let isNew = !seen_evraklar.includes(s.id);
+        let rowClass = isNew ? "class='yeni-evrak-row'" : "";
+        
+        h += `<tr ${rowClass} onclick="openSubeEvrakDetayModal(${s.id})" style="cursor:pointer;">
+                <td>${s.tarih}</td>
+                <td>${s.hedef}</td>
+                <td><b>${s.evrakNo}</b></td>
+                <td style="color:${dRenk}; font-weight:bold;">${s.durum} ${isNew ? '🆕' : ''}</td>
+              </tr>`;
     });
     h += "</tbody></table>";
-    document.getElementById('subeGidenSevkiyatListesi').innerHTML = sevkler.length ? h : "<p style='padding:10px;'>Giden transfer/sevkiyat bulunmuyor.</p>";
+    document.getElementById('subeGelenSevkiyatListesi').innerHTML = sevkler.length ? h : "<p style='padding:10px;'>Giden transfer/sevkiyat bulunmuyor.</p>";
 }
 
-// --- ŞUBELER ARASI GELİŞMİŞ SEVK / FİLTRELEME VE BİLDİRİM OPERASYONLARI ---
+// Şubelerin evraka tıkladığında içeriğini görebileceği yeni modal tetikleyici fonksiyonu
+function openSubeEvrakDetayModal(id) {
+    let emir = db_depo_emirleri_evrak.find(e => e.id === id);
+    if(!emir) return;
+    
+    // Evrak tıklandığı an görülmüş sayılıyor ve dizimize ekleniyor
+    if(!seen_evraklar.includes(id)) {
+        seen_evraklar.push(id);
+        localStorage.setItem("seen_evraklar", JSON.stringify(seen_evraklar));
+    }
+    
+    let neredenNereye = (emir.tip === "DEPO_SIPARIS") ? `Merkez -> ${emir.kaynak}` : `${emir.kaynak} -> ${emir.hedef}`;
+    document.getElementById('mGidenSevDetayBaslik').innerText = `${neredenNereye} [${emir.evrakNo}]`;
+    
+    let h = "";
+    emir.kalemler.forEach(k => {
+        h += `<tr>
+                <td style="text-align:left;">${k.urunAd}</td>
+                <td style="font-weight:bold; color:var(--primary-blue);">${k.adet} Adet</td>
+              </tr>`;
+    });
+    
+    document.getElementById('mGidenSevDetayTabloGövde').innerHTML = h;
+    document.getElementById('merkezGidenSevkiyatDetayModal').style.display = 'flex';
+    
+    // Sayfa arkasındaki listeyi anında yenileyerek sarı renkli olan "yeni" ibaresini kaldırıyoruz
+    if(!document.getElementById('subeGelenSevkiyatPage').classList.contains('hidden')) listeleSubeGelenSevkiyat();
+    if(!document.getElementById('subeGidenSevkiyatPage').classList.contains('hidden')) listeleSubeGidenSevkiyat();
+}
+
 function toggleSearchCriteria() {
     const btn = document.getElementById('btnSearchCriteria');
     if(currentSearchCriteria === "ad") {
@@ -1166,7 +1205,7 @@ function openDepoSevkPage() {
     
     filterSevkUrunList();
     openPage('depoSevkPage');
-    }
+}
 
 function sendDepoSevk() {
     let hedon = document.getElementById('sevkHedefFirmaSelect').value;
@@ -1182,7 +1221,6 @@ function sendDepoSevk() {
     let u = db_stok.find(x => x.barkod === barkod);
     
     if(currentLoginFirma === "Merkez Depo") {
-        // Merkez Depo direkt bir şubeye siparişsiz sevk yapıyorsa stoktan düşer ve evrak oluşturur
         let randomNo = Math.floor(100000 + Math.random() * 900000);
         let direktSevkEvrak = {
             id: Date.now(),
@@ -1197,13 +1235,11 @@ function sendDepoSevk() {
         db_depo_emirleri_evrak.push(direktSevkEvrak);
         localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
         
-        // Siparişi onaylama fonksiyonuna yönlendirerek merkez stoğunu azaltıp hedef şubeye işleyelim.
         merkezSiparisEvrakOnaylaAksiyon(direktSevkEvrak.id);
         goHome();
         return;
     }
     
-    // Şubeler arası standart sevk işlemleri
     db_sube_stoklari[currentLoginFirma][barkod] -= adet;
     
     let randomNo = Math.floor(100000 + Math.random() * 900000);
@@ -1227,7 +1263,6 @@ function sendDepoSevk() {
     goHome();
 }
 
-// --- BİLDİRİM VE SEVK ONAY/REDDİ MANTIKSAL YÖNETİMİ ---
 function listeleMerkezGelenSevkiyat() {
     let sevkler = db_depo_emirleri_evrak.filter(e => e.hedef === "Merkez Depo" && e.tip === "DEPO_SEVK" && e.durum === "BEKLEMEDE");
     let h = "";
@@ -1352,7 +1387,6 @@ function openMerkezGidenSevkiyatDetayModal(id) {
     document.getElementById('merkezGidenSevkiyatDetayModal').style.display = 'flex';
 }
 
-// --- ESKİ CODDAN KALAN DIGER KLASIK OPERASYONEL FONKSIYONLAR ---
 function yeniAlisBaslat() { aktifEvrak.tur = "ALIS"; yeniEvrak('ALIS'); openPage('islemPage'); }
 function yeniSatisBaslat() { aktifEvrak.tur = "SATIS"; yeniEvrak('SATIS'); openPage('islemPage'); }
 
