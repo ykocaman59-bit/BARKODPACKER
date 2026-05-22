@@ -50,12 +50,14 @@
 
         button { width: 100%; padding: 16px; margin: 8px 0; border: none; border-radius: 15px; background: var(--primary-blue); color: white; font-weight: bold; font-size: 14px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         button:active { transform: scale(0.98); }
+        button:disabled { background: #cbd5e1 !important; color: #64748b !important; cursor: not-allowed; transform: none !important; }
         .btn-secondary { background: var(--secondary-blue); }
         .btn-exit { background: var(--danger-red); }
         .btn-success { background: var(--success-green); }
         .btn-warning { background: var(--warning-orange); }
         
-        input, select { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 15px; outline: none; }
+        input, select { width: 100%; padding: 14px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; font-size: 15px; outline: none; background: #fff; }
+        input:disabled { background: #e2e8f0; color: #475569; }
 
         .card { background: white; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-left: 6px solid var(--primary-blue); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
         .info-panel { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 15px; font-size: 14px; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
@@ -79,14 +81,17 @@
         .belge-no-prefix { font-weight: bold; color: #555; }
         .belge-no-input-container input { background: transparent; border: none; margin: 0; }
 
-        /* Miktar Ayar Butonları Tasarımı */
         .qty-container { display: flex; align-items: center; justify-content: center; gap: 4px; }
         .qty-btn { width: 32px !important; height: 32px !important; padding: 0 !important; margin: 0 !important; border-radius: 8px !important; font-size: 16px !important; line-height: 32px !important; }
         .qty-input { width: 55px !important; padding: 6px !important; margin: 0 !important; text-align: center !important; font-size: 13px !important; border-radius: 8px !important; }
 
-        /* Gelişmiş Arama Arayüzü */
         .advanced-search-bar { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
         .search-criteria-btn { width: 110px; padding: 14px 5px; margin: 0; border-radius: 12px; background: #34495e; font-size: 12px; white-space: nowrap; }
+
+        /* Progress Bar Alanı */
+        .progress-box { background: #fff; padding: 15px; border-radius: 12px; margin: 15px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .progress-container { width: 100%; background-color: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .progress-bar { width: 0%; height: 12px; background-color: var(--success-green); transition: width 0.1s linear; }
     </style>
 </head>
 <body>
@@ -118,7 +123,22 @@
         <button id="btnSelectMerkez" onclick="selectAppMode('Merkez')" style="background: #2c3e50; font-size: 16px;">🏢 MERKEZ DEPO</button>
         <button id="btnSelectSube" onclick="selectAppMode('Şube')" style="background: #d35400; font-size: 16px;">🏪 ŞUBE</button>
     </div>
-    <button onclick="triggerAppUpdate()" class="btn-success" style="padding: 20px; font-size: 16px; background: var(--pda-blue);">🔄 UYGULAMAYI GÜNCELLE</button>
+    
+    <div id="subeUpdateForm" class="hidden" style="background: #fff; padding: 15px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 15px; text-align: left;">
+        <h4 style="margin: 0 0 10px 0; color: #d35400;">Şube Kurulum Bilgileri</h4>
+        <input id="setupSubeName" placeholder="Kurulacak Şube Adı Örn: Sultanbeyli">
+        <input id="setupSubeKey1" placeholder="Kurulum Anahtarı 1 (Sayı)">
+        <input id="setupSubeKey2" placeholder="Kurulum Anahtarı 2 (Sayı)">
+    </div>
+
+    <div id="downloadSection" class="progress-box hidden">
+        <b id="downloadStatusText" style="color: var(--primary-blue);">Kaynaklar ve veriler indiriliyor...</b>
+        <div class="progress-container">
+            <div id="downloadProgressBar" class="progress-bar"></div>
+        </div>
+    </div>
+
+    <button id="btnMainUpdateAction" onclick="triggerAppUpdate()" class="btn-success" style="padding: 20px; font-size: 16px; background: var(--pda-blue);">🔄 UYGULAMAYI GÜNCELLE</button>
     
     <div style="margin-top: 40px; padding: 10px; border: 1px dashed #ccc; border-radius: 10px; background: #fff;">
         <span style="font-size: 12px; font-weight: bold; color: #555;">⚙️ GELİŞTİRİCİ BAĞLANTI TESTİ</span>
@@ -425,7 +445,9 @@
         </table>
     </div>
     <button id="evrakArsivGeriBtn" class="btn-secondary" style="margin-top:15px;">GERİ</button>
-</div><div id="cariPage" class="box hidden">
+</div>
+
+<div id="cariPage" class="box hidden">
     <h3>Cari Kartlar</h3>
     <div style="background: white; padding: 15px; border-radius: 15px; margin-bottom: 15px;" id="cariEklemeFormuAlani">
         <input id="cariInpAd" placeholder="Cari Ünvanı" style="margin:0">
@@ -487,6 +509,9 @@ let db_depo_emirleri_evrak = JSON.parse(localStorage.getItem("db_depo_emirleri_e
 let db_subeler = db_subeler_obj.map(s => s.ad);
 let db_merkez_auth = JSON.parse(localStorage.getItem("db_merkez_auth") || 'null');
 
+// Akıllı Şube Kilitleme Yapısı İçin LocalStorage Kontrolleri
+let db_configured_sube = JSON.parse(localStorage.getItem("db_configured_sube") || 'null');
+
 // Sistem Değişkenleri
 let aktifEvrak = { no: "", cari: "Seçilmedi", kalemler: [], tarih: "", tur: "ALIS", olusturanFirma: "" };
 let html5QrCode = null;
@@ -497,7 +522,6 @@ let selectedSystemMode = localStorage.getItem("sys_selected_mode") || "";
 let currentLoginFirma = localStorage.getItem("sys_logged_firma") || "";
 let appIsOnline = true; 
 
-// Arama kriteri: "ad" veya "kod"
 let currentSearchCriteria = "ad"; 
 
 window.addEventListener('load', () => {
@@ -541,13 +565,68 @@ function selectAppMode(mode) {
     selectedSystemMode = mode;
     document.getElementById('btnSelectMerkez').style.border = mode === 'Merkez' ? '4px solid #fff' : 'none';
     document.getElementById('btnSelectSube').style.border = mode === 'Şube' ? '4px solid #fff' : 'none';
-    showToast(mode + " seçildi. Şimdi güncelleyebilirsiniz.");
+    
+    const form = document.getElementById('subeUpdateForm');
+    if(mode === 'Şube') {
+        form.classList.remove('hidden');
+    } else {
+        form.classList.add('hidden');
+    }
+    showToast(mode + " seçildi.");
 }
 
+// Gelişmiş Kaynak İndirme Simulasyonu ve Kilitli Yapı
 function triggerAppUpdate() {
     if(!selectedSystemMode) return showToast("Lütfen önce Merkez Depo veya Şube modunu seçin!");
-    localStorage.setItem("sys_selected_mode", selectedSystemMode);
-    openLoginPageStyle();
+    
+    if(selectedSystemMode === 'Şube') {
+        let name = document.getElementById('setupSubeName').value.trim();
+        let k1 = document.getElementById('setupSubeKey1').value.trim();
+        let k2 = document.getElementById('setupSubeKey2').value.trim();
+        
+        if(!name || !k1 || !k2) return showToast("Lütfen kurulum şube bilgilerini eksiksiz doldurun!");
+        
+        // Şube verisini yapılandırılmış cihaz olarak hafızaya al
+        db_configured_sube = { ad: name, key1: k1, key2: k2 };
+        
+        // Dinamik olarak merkezi şube listesinde yoksa simüle etmek için listeye ekle
+        if(!db_subeler_obj.some(s => s.ad.toLowerCase() === name.toLowerCase())) {
+            db_subeler_obj.push({ ad: name, key1: k1, key2: k2 });
+            localStorage.setItem("db_subeler_obj", JSON.stringify(db_subeler_obj));
+        }
+    }
+    
+    // Progress Bar Çalıştırılması
+    document.getElementById('btnMainUpdateAction').disabled = true;
+    const pBox = document.getElementById('downloadSection');
+    const pBar = document.getElementById('downloadProgressBar');
+    const pText = document.getElementById('downloadStatusText');
+    
+    pBox.classList.remove('hidden');
+    pText.innerText = "Kaynaklar ve veriler indiriliyor...";
+    pBar.style.width = "0%";
+    
+    let width = 0;
+    let interval = setInterval(() => {
+        if(width >= 100) {
+            clearInterval(interval);
+            pText.innerText = "Kaynaklar indirildi! Sisteme yönlendiriliyorsunuz...";
+            setTimeout(() => {
+                pBox.classList.add('hidden');
+                document.getElementById('btnMainUpdateAction').disabled = false;
+                
+                if(selectedSystemMode === 'Şube') {
+                    localStorage.setItem("db_configured_sube", JSON.stringify(db_configured_sube));
+                }
+                
+                localStorage.setItem("sys_selected_mode", selectedSystemMode);
+                openLoginPageStyle();
+            }, 1000);
+        } else {
+            width += 5;
+            pBar.style.width = width + "%";
+        }
+    }, 100);
 }
 
 function openLoginPageStyle() {
@@ -559,44 +638,74 @@ function openLoginPageStyle() {
         document.getElementById('loginPageTitle').innerText = "ŞUBE GİRİŞ EKRANI";
         document.getElementById('subeLoginArea').classList.remove('hidden');
         document.getElementById('merkezLoginArea').classList.add('hidden');
-        document.getElementById('userInp').value = "";
-        document.getElementById('passInp').value = "";
+        
+        let savedSube = JSON.parse(localStorage.getItem("db_configured_sube"));
+        if(savedSube) {
+            // Şube bilgileri otomatik kilitli dolsun
+            document.getElementById('userInp').value = savedSube.key1;
+            document.getElementById('passInp').value = savedSube.key2;
+            document.getElementById('userInp').disabled = true;
+            document.getElementById('passInp').disabled = true;
+        } else {
+            document.getElementById('userInp').value = "";
+            document.getElementById('passInp').value = "";
+            document.getElementById('userInp').disabled = false;
+            document.getElementById('passInp').disabled = false;
+        }
         document.getElementById('btnSystemLoginAction').innerText = "ANAHTARLA SİSTEME GİRİŞ";
     } else {
         document.getElementById('loginPageTitle').innerText = "MERKEZ DEPO GİRİŞİ";
         document.getElementById('subeLoginArea').classList.add('hidden');
         if(db_merkez_auth) {
-            document.getElementById('merkezLoginArea').classList.add('hidden');
+            document.getElementById('merkezLoginArea').classList.remove('hidden');
+            document.getElementById('mUserInp').value = db_merkez_auth.user;
+            document.getElementById('mPassInp').value = db_merkez_auth.pass;
             document.getElementById('btnSystemLoginAction').innerText = "SİSTEME GİRİŞ";
         } else {
             document.getElementById('merkezLoginArea').classList.remove('hidden');
+            document.getElementById('mUserInp').value = "";
+            document.getElementById('mPassInp').value = "";
             document.getElementById('btnSystemLoginAction').innerText = "KAYDET VE SİSTEME GİRİŞ";
         }
     }
 }
 
-function login() {
-    if(!appIsOnline) {
+function login() {if(!appIsOnline) {
         document.getElementById('offlineOverlay').classList.remove('hidden');
         showToast("Bağlantı yok! Çizgili barkod ekranı aktif edildi.");
         return;
     }
     const isSubeMode = (localStorage.getItem("sys_selected_mode") === "Şube");
     if(isSubeMode) {
+        // Kilitli cihaz kontrol mantığı
+        let savedSube = JSON.parse(localStorage.getItem("db_configured_sube"));
         let k1 = document.getElementById('userInp').value.trim();
         let k2 = document.getElementById('passInp').value.trim();
+        
         if(!k1 || !k2) return showToast("Lütfen giriş anahtarlarını eksiksiz yazın!");
+        
+        // Eğer güncellenen şubeden farklı bir veriyle sızılmaya çalışılırsa hata verdir
+        if(savedSube && (savedSube.key1 != k1 || savedSube.key2 != k2)) {
+            return showToast("Giriş Hatalı! Bu cihaz sadece güncellenmiş şubeye aittir.");
+        }
+        
         let bulunanSube = db_subeler_obj.find(s => s.key1 == k1 && s.key2 == k2);
         if(!bulunanSube) return showToast("Hatalı Giriş Anahtarları! Erişim reddedildi.");
+        
         currentLoginFirma = bulunanSube.ad;
         localStorage.setItem("sys_logged_firma", currentLoginFirma);
     } else {
+        let u = document.getElementById('mUserInp').value.trim();
+        let p = document.getElementById('mPassInp').value.trim();
+        if(!u || !p) return showToast("Kullanıcı adı ve şifre girmelisiniz!");
+        
         if(!db_merkez_auth) {
-            let u = document.getElementById('mUserInp').value.trim();
-            let p = document.getElementById('mPassInp').value.trim();
-            if(!u || !p) return showToast("Kullanıcı adı ve şifre belirlemelisiniz!");
             db_merkez_auth = { user: u, pass: p };
             localStorage.setItem("db_merkez_auth", JSON.stringify(db_merkez_auth));
+        } else {
+            if(db_merkez_auth.user !== u || db_merkez_auth.pass !== p) {
+                return showToast("Hatalı Merkez Giriş Bilgileri!");
+            }
         }
         currentLoginFirma = "Merkez Depo";
         localStorage.setItem("sys_logged_firma", currentLoginFirma);
@@ -610,18 +719,26 @@ function login() {
 function logout() { checkAppRouting(); }
 
 function firmaSilConfirm() {
-    openConfirm("Firmayı Sil / Sıfırla", "Giriş bilgileri sıfırlanacaktır. Stok ve cari verileriniz KAYBOLMAZ. Emin misiniz?", () => {
-        const mode = localStorage.getItem("sys_selected_mode");
-        if(mode === "Merkez") {
-            localStorage.removeItem("db_merkez_auth");
-            db_merkez_auth = null;
-        }
+    openConfirm("Firmayı Sil / Sıfırla", "Cihaz entegrasyonu ve giriş bilgileri sıfırlanacaktır. Emin misiniz?", () => {
         localStorage.removeItem("sys_logged_firma");
         localStorage.removeItem("sys_selected_mode");
-        currentLoginFirma = ""; selectedSystemMode = "";
+        localStorage.removeItem("db_configured_sube");
+        
+        db_configured_sube = null;
+        currentLoginFirma = ""; 
+        selectedSystemMode = "";
+        
+        document.getElementById('setupSubeName').value = "";
+        document.getElementById('setupSubeKey1').value = "";
+        document.getElementById('setupSubeKey2').value = "";
+        
+        document.getElementById('btnSelectMerkez').style.border = 'none';
+        document.getElementById('btnSelectSube').style.border = 'none';
+        document.getElementById('subeUpdateForm').classList.add('hidden');
+        
         document.getElementById('navBar').classList.add('hidden');
         openPage('updateScreenPage');
-        showToast("Giriş bilgileri temizlendi.");
+        showToast("Cihaz başarıyla sıfırlandı. Yeni firma seçebilirsiniz.");
     });
 }
 
@@ -660,7 +777,8 @@ function guncelleBildirimRozetleri() {
     }
 }
 
-function goHome() {openPage('homePage');
+function goHome() {
+    openPage('homePage');
     if(currentLoginFirma === "Merkez Depo") {
         document.getElementById('merkezOzelPanel').classList.remove('hidden');
         document.getElementById('subeOzelPanel').classList.add('hidden');
@@ -716,7 +834,6 @@ function stokListele() {
     }
 }
 
-// --- MERKEZ YÖNETİM: ŞUBE EKLEME, DÜZENLEME VE SİLME ---
 function openSubeEkleModal() {
     document.getElementById('subeModalTitle').innerText = "Yeni Şube Tanımla";
     document.getElementById('newSubeNameInp').value = "";
@@ -805,7 +922,8 @@ function subeSilAksiyon(idx) {
     listeleMerkezSubeler();
 }
 
-function listeleMerkezSubeler() {let h = "";
+function listeleMerkezSubeler() {
+    let h = "";
     if(db_subeler_obj.length === 0) {
         h = "<p style='text-align:center; padding:10px;'>Kayıtlı şube bulunmuyor.</p>";
     } else {
@@ -828,7 +946,6 @@ function listeleMerkezSubeler() {let h = "";
     document.getElementById('subelerYonetimListesi').innerHTML = h;
 }
 
-// --- ŞUBE/MERKEZ: DEPO SİPARİŞI VE ARTI-EKSİ BUTONLARI ---
 function openDepoSiparisPage() {
     let h = "";
     let siraliStok = [...db_stok].sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
@@ -904,7 +1021,6 @@ function createDepoSiparis() {
     goHome();
 }
 
-// --- MERKEZ YÖNETİM: EVRAK BAZLI SİPARİŞ ONAYLAMA ---
 function listeleMerkezGuncelSiparis() {
     let siparisler = db_depo_emirleri_evrak.filter(e => e.tip === "DEPO_SIPARIS" && e.durum === "BEKLEMEDE").sort((a,b) => a.id - b.id);
     let h = "";
@@ -967,8 +1083,7 @@ function merkezEvrakindanKalemSil(evrakId, kalemIndex) {
     listeleMerkezGuncelSiparis();
 }
 
-function merkezSiparisEvrakOnaylaAksiyon(id) {
-    let emir = db_depo_emirleri_evrak.find(e => e.id === id);
+function merkezSiparisEvrakOnaylaAksiyon(id) {let emir = db_depo_emirleri_evrak.find(e => e.id === id);
     if(!emir) return;
     
     for(let i = 0; i < emir.kalemler.length; i++) {
@@ -1003,7 +1118,6 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
     listeleMerkezGuncelSiparis();
 }
 
-// --- ŞUBE: SİPARİŞ ARŞİVİ VE KİLİTLİ/İPTAL MEKANİZMASI ---
 function initSubeDepoSiparisleriSayfasi() {
     let bugun = new Date().toISOString().split('T')[0];
     document.getElementById('subeDepoFilterBasTar').value = bugun;
@@ -1075,7 +1189,6 @@ function openSubeSiparisIptalModal(id) {
     document.getElementById('subeSiparisIptalModal').style.display = 'flex';
 }
 
-// --- ŞUBE: GELEN VE GİDEN SEVKİYAT LİSTELEME VE İÇERİK İNCELEME ---
 function openSubeEvrakIcerikModal(id) {
     let emir = db_depo_emirleri_evrak.find(e => e.id === id);
     if(!emir) return;
@@ -1092,7 +1205,6 @@ function openSubeEvrakIcerikModal(id) {
     document.getElementById('subeSevkiyatDetayModal').style.display = 'flex';
 }
 
-// --- FİRMA BAZLI KOYUN BACAK SİSTEMİ: İRSALİYE VE EVRAK ARŞİV AYRIMI ---
 function listeleSubeGelenSevkiyat() {
     let sevkler = db_depo_emirleri_evrak.filter(e => e.hedef === currentLoginFirma && e.tip === "DEPO_SIPARIS");
     let transferler = db_depo_emirleri_evrak.filter(e => e.hedef === currentLoginFirma && e.tip === "DEPO_SEVK");
@@ -1131,7 +1243,6 @@ function listeleSubeGidenSevkiyat() {
     document.getElementById('subeGidenSevkiyatListesi').innerHTML = sevkler.length ? h : "<p style='padding:10px;'>Giden transfer/sevkiyat bulunmuyor.</p>";
 }
 
-// --- ŞUBELER ARASI GELİŞMİŞ SEVK / FİLTRELEME VE BİLDİRİM OPERASYONLARI ---
 function toggleSearchCriteria() {
     const btn = document.getElementById('btnSearchCriteria');
     if(currentSearchCriteria === "ad") {
@@ -1144,7 +1255,8 @@ function toggleSearchCriteria() {
     filterSevkUrunList();
 }
 
-function filterSevkUrunList() {let query = document.getElementById('sevkUrunSearchInp').value.toLowerCase();
+function filterSevkUrunList() {
+    let query = document.getElementById('sevkUrunSearchInp').value.toLowerCase();
     let uHtml = "";
     let siraliStok = [...db_stok].sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
     
@@ -1235,7 +1347,6 @@ function sendDepoSevk() {
     goHome();
 }
 
-// --- BİLDİRİM VE SEVK ONAY/REDDİ MANTIKSAL YÖNETİMİ ---
 function listeleMerkezGelenSevkiyat() {
     let sevkler = db_depo_emirleri_evrak.filter(e => e.hedef === "Merkez Depo" && e.tip === "DEPO_SEVK" && e.durum === "BEKLEMEDE");
     let h = "";
@@ -1329,10 +1440,10 @@ function listeleMerkezGidenSevkiyat() {
     let sevkler = db_depo_emirleri_evrak.filter(e => e.tip === "DEPO_SIPARIS");
     let h = "<table><thead><tr><th>Tarih</th><th>Hedef Şube</th><th>Evrak No</th><th>Durum</th></tr></thead><tbody>";
     sevkler.forEach(s => {
-        let hedefSube = (s.kaynak === "Merkez Depo") ? s.hedef : s.kaynak;
+        let hedonSube = (s.kaynak === "Merkez Depo") ? s.hedef : s.kaynak;
         h += `<tr onclick="openMerkezGidenSevkiyatDetayModal(${s.id})" style="cursor:pointer;">
                 <td>${s.tarih}</td>
-                <td><b>${hedefSube}</b></td>
+                <td><b>${hedonSube}</b></td>
                 <td style="color:#2980b9; font-weight:bold;">${s.evrakNo}</td>
                 <td>${s.durum}</td>
               </tr>`;
@@ -1360,7 +1471,6 @@ function openMerkezGidenSevkiyatDetayModal(id) {
     document.getElementById('merkezGidenSevkiyatDetayModal').style.display = 'flex';
 }
 
-// --- ESKİ CODDAN KALAN DIGER KLASIK OPERASYONEL FONKSIYONLAR ---
 function yeniAlisBaslat() { aktifEvrak.tur = "ALIS"; yeniEvrak('ALIS'); openPage('islemPage'); }
 function yeniSatisBaslat() { aktifEvrak.tur = "SATIS"; yeniEvrak('SATIS'); openPage('islemPage'); }
 
@@ -1373,20 +1483,20 @@ function yeniEvrak(tur) {
         kalemler: [], 
         tarih: new Date().toISOString().split('T')[0], 
         tur: tur,
-        olusturanFirma: currentLoginFirma // Evraka hangi firma oluşturduysa onun adını damgalıyoruz.
+        olusturanFirma: currentLoginFirma
     };
     guncellePaneller();
 }
 
-function openBelgeNoDuzenle() {
-    let prefix = aktifEvrak.tur === "ALIS" ? "ALIS-" : "SATIS-";
+function openBelgeNoDuzenle() {let prefix = aktifEvrak.tur === "ALIS" ? "ALIS-" : "SATIS-";
     document.getElementById('belgePrefixLabel').innerText = prefix;
     let numara = aktifEvrak.no.replace(prefix, "");
     document.getElementById('belgeNoSadeceNumara').value = numara;
     openPage('belgeNoPage');
 }
 
-function belgeNoKaydetVeDon() {let prefix = aktifEvrak.tur === "ALIS" ? "ALIS-" : "SATIS-";
+function belgeNoKaydetVeDon() {
+    let prefix = aktifEvrak.tur === "ALIS" ? "ALIS-" : "SATIS-";
     let yeniNumara = document.getElementById('belgeNoSadeceNumara').value.trim();
     if(!yeniNumara) return showToast("Numara boş olamaz!");
     aktifEvrak.no = prefix + yeniNumara;
@@ -1436,13 +1546,10 @@ function evragaEkle() {
     if(m > 0 && u) {
         aktifEvrak.kalemler.push({ barkod: b, ad: u.ad, miktar: m });
         
-        // --- HER KOYUN KENDİ BACAĞINDAN ASILIR MANTIĞI (STOK GÜNCELLEME) ---
         if (currentLoginFirma === "Merkez Depo") {
-            // Aktif firma Merkez ise sadece Merkez stoğunu değiştirir
             u.stok = (aktifEvrak.tur === "ALIS") ? (u.stok + m) : (u.stok - m);
             localStorage.setItem("db_stok", JSON.stringify(db_stok));
         } else {
-            // Aktif firma bir şube ise, Merkez stoğuna dokunmaz! Sadece o şubenin lokal alanını değiştirir.
             if (!db_sube_stoklari[currentLoginFirma]) db_sube_stoklari[currentLoginFirma] = {};
             let mevcutSubeStok = db_sube_stoklari[currentLoginFirma][b] || 0;
             db_sube_stoklari[currentLoginFirma][b] = (aktifEvrak.tur === "ALIS") ? (mevcutSubeStok + m) : (mevcutSubeStok - m);
@@ -1480,7 +1587,6 @@ function satirSil(index) {
     let m = kalem.miktar;
     let u = db_stok.find(x => x.barkod === b);
 
-    // Silme işleminde stokları geri alma mantığını da firmaya göre ayırıyoruz
     if (currentLoginFirma === "Merkez Depo") {
         if(u) u.stok = (aktifEvrak.tur === "ALIS") ? (u.stok - m) : (u.stok + m);
         localStorage.setItem("db_stok", JSON.stringify(db_stok));
@@ -1628,13 +1734,11 @@ function openEvrakGetir(tur, fromGecmis = false) {
     openPage('evrakListesiPage');
 }
 
-// --- HER KOYUN KENDİ BACAĞINDAN ASILIR MANTIĞI (EVRAK SORGULAMA/FİLTRELEME) ---
 function evrakSorgula() {
     const bas = document.getElementById('filterBasTar').value;
     const bit = document.getElementById('filterBitTar').value;
     let h = "";
     
-    // Sadece aktif olan firmanın (Merkez ya da Sultanbeyli vb.) evraklarını süzüyoruz!
     const liste = db_evraklar.filter(e => e.tur === sorguTuru && e.tarih >= bas && e.tarih <= bit && e.olusturanFirma === currentLoginFirma);
     
     liste.forEach(e => { h += `<tr onclick="evrakYukle('${e.no}')"><td>${e.tarih}</td><td><b>${e.no}</b></td><td>${e.cari}</td></tr>`; });
