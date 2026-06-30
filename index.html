@@ -93,8 +93,54 @@
         .progress-container { width: 100%; background-color: #e2e8f0; border-radius: 10px; overflow: hidden; margin-top: 10px; }
         .progress-bar { width: 0%; height: 12px; background-color: var(--success-green); transition: width 0.1s linear; }
     </style>
+        <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    
 </head>
 <body>
+    <script>
+// --- FIREBASE KURULUMU ---
+const firebaseConfig = {
+    apiKey: "AIzaSyYourKeyHere...", // Buraya kendi Firebase şifreni koyacaksın
+    authDomain: "barkodpacker.firebaseapp.com",
+    projectId: "barkodpacker",
+    storageBucket: "barkodpacker.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234:web:abcd"
+};
+
+// Firebase'i başlat
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// --- BULUTTAN VERİLERİ ANLIK ÇEKME KODLARI ---
+db.collection("stoklar").onSnapshot((snapshot) => {
+    let bulutStoklari = [];
+    snapshot.forEach((doc) => {
+        bulutStoklari.push(doc.data());
+    });
+    if(bulutStoklari.length > 0) {
+        db_stok = bulutStoklari;
+        localStorage.setItem("db_stok", JSON.stringify(db_stok));
+        if(typeof stokListele === "function") stokListele(); 
+    }
+});
+
+db.collection("evraklar").onSnapshot((snapshot) => {
+    let bulutEvraklari = [];
+    snapshot.forEach((doc) => {
+        bulutEvraklari.push(doc.data());
+    });
+    if(bulutEvraklari.length > 0) {
+        if(typeof db_evraklar !== 'undefined') {
+            db_evraklar = bulutEvraklari;
+            localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
+        }
+        if(typeof evrakListele === "function") evrakListele();
+    }
+});
+    </script>
+    
 
 <div id="offlineOverlay" class="hidden">
     <div class="splash-text">BARKOD<span>PACKER</span></div>
@@ -497,6 +543,20 @@
 </div>
 
 <script>
+    // --- FIREBASE KURULUMU ---
+const firebaseConfig = {
+    apiKey: "AIzaSyYourKeyHere...", // Buraya Firebase'den aldığın şifreyi koyacaksın
+    authDomain: "barkodpacker.firebaseapp.com",
+    projectId: "barkodpacker",
+    storageBucket: "barkodpacker.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234:web:abcd"
+};
+
+// Firebase'i başlat
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+    
 // --- CORE VERİ TABANI ALTYAPISI ---
 let db_stok = JSON.parse(localStorage.getItem("db_stok") || '[]');
 let db_cari = JSON.parse(localStorage.getItem("db_cari") || '["Dilek Gıda","Grosper Market"]');
@@ -1569,6 +1629,11 @@ function evrakKaydet() {
     if(idx > -1) db_evraklar[idx] = JSON.parse(JSON.stringify(aktifEvrak));
     else db_evraklar.push(JSON.parse(JSON.stringify(aktifEvrak)));
     localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
+        // --- FIREBASE EKLEME ---
+    db.collection("evraklar").doc(aktifEvrak.no).set(aktifEvrak)
+    .then(() => console.log("Evrak buluta eşitlendi!"))
+    .catch(err => console.error("Bulut hatası: ", err));
+    
 }
 
 function islemSatirlariKontrol() {
@@ -1684,6 +1749,16 @@ function stokYeniKaydet() {
     
     document.getElementById('newBarkodInp').value = "";
     document.getElementById('newAdInp').value = "";
+    
+        // --- FIREBASE STOK EKLEME ---
+    db.collection("stoklar").doc(b).set({ 
+        barkod: b, 
+        ad: a, 
+        stok: id !== "" ? db_stok[id].stok : 0 
+    })
+    .then(() => console.log("Stok buluta eşitlendi!"))
+    .catch(err => console.error("Stok bulut hatası: ", err));
+    
     
     openPage('stokPage');
 }
