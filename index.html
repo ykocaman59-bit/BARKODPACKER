@@ -98,48 +98,7 @@
     
 </head>
 <body>
-        <script>
-// --- FIREBASE KURULUMU ---
-const firebaseConfig = {
-  apiKey: "AIzaSyCU459MVItEWQXl7_edbPl4hAKDOhBxjEM",
-  authDomain: "barkodpacker-3f586.firebaseapp.com",
-  projectId: "barkodpacker-3f586",
-  storageBucket: "barkodpacker-3f586.firebasestorage.app",
-  messagingSenderId: "290603211559",
-  appId: "1:290603211559:web:a9abfabe0e7e42697fa702"
-};
 
-// Firebase'i başlat
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-// --- BULUTTAN VERİLERİ ANLIK ÇEKME KODLARI (HATA KORUMALI) ---
-db.collection("stoklar").onSnapshot((snapshot) => {
-    let bulutStoklari = [];
-    snapshot.forEach((doc) => {
-        bulutStoklari.push(doc.data());
-    });
-    if(bulutStoklari.length > 0) {
-        if(typeof db_stok === 'undefined') db_stok = []; 
-        db_stok = bulutStoklari;
-        localStorage.setItem("db_stok", JSON.stringify(db_stok));
-        if(typeof stokListele === "function") stokListele(); 
-    }
-});
-
-db.collection("evraklar").onSnapshot((snapshot) => {
-    let bulutEvraklari = [];
-    snapshot.forEach((doc) => {
-        bulutEvraklari.push(doc.data());
-    });
-    if(bulutEvraklari.length > 0) {
-        if(typeof db_evraklar === 'undefined') db_evraklar = [];
-        db_evraklar = bulutEvraklari;
-        localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
-        if(typeof evrakListele === "function") evrakListele();
-    }
-});
-        </script>
     
 
 <div id="offlineOverlay" class="hidden">
