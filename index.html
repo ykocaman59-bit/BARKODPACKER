@@ -21,7 +21,7 @@
         }
 
         * { -webkit-user-select: none; user-select: none; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        input, textarea { -webkit-user-select: text; user-select: text; }
+        input, textarea, select { -webkit-user-select: text; user-select: text; }
 
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background: #f4f7f9; overflow-x: hidden; }
         
@@ -128,7 +128,11 @@
     
     <div id="subeUpdateForm" class="hidden" style="background: #fff; padding: 15px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 15px; text-align: left;">
         <h4 style="margin: 0 0 10px 0; color: #d35400;">Şube Kurulum Bilgileri</h4>
-        <input id="setupSubeName" placeholder="Kurulacak Şube Adı Örn: Sultanbeyli">
+        <label for="setupSubeSelect" style="font-weight: bold; font-size: 13px; color: #555;">Kurulacak Şubeyi Seçin:</label>
+        <select id="setupSubeSelect" onchange="updateSubeSetupLabel()">
+            <option value="">Lütfen Şube Seçin...</option>
+        </select>
+        <div id="setupSubeInfoLabel" style="margin: 5px 0 10px 0; font-weight: bold; color: var(--primary-blue); font-size: 13px;"></div>
         <input id="setupSubeKey1" placeholder="Kurulum Anahtarı 1 (Sayı)">
         <input id="setupSubeKey2" placeholder="Kurulum Anahtarı 2 (Sayı)">
     </div>
@@ -158,6 +162,7 @@
     </div>
 
     <div id="subeLoginArea" class="hidden">
+        <label id="lblSubeGirisYazi" style="font-weight:bold; color:var(--warning-orange); display:block; margin-bottom:10px; font-size:14px;"></label>
         <input id="userInp" placeholder="Giriş Anahtarı 1 (Sayı)">
         <input id="passInp" type="password" placeholder="Giriş Anahtarı 2 (Sayı)">
     </div>
@@ -177,7 +182,7 @@
         <button class="btn-secondary" onclick="showToast('Hazırlanıyor...')">📊 Sayım Fişi</button>
         <button onclick="yeniAlisBaslat()">📥 Alış İrsaliyesi</button>
         <button class="btn-secondary" onclick="yeniSatisBaslat()">📤 Satış İrsaliyesi</button>
-        <button onclick="openEvrakGetir('ALIS', true)">📜 Evrak Geçmişi</button>
+        <button onclick="openPage('evrakListesiPage'); openEvrakGetir('ALIS', true)">📜 Evrak Geçmişi</button>
         <button class="btn-secondary" onclick="openPage('cariPage')">👥 Cari Kartlar</button>
     </div>
 
@@ -486,7 +491,7 @@
     <h3>Cari Seçimi</h3>
     <input id="cariSecAra" placeholder="Ara..." oninput="cariFiltreleSec()">
     <div id="cariSecListesi"></div>
-    <button class="btn-secondary" onclick="openPage('islemPage')">VAZGEÇ</button>
+    <button class="btn-secondary" onclick="openPage('islemPage') text-align: center;">VAZGEÇ</button>
 </div>
 
 <div id="cariDetayModal" class="modal">
@@ -538,11 +543,82 @@ let currentSearchCriteria = "ad";
 
 window.addEventListener('load', () => {
     initSubeStoklari();
+    // İlk açılışta Firebase'deki verileri arka planda dinlemeye başla
+    firebaseVerileriniDinle();
     setTimeout(() => {
         document.getElementById('offlineOverlay').classList.add('hidden');
         checkAppRouting();
     }, 1500);
 });
+
+function firebaseVerileriniDinle() {
+    // 1. Stokları Buluttan Dinle
+    db.collection("stoklar").onSnapshot(snapshot => {
+        let list = [];
+        snapshot.forEach(doc => list.push(doc.data()));
+        if(list.length > 0) {
+            db_stok = list;
+            localStorage.setItem("db_stok", JSON.stringify(db_stok));
+            if(!document.getElementById('stokPage').classList.contains('hidden')) stokListele();
+        }
+    });
+
+    // 2. Şubeleri Buluttan Dinle
+    db.collection("subeler").onSnapshot(snapshot => {
+        let list = [];
+        snapshot.forEach(doc => list.push(doc.data()));
+        db_subeler_obj = list;
+        db_subeler = db_subeler_obj.map(s => s.ad);
+        localStorage.setItem("db_subeler_obj", JSON.stringify(db_subeler_obj));
+        buildSetupSubeSelectDropdown();
+    });
+
+    // 3. Şube Stoklarını Buluttan Dinle
+    db.collection("sube_stoklari").onSnapshot(snapshot => {
+        let obj = {};
+        snapshot.forEach(doc => obj[doc.id] = doc.data());
+        if(Object.keys(obj).length > 0) {
+            db_sube_stoklari = obj;
+            localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
+        }
+    });
+
+    // 4. Depo Emirlerini/Siparişlerini Buluttan Dinle
+    db.collection("depo_emirleri").onSnapshot(snapshot => {
+        let list = [];
+        snapshot.forEach(doc => list.push(doc.data()));
+        db_depo_emirleri_evrak = list;
+        localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
+        guncelleBildirimRozetleri();
+    });
+
+    // 5. Normal Evrakları Buluttan Dinle
+    db.collection("evraklar").onSnapshot(snapshot => {
+        let list = [];
+        snapshot.forEach(doc => list.push(doc.data()));
+        db_evraklar = list;
+        localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
+    });
+}
+
+function buildSetupSubeSelectDropdown() {
+    let out = `<option value="">Lütfen Şube Seçin...</option>`;
+    db_subeler_obj.forEach(s => {
+        out += `<option value="${s.ad}">${s.ad}</option>`;
+    });
+    const selectEl = document.getElementById('setupSubeSelect');
+    if(selectEl) selectEl.innerHTML = out;
+}
+
+function updateSubeSetupLabel() {
+    let val = document.getElementById('setupSubeSelect').value;
+    let label = document.getElementById('setupSubeInfoLabel');
+    if(val) {
+        label.innerText = `🏪 ${val} Şubesi olarak kurulum yapabilirsiniz.`;
+    } else {
+        label.innerText = "";
+    }
+}
 
 function initSubeStoklari() {
     db_subeler_obj.forEach(sube => {
@@ -571,6 +647,7 @@ function checkAppRouting() {
         document.getElementById('navBar').classList.remove('hidden');
         goHome();
     } else {
+        buildSetupSubeSelectDropdown();
         openPage('updateScreenPage');
     }
 }
@@ -583,6 +660,7 @@ function selectAppMode(mode) {
     const form = document.getElementById('subeUpdateForm');
     if(mode === 'Şube') {
         form.classList.remove('hidden');
+        buildSetupSubeSelectDropdown();
     } else {
         form.classList.add('hidden');
     }
@@ -593,18 +671,20 @@ function triggerAppUpdate() {
     if(!selectedSystemMode) return showToast("Lütfen önce Merkez Depo veya Şube modunu seçin!");
     
     if(selectedSystemMode === 'Şube') {
-        let name = document.getElementById('setupSubeName').value.trim();
+        let name = document.getElementById('setupSubeSelect').value;
         let k1 = document.getElementById('setupSubeKey1').value.trim();
         let k2 = document.getElementById('setupSubeKey2').value.trim();
         
-        if(!name || !k1 || !k2) return showToast("Lütfen kurulum şube bilgilerini eksiksiz doldurun!");
+        if(!name || !k1 || !k2) return showToast("Lütfen listeden şube seçip anahtarları eksiksiz doldurun!");
+        
+        let bul = db_subeler_obj.find(s => s.ad === name);
+        if(!bul) return showToast("Seçilen şube sistemde kayıtlı değil!");
+        
+        if(bul.key1 != k1 || bul.key2 != k2) {
+            return showToast("HATA: Girdiğiniz kurulum anahtarları merkezdeki kodlarla eşleşmiyor!");
+        }
         
         db_configured_sube = { ad: name, key1: k1, key2: k2 };
-        
-        if(!db_subeler_obj.some(s => s.ad.toLowerCase() === name.toLowerCase())) {
-            db_subeler_obj.push({ ad: name, key1: k1, key2: k2 });
-            localStorage.setItem("db_subeler_obj", JSON.stringify(db_subeler_obj));
-        }
     }
     
     document.getElementById('btnMainUpdateAction').disabled = true;
@@ -613,7 +693,7 @@ function triggerAppUpdate() {
     const pText = document.getElementById('downloadStatusText');
     
     pBox.classList.remove('hidden');
-    pText.innerText = "Kaynaklar ve veriler indiriliyor...";
+    pText.innerText = "Kaynaklar ve veriler indiriliyor... Bulut senkronizasyonu aktif.";
     pBar.style.width = "0%";
     
     let width = 0;
@@ -633,10 +713,10 @@ function triggerAppUpdate() {
                 openLoginPageStyle();
             }, 1000);
         } else {
-            width += 5;
+            width += 10;
             pBar.style.width = width + "%";
         }
-    }, 100);
+    }, 80);
 }
 
 function openLoginPageStyle() {
@@ -645,25 +725,27 @@ function openLoginPageStyle() {
     
     const isSubeMode = (localStorage.getItem("sys_selected_mode") === "Şube");
     if(isSubeMode) {
+        let savedSube = JSON.parse(localStorage.getItem("db_configured_sube"));
         document.getElementById('loginPageTitle').innerText = "ŞUBE GİRİŞ EKRANI";
         document.getElementById('subeLoginArea').classList.remove('hidden');
         document.getElementById('merkezLoginArea').classList.add('hidden');
         
-        let savedSube = JSON.parse(localStorage.getItem("db_configured_sube"));
         if(savedSube) {
+            document.getElementById('lblSubeGirisYazi').innerText = `🏪 ${savedSube.ad} Şubesi Olarak Giriş Yapabilirsiniz`;
             document.getElementById('userInp').value = savedSube.key1;
             document.getElementById('passInp').value = savedSube.key2;
             document.getElementById('userInp').disabled = true;
             document.getElementById('passInp').disabled = true;
         } else {
+            document.getElementById('lblSubeGirisYazi').innerText = "Cihaza tanımlı şube bulunamadı, lütfen güncelleyin.";
             document.getElementById('userInp').value = "";
             document.getElementById('passInp').value = "";
             document.getElementById('userInp').disabled = false;
             document.getElementById('passInp').disabled = false;
         }
-        document.getElementById('btnSystemLoginAction').innerText = "ANAHTARLA SİSTEME GİRİŞ";
+        document.getElementById('btnSystemLoginAction').innerText = "SİSTEME GİRİŞ YAP";
     } else {
-        document.getElementById('loginPageTitle').innerText = "MERKEZ DEPO GİRİŞİ";
+        document.getElementById('loginPageTitle').innerText = "MERKEZ DEPO GİRİŞI";
         document.getElementById('subeLoginArea').classList.add('hidden');
         if(db_merkez_auth) {
             document.getElementById('merkezLoginArea').classList.remove('hidden');
@@ -682,7 +764,7 @@ function openLoginPageStyle() {
 function login() {
     if(!appIsOnline) {
         document.getElementById('offlineOverlay').classList.remove('hidden');
-        showToast("Bağlantı yok! Çizgili barkod ekranı aktif edildi.");
+        showToast("Bağlantı yok! İşlem engellendi.");
         return;
     }
     const isSubeMode = (localStorage.getItem("sys_selected_mode") === "Şube");
@@ -692,20 +774,22 @@ function login() {
         let k2 = document.getElementById('passInp').value.trim();
         
         if(!k1 || !k2) return showToast("Lütfen giriş anahtarlarını eksiksiz yazın!");
+        if(!savedSube) return showToast("Firma bulunamadı! Önce kurulum yapmalısınız.");
         
-        if(savedSube && (savedSube.key1 != k1 || savedSube.key2 != k2)) {
-            return showToast("Giriş Hatalı! Bu cihaz sadece güncellenmiş şubeye aittir.");
+        if(savedSube.key1 != k1 || savedSube.key2 != k2) {
+            return showToast("Giriş Hatalı! Kodlar eşleşmiyor.");
         }
         
-        let bulunanSube = db_subeler_obj.find(s => s.key1 == k1 && s.key2 == k2);
-        if(!bulunanSube) return showToast("Hatalı Giriş Anahtarları! Erişim reddedildi.");
+        // Firebase tabanlı kontrol sağla
+        let bulunanSube = db_subeler_obj.find(s => s.ad === savedSube.ad && s.key1 == k1 && s.key2 == k2);
+        if(!bulunanSube) return showToast("Firma veya Anahtarlar Buluttan Doğrulanamadı!");
         
         currentLoginFirma = bulunanSube.ad;
         localStorage.setItem("sys_logged_firma", currentLoginFirma);
     } else {
         let u = document.getElementById('mUserInp').value.trim();
         let p = document.getElementById('mPassInp').value.trim();
-        if(!u || !p) return showToast("Kullanıcı adı ve şifre girmelistiniz!");
+        if(!u || !p) return showToast("Kullanıcı adı ve şifre girmelisiniz!");
         
         if(!db_merkez_auth) {
             db_merkez_auth = { user: u, pass: p };
@@ -741,15 +825,16 @@ function firmaSilConfirm() {
         currentLoginFirma = ""; 
         selectedSystemMode = "";
         
-        document.getElementById('setupSubeName').value = "";
         document.getElementById('setupSubeKey1').value = "";
         document.getElementById('setupSubeKey2').value = "";
+        document.getElementById('setupSubeInfoLabel').innerText = "";
         
         document.getElementById('btnSelectMerkez').style.border = 'none';
         document.getElementById('btnSelectSube').style.border = 'none';
         document.getElementById('subeUpdateForm').classList.add('hidden');
         
         document.getElementById('navBar').classList.add('hidden');
+        buildSetupSubeSelectDropdown();
         openPage('updateScreenPage');
         showToast("Cihaz başarıyla sıfırlandı. Yeni firma seçebilirsiniz.");
     });
@@ -872,21 +957,25 @@ function saveNewSube() {
             return showToast("Bu isimde başka bir şube mevcut!");
         }
         
+        let targetSubeObj = db_subeler_obj[idx];
+        
         if(db_sube_stoklari[eskiAd]) {
             db_sube_stoklari[name] = db_sube_stoklari[eskiAd];
-            if(eskiAd !== name) delete db_sube_stoklari[eskiAd];
+            if(eskiAd !== name) {
+                db.collection("sube_stoklari").doc(name).set(db_sube_stoklari[eskiAd]);
+                db.collection("sube_stoklari").doc(eskiAd).delete();
+                delete db_sube_stoklari[eskiAd];
+            }
         }
         
         db_depo_emirleri_evrak.forEach(e => {
-            if(e.kaynak === eskiAd) e.kaynak = name;
-            if(e.hedef === eskiAd) e.hedef = name;
-        });
-
-        db_evraklar.forEach(e => {
-            if(e.olusturanFirma === eskiAd) e.olusturanFirma = name;
+            if(e.kaynak === eskiAd) { e.kaynak = name; db.collection("depo_emirleri").doc(e.id.toString()).update({kaynak: name}); }
+            if(e.hedef === eskiAd) { e.hedef = name; db.collection("depo_emirleri").doc(e.id.toString()).update({hedef: name}); }
         });
 
         db_subeler_obj[idx].ad = name;
+        db.collection("subeler").doc(name).set(targetSubeObj);
+        db.collection("subeler").doc(eskiAd).delete();
         showToast("Şube bilgileri başarıyla güncellendi.");
     } else {
         if(db_subeler_obj.some(s => s.ad === name)) return showToast("Bu şube zaten var!");
@@ -894,15 +983,19 @@ function saveNewSube() {
         let randKey1 = Math.floor(1000 + Math.random() * 9000);
         let randKey2 = Math.floor(1000 + Math.random() * 9000);
         
-        db_subeler_obj.push({ ad: name, key1: randKey1, key2: randKey2 });
+        let yeniSubeData = { ad: name, key1: randKey1, key2: randKey2 };
+        db_subeler_obj.push(yeniSubeData);
         db_sube_stoklari[name] = {};
+        
+        // Buluta Kaydet
+        db.collection("subeler").doc(name).set(yeniSubeData);
+        db.collection("sube_stoklari").doc(name).set({});
+        
         showToast(`${name} Şubesi başarıyla eklendi.`);
     }
     
     localStorage.setItem("db_subeler_obj", JSON.stringify(db_subeler_obj));
     localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
-    localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
-    localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
     
     db_subeler = db_subeler_obj.map(s => s.ad);
     closeSubeModal();
@@ -920,18 +1013,17 @@ function subeDuzenleSec(idx) {
 
 function subeSilAksiyon(idx) {
     let s = db_subeler_obj[idx];
-    delete db_sube_stoklari[s.ad];
-    db_depo_emirleri_evrak = db_depo_emirleri_evrak.filter(e => e.kaynak !== s.ad && e.hedef !== s.ad);
-    db_evraklar = db_evraklar.filter(e => e.olusturanFirma !== s.ad);
+    db.collection("subeler").doc(s.ad).delete();
+    db.collection("sube_stoklari").doc(s.ad).delete();
     
+    delete db_sube_stoklari[s.ad];
     db_subeler_obj.splice(idx, 1);
+    
     localStorage.setItem("db_subeler_obj", JSON.stringify(db_subeler_obj));
     localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
-    localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
-    localStorage.setItem("db_evraklar", JSON.stringify(db_evraklar));
     
     db_subeler = db_subeler_obj.map(s => s.ad);
-    showToast("Şube ve şubeye ait tüm veriler silindi.");
+    showToast("Şube buluttan ve sistemden silindi.");
     listeleMerkezSubeler();
 }
 
@@ -1009,11 +1101,12 @@ function createDepoSiparis() {
 
     if(kalemler.length === 0) return showToast("Lütfen en az 1 ürün için miktar giriniz.");
     
+    let docId = Date.now();
     let randomNo = Math.floor(100000 + Math.random() * 900000);
     let evrakNo = "DEPO-" + randomNo;
     
     let yeniEvrakEmir = {
-        id: Date.now(),
+        id: docId,
         evrakNo: evrakNo,
         tip: "DEPO_SIPARIS",
         kaynak: currentLoginFirma, 
@@ -1025,6 +1118,9 @@ function createDepoSiparis() {
     
     db_depo_emirleri_evrak.push(yeniEvrakEmir);
     localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
+    
+    // Buluta Gönder
+    db.collection("depo_emirleri").doc(docId.toString()).set(yeniEvrakEmir);
     
     showToast(`Sipariş ${evrakNo} numarasıyla merkeze iletildi.`);
     goHome();
@@ -1083,10 +1179,12 @@ function merkezEvrakindanKalemSil(evrakId, kalemIndex) {
     emir.kalemler.splice(kalemIndex, 1);
     if(emir.kalemler.length === 0) {
         db_depo_emirleri_evrak = db_depo_emirleri_evrak.filter(e => e.id !== evrakId);
+        db.collection("depo_emirleri").doc(evrakId.toString()).delete();
         document.getElementById('merkezSiparisDetayModal').style.display = 'none';
         showToast("Evrak boş kaldığı için tamamen silindi.");
     } else {
         localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
+        db.collection("depo_emirleri").doc(evrakId.toString()).set(emir);
         openMerkezSiparisDetayModal(evrakId);
     }
     listeleMerkezGuncelSiparis();
@@ -1124,6 +1222,10 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
     localStorage.setItem("db_stok", JSON.stringify(db_stok));
     localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
     localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
+    
+    // Bulut Güncellemeleri
+    db.collection("depo_emirleri").doc(id.toString()).set(emir);
+    db.collection("sube_stoklari").doc(emir.kaynak).set(db_sube_stoklari[emir.kaynak]);
     
     document.getElementById('merkezSiparisDetayModal').style.display = 'none';
     showToast(`${emir.evrakNo} nolu işlem tamamlandı, stoklar şubeye işlendi.`);
@@ -1187,6 +1289,7 @@ function openSubeSiparisIptalModal(id) {
             openConfirm("Siparişi Sil", "Bu sipariş evrakı kalıcı olarak silinecektir. Emin misiniz?", () => {
                 db_depo_emirleri_evrak = db_depo_emirleri_evrak.filter(e => e.id !== id);
                 localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
+                db.collection("depo_emirleri").doc(id.toString()).delete();
                 document.getElementById('subeSiparisIptalModal').style.display = 'none';
                 showToast("Sipariş evrakı başarıyla silindi.");
                 subeDepoSiparisSorgula();
@@ -1317,9 +1420,10 @@ function sendDepoSevk() {
     let u = db_stok.find(x => x.barkod === barkod);
     
     if(currentLoginFirma === "Merkez Depo") {
+        let docId = Date.now();
         let randomNo = Math.floor(100000 + Math.random() * 900000);
         let direktSevkEvrak = {
-            id: Date.now(),
+            id: docId,
             evrakNo: "DEPO-" + randomNo,
             tip: "DEPO_SIPARIS",
             kaynak: "Merkez Depo",
@@ -1330,6 +1434,7 @@ function sendDepoSevk() {
         };
         db_depo_emirleri_evrak.push(direktSevkEvrak);
         localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
+        db.collection("depo_emirleri").doc(docId.toString()).set(direktSevkEvrak);
         
         merkezSiparisEvrakOnaylaAksiyon(direktSevkEvrak.id);
         goHome();
@@ -1337,10 +1442,12 @@ function sendDepoSevk() {
     }
     
     db_sube_stoklari[currentLoginFirma][barkod] -= adet;
+    db.collection("sube_stoklari").doc(currentLoginFirma).set(db_sube_stoklari[currentLoginFirma]);
     
+    let docId = Date.now();
     let randomNo = Math.floor(100000 + Math.random() * 900000);
     let transferEvrak = {
-        id: Date.now(),
+        id: docId,
         evrakNo: "SEVK-" + randomNo,
         tip: "DEPO_SEVK",
         kaynak: currentLoginFirma,
@@ -1353,6 +1460,8 @@ function sendDepoSevk() {
     db_depo_emirleri_evrak.push(transferEvrak);
     localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
     localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
+    
+    db.collection("depo_emirleri").doc(docId.toString()).set(transferEvrak);
     
     showToast("Sevk irsaliyesi yola çıktı, hedef onayı bekleniyor.");
     document.getElementById('sevkAdetInp').value = "";
@@ -1393,6 +1502,7 @@ function merkezSevkKararAksiyon(id, karar) {
     } else {
         if(!db_sube_stoklari[sv.kaynak]) db_sube_stoklari[sv.kaynak] = {};
         db_sube_stoklari[sv.kaynak][k.barkod] = (db_sube_stoklari[sv.kaynak][k.barkod] || 0) + k.adet;
+        db.collection("sube_stoklari").doc(sv.kaynak).set(db_sube_stoklari[sv.kaynak]);
         sv.durum = "REDDEDILDI";
         showToast("Sevk reddedildi, ürünler gönderen şubeye geri iade edildi.");
     }
@@ -1400,6 +1510,8 @@ function merkezSevkKararAksiyon(id, karar) {
     localStorage.setItem("db_stok", JSON.stringify(db_stok));
     localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
     localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
+    
+    db.collection("depo_emirleri").doc(id.toString()).set(sv);
     listeleMerkezGelenSevkiyat();
 }
 
@@ -1430,6 +1542,7 @@ function subeSevkKararAksiyon(id, karar) {
     if(karar === 'KABUL') {
         if(!db_sube_stoklari[currentLoginFirma]) db_sube_stoklari[currentLoginFirma] = {};
         db_sube_stoklari[currentLoginFirma][k.barkod] = (db_sube_stoklari[currentLoginFirma][k.barkod] || 0) + k.adet;
+        db.collection("sube_stoklari").doc(currentLoginFirma).set(db_sube_stoklari[currentLoginFirma]);
         em.durum = "ONAYLANDI";
         showToast("Transfer başarıyla onaylandı ve şube stok kartınıza eklendi.");
     } else {
@@ -1442,6 +1555,7 @@ function subeSevkKararAksiyon(id, karar) {
         } else {
             if(!db_sube_stoklari[em.kaynak]) db_sube_stoklari[em.kaynak] = {};
             db_sube_stoklari[em.kaynak][k.barkod] = (db_sube_stoklari[em.kaynak][k.barkod] || 0) + k.adet;
+            db.collection("sube_stoklari").doc(em.kaynak).set(db_sube_stoklari[em.kaynak]);
         }
         em.durum = "REDDEDILDI";
         showToast("Transfer reddedildi, mallar gönderen şubeye geri iade edildi.");
@@ -1450,6 +1564,8 @@ function subeSevkKararAksiyon(id, karar) {
     localStorage.setItem("db_stok", JSON.stringify(db_stok));
     localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
     localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
+    
+    db.collection("depo_emirleri").doc(id.toString()).set(em);
     listeleSubeBildirimleri();
     goHome();
 }
@@ -1574,6 +1690,7 @@ function evragaEkle() {
             let mevcutSubeStok = db_sube_stoklari[currentLoginFirma][b] || 0;
             db_sube_stoklari[currentLoginFirma][b] = (aktifEvrak.tur === "ALIS") ? (mevcutSubeStok + m) : (mevcutSubeStok - m);
             localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
+            db.collection("sube_stoklari").doc(currentLoginFirma).set(db_sube_stoklari[currentLoginFirma]);
         }
 
         evrakKaydet();
@@ -1622,11 +1739,13 @@ function satirSil(index) {
         let mevcutSubeStok = db_sube_stoklari[currentLoginFirma][b] || 0;
         db_sube_stoklari[currentLoginFirma][b] = (aktifEvrak.tur === "ALIS") ? (mevcutSubeStok - m) : (mevcutSubeStok + m);
         localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
+        db.collection("sube_stoklari").doc(currentLoginFirma).set(db_sube_stoklari[currentLoginFirma]);
     }
 
     aktifEvrak.kalemler.splice(index, 1);
     if(aktifEvrak.kalemler.length === 0) {
         db_evraklar = db_evraklar.filter(x => x.no !== aktifEvrak.no);
+        db.collection("evraklar").doc(aktifEvrak.no).delete();
     } else {
         evrakKaydet();
     }
@@ -1756,6 +1875,7 @@ function evrakSil() {
             if (!db_sube_stoklari[currentLoginFirma]) db_sube_stoklari[currentLoginFirma] = {};
             let mevcutSubeStok = db_sube_stoklari[currentLoginFirma][b] || 0;
             db_sube_stoklari[currentLoginFirma][b] = (aktifEvrak.tur === "ALIS") ? (mevcutSubeStok - m) : (mevcutSubeStok + m);
+            db.collection("sube_stoklari").doc(currentLoginFirma).set(db_sube_stoklari[currentLoginFirma]);
         }
     });
     
