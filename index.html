@@ -763,52 +763,38 @@ function openLoginPageStyle() {
     }
 }
 
-function login() {
-    if(!appIsOnline) {
-        document.getElementById('offlineOverlay').classList.remove('hidden');
-        showToast("Bağlantı yok! İşlem engellendi.");
-        return;
-    }
+async function login() {
     const isSubeMode = (localStorage.getItem("sys_selected_mode") === "Şube");
-    if(isSubeMode) {
-        let savedSube = JSON.parse(localStorage.getItem("db_configured_sube"));
+
+    if (isSubeMode) {
         let k1 = document.getElementById('userInp').value.trim();
         let k2 = document.getElementById('passInp').value.trim();
         
-        if(!k1 || !k2) return showToast("Lütfen giriş anahtarlarını eksiksiz yazın!");
-        if(!savedSube) return showToast("Firma bulunamadı! Önce kurulum yapmalısınız.");
+        // Firebase'den o şubeyi bulmaya çalış
+        let subeSnap = await db.collection("subeler").where("key1", "==", k1).where("key2", "==", k2).get();
         
-        if(savedSube.key1 != k1 || savedSube.key2 != k2) {
-            return showToast("Giriş Hatalı! Kodlar eşleşmiyor.");
+        if (subeSnap.empty) {
+            return showToast("Hatalı kodlar! Şube Firebase'de bulunamadı.");
+        } else {
+            let subeData = subeSnap.docs[0].data();
+            currentLoginFirma = subeData.ad;
+            localStorage.setItem("sys_logged_firma", currentLoginFirma);
+            goHome();
         }
-        
-        // Firebase tabanlı kontrol sağla
-        let bulunanSube = db_subeler_obj.find(s => s.ad === savedSube.ad && s.key1 == k1 && s.key2 == k2);
-        if(!bulunanSube) return showToast("Firma veya Anahtarlar Buluttan Doğrulanamadı!");
-        
-        currentLoginFirma = bulunanSube.ad;
-        localStorage.setItem("sys_logged_firma", currentLoginFirma);
     } else {
+        // MERKEZ GİRİŞİ (Sabit Şifre)
         let u = document.getElementById('mUserInp').value.trim();
         let p = document.getElementById('mPassInp').value.trim();
-        if(!u || !p) return showToast("Kullanıcı adı ve şifre girmelisiniz!");
-        
-        if(!db_merkez_auth) {
-            db_merkez_auth = { user: u, pass: p };
-            localStorage.setItem("db_merkez_auth", JSON.stringify(db_merkez_auth));
+        if(u === "admin" && p === "14531453") {
+            currentLoginFirma = "Merkez Depo";
+            localStorage.setItem("sys_logged_firma", currentLoginFirma);
+            goHome();
         } else {
-            if(db_merkez_auth.user !== u || db_merkez_auth.pass !== p) {
-                return showToast("Hatalı Merkez Giriş Bilgileri!");
-            }
+            showToast("Hatalı Merkez Şifresi!");
         }
-        currentLoginFirma = "Merkez Depo";
-        localStorage.setItem("sys_logged_firma", currentLoginFirma);
     }
-    document.getElementById('navFirma').innerText = currentLoginFirma;
-    document.getElementById('loginPage').classList.add('hidden');
-    document.getElementById('navBar').classList.remove('hidden');
-    goHome();
 }
+    
 
 function logout() { 
     localStorage.removeItem("sys_logged_firma");
@@ -1971,4 +1957,4 @@ function openConfirm(t, d, c) {
 function closeConfirm() { document.getElementById('confirmModal').style.display = 'none'; }
 </script>
 </body>
-</html>4
+</html>
