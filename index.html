@@ -674,48 +674,52 @@ function triggerAppUpdate() {
         let name = document.getElementById('setupSubeSelect').value;
         let k1 = document.getElementById('setupSubeKey1').value.trim();
         let k2 = document.getElementById('setupSubeKey2').value.trim();
-        
         if(!name || !k1 || !k2) return showToast("Lütfen listeden şube seçip anahtarları eksiksiz doldurun!");
-        
         let bul = db_subeler_obj.find(s => s.ad === name);
         if(!bul) return showToast("Seçilen şube sistemde kayıtlı değil!");
-        
         if(bul.key1 != k1 || bul.key2 != k2) {
             return showToast("HATA: Girdiğiniz kurulum anahtarları merkezdeki kodlarla eşleşmiyor!");
         }
-        
         db_configured_sube = { ad: name, key1: k1, key2: k2 };
-    }document.getElementById('btnMainUpdateAction').disabled = true;
+    }
+    
+    document.getElementById('btnMainUpdateAction').disabled = true;
     const pBox = document.getElementById('downloadSection');
     const pBar = document.getElementById('downloadProgressBar');
     const pText = document.getElementById('downloadStatusText');
-    
     pBox.classList.remove('hidden');
-    pText.innerText = "Kaynaklar ve veriler indiriliyor... Bulut senkronizasyonu aktif.";
+    pText.innerText = "Kaynaklar ve veriler indiriliyor...";
     pBar.style.width = "0%";
     
     let width = 0;
+    // DONMAYI ÇÖZEN ASENKRON DÖNGÜ:
     let interval = setInterval(() => {
-        if(width >= 100) {
+        if (width >= 100) {
             clearInterval(interval);
-            pText.innerText = "Kaynaklar indirildi! Sisteme yönlendiriliyorsunuz...";
+            pText.innerText = "Güncelleme tamamlandı!";
             setTimeout(() => {
                 pBox.classList.add('hidden');
                 document.getElementById('btnMainUpdateAction').disabled = false;
                 
-                if(selectedSystemMode === 'Şube') {
-                    localStorage.setItem("db_configured_sube", JSON.stringify(db_configured_sube));
-                }
-                
                 localStorage.setItem("sys_selected_mode", selectedSystemMode);
-                openLoginPageStyle();
-            }, 1000);
+                if (selectedSystemMode === 'Merkez') {
+                    localStorage.setItem("db_merkez_auth", JSON.stringify({ user: "admin" }));
+                    document.getElementById('merkezLoginArea').classList.remove('hidden');
+                    document.getElementById('subeLoginArea').classList.add('hidden');
+                } else {
+                    localStorage.setItem("db_configured_sube", JSON.stringify(db_configured_sube));
+                    document.getElementById('merkezLoginArea').classList.add('hidden');
+                    document.getElementById('subeLoginArea').classList.remove('hidden');
+                }
+                openPage('loginPage');
+            }, 500);
         } else {
             width += 10;
             pBar.style.width = width + "%";
         }
-    }, 80);
+    }, 150); // 150ms bekleme süresi tarayıcının donmasını engeller
 }
+    
 
 function openLoginPageStyle() {
     document.querySelectorAll('.box').forEach(b => b.classList.add('hidden'));
