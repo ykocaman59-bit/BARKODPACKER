@@ -540,14 +540,25 @@ let appIsOnline = true;
 let currentSearchCriteria = "ad"; 
 
 window.addEventListener('load', () => {
+    // Sayfa açıldığında kayıtlı firma ismini geri yükle
+    let kaydedilenFirma = localStorage.getItem("sys_logged_firma");
+    if (kaydedilenFirma) {
+        if (kaydedilenFirma === "Merkez Depo") {
+            document.getElementById('navFirma').innerText = "Merkez Depo Online";
+        } else {
+            document.getElementById('navFirma').innerText = kaydedilenFirma + " Şube Online";
+        }
+    }
+
     initSubeStoklari();
-    // İlk açılışta Firebase'deki verileri arka planda dinlemeye başla
     firebaseVerileriniDinle();
+    
     setTimeout(() => {
         document.getElementById('offlineOverlay').classList.add('hidden');
         checkAppRouting();
     }, 1500);
 });
+    
 
 function firebaseVerileriniDinle() {
     // 1. Stokları Buluttan Dinle
@@ -767,24 +778,21 @@ async function login() {
         let k1 = document.getElementById('userInp').value.trim();
         let k2 = document.getElementById('passInp').value.trim();
         
-        // 1. Firebase'deki 'subeler' koleksiyonunun tamamını çek
         let snapshot = await db.collection("subeler").get();
         
-        // 2. Hafızada (JavaScript tarafında) tek tek kontrol et
         let bulunanSube = snapshot.docs.find(doc => {
             let data = doc.data();
-            // .toString() ile her iki tarafı da yazıya çeviriyoruz ki tip hatası olmasın
             return data.key1.toString() === k1 && data.key2.toString() === k2;
         });
         
         if (!bulunanSube) {
             return showToast("Hatalı kodlar! Şube Firebase'de bulunamadı.");
-                } else {
+        } else {
             let subeData = bulunanSube.data();
-            currentLoginFirma = subeData.ad;
+            currentLoginFirma = subeData.ad; 
             localStorage.setItem("sys_logged_firma", currentLoginFirma);
             
-            // --- EKRANI GÜNCELLEYEN SATIR BURADA OLMALI ---
+            // Şube girişinde dinamik isim: "Sultanbeyli Şube Online"
             document.getElementById('navFirma').innerText = currentLoginFirma + " Şube Online";
             
             document.getElementById('loginPage').classList.add('hidden');
@@ -793,12 +801,16 @@ async function login() {
         } 
         
     } else {
-        // MERKEZ GİRİŞİ (Aynı, dokunma)
+        // MERKEZ GİRİŞİ
         let u = document.getElementById('mUserInp').value.trim();
         let p = document.getElementById('mPassInp').value.trim();
         if(u === "admin" && p === "14531453") {
             currentLoginFirma = "Merkez Depo";
             localStorage.setItem("sys_logged_firma", currentLoginFirma);
+            
+            // Merkez girişinde özel isim: "Merkez Depo Online"
+            document.getElementById('navFirma').innerText = "Merkez Depo Online";
+            
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('navBar').classList.remove('hidden');
             goHome();
@@ -807,6 +819,7 @@ async function login() {
         }
     }
 }
+    
     
     
 
