@@ -770,30 +770,43 @@ async function login() {
         let k1 = document.getElementById('userInp').value.trim();
         let k2 = document.getElementById('passInp').value.trim();
         
-        // Firebase'den o şubeyi bulmaya çalış
-        let subeSnap = await db.collection("subeler").where("key1", "==", k1).where("key2", "==", k2).get();
+        // 1. Firebase'deki 'subeler' koleksiyonunun tamamını çek
+        let snapshot = await db.collection("subeler").get();
         
-        if (subeSnap.empty) {
+        // 2. Hafızada (JavaScript tarafında) tek tek kontrol et
+        let bulunanSube = snapshot.docs.find(doc => {
+            let data = doc.data();
+            // .toString() ile her iki tarafı da yazıya çeviriyoruz ki tip hatası olmasın
+            return data.key1.toString() === k1 && data.key2.toString() === k2;
+        });
+        
+        if (!bulunanSube) {
             return showToast("Hatalı kodlar! Şube Firebase'de bulunamadı.");
         } else {
-            let subeData = subeSnap.docs[0].data();
+            let subeData = bulunanSube.data();
             currentLoginFirma = subeData.ad;
             localStorage.setItem("sys_logged_firma", currentLoginFirma);
+            
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('navBar').classList.remove('hidden');
             goHome();
         }
     } else {
-        // MERKEZ GİRİŞİ (Sabit Şifre)
+        // MERKEZ GİRİŞİ (Aynı, dokunma)
         let u = document.getElementById('mUserInp').value.trim();
         let p = document.getElementById('mPassInp').value.trim();
         if(u === "admin" && p === "14531453") {
             currentLoginFirma = "Merkez Depo";
             localStorage.setItem("sys_logged_firma", currentLoginFirma);
+            document.getElementById('loginPage').classList.add('hidden');
+            document.getElementById('navBar').classList.remove('hidden');
             goHome();
         } else {
             showToast("Hatalı Merkez Şifresi!");
         }
     }
 }
+    
     
 
 function logout() { 
