@@ -779,7 +779,6 @@ async function login() {
         let k2 = document.getElementById('passInp').value.trim();
         
         let snapshot = await db.collection("subeler").get();
-        
         let bulunanSube = snapshot.docs.find(doc => {
             let data = doc.data();
             return data.key1.toString() === k1 && data.key2.toString() === k2;
@@ -792,23 +791,20 @@ async function login() {
             currentLoginFirma = subeData.ad; 
             localStorage.setItem("sys_logged_firma", currentLoginFirma);
             
-            // Şube girişinde dinamik isim: "Sultanbeyli Şube Online"
-            document.getElementById('navFirma').innerText = currentLoginFirma + " Şube Online";
+            // "Sultanbeyli Online" şeklinde yazar
+            document.getElementById('navFirma').innerText = currentLoginFirma + " Online";
             
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('navBar').classList.remove('hidden');
             goHome();
         } 
-        
     } else {
-        // MERKEZ GİRİŞİ
         let u = document.getElementById('mUserInp').value.trim();
         let p = document.getElementById('mPassInp').value.trim();
         if(u === "admin" && p === "14531453") {
             currentLoginFirma = "Merkez Depo";
             localStorage.setItem("sys_logged_firma", currentLoginFirma);
             
-            // Merkez girişinde özel isim: "Merkez Depo Online"
             document.getElementById('navFirma').innerText = "Merkez Depo Online";
             
             document.getElementById('loginPage').classList.add('hidden');
@@ -822,13 +818,18 @@ async function login() {
     
     
     
-
+    
 function logout() { 
     localStorage.removeItem("sys_logged_firma");
     currentLoginFirma = "";
+    
+    // Çıkış yapınca ismi temizle ki bir sonraki girişte eski isim kalmasın
+    document.getElementById('navFirma').innerText = "";
+    
     document.getElementById('navBar').classList.add('hidden');
     checkAppRouting(); 
 }
+    
 
 function firmaSilConfirm() {
     openConfirm("Firmayı Sil / Sıfırla", "Cihaz entegrasyonu ve giriş bilgileri sıfırlanacaktır. Emin misiniz?", () => {
