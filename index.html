@@ -299,9 +299,7 @@
     <h3>📥 Gelen Şube Sevk ve Onay İstasyonu</h3>
     <div id="gelenSevkiyatListesi"></div>
     <button class="btn-secondary" onclick="goHome()">GERİ</button>
-</div>
-
-<div id="gidenSevkiyatPage" class="box hidden">
+</div><div id="gidenSevkiyatPage" class="box hidden">
     <h3>📤 Giden Sevkiyat Arşivi</h3>
     <div id="gidenSevkiyatListesi"></div>
     <button class="btn-secondary" onclick="goHome()">GERİ</button>
@@ -601,8 +599,7 @@ function firebaseVerileriniDinle() {
         }
     });
 
-    // 2. Şubeleri Buluttan Dinle
-    db.collection("subeler").onSnapshot(snapshot => {
+    // 2. Şubeleri Buluttan Dinledb.collection("subeler").onSnapshot(snapshot => {
         let list = [];
         snapshot.forEach(doc => list.push(doc.data()));
         db_subeler_obj = list;
@@ -899,8 +896,7 @@ function openPage(id) {
     if(id === 'subeDepoSiparisleriArsivPage') initSubeDepoSiparisleriSayfasi();
 }
 
-function guncelleBildirimRozetleri() {
-    if(currentLoginFirma === "Merkez Depo") {
+function guncelleBildirimRozetleri() {if(currentLoginFirma === "Merkez Depo") {
         let mSipSayi = db_depo_emirleri_evrak.filter(e => e.tip === "DEPO_SIPARIS" && e.durum === "BEKLEMEDE").length;
         document.getElementById('lblMerkezGuncelSiparisBtn').innerHTML = `${mSipSayi > 0 ? '(' + mSipSayi + ') ' : ''}🔔 GÜNCEL SİPARİŞLER`;
         
@@ -920,12 +916,12 @@ function guncelleBildirimRozetleri() {
 
 function goHome() {
     let loader = document.getElementById('loadingOverlay');
-    if (loader) loader.classList.remove('hidden');
+    loader.classList.remove('hidden'); // Animasyonu başlat
 
     setTimeout(() => {
+        // --- SENİN ESKİ MANTIĞIN BURADA ---
         openPage('homePage');
-        
-        if (currentLoginFirma === "Merkez Depo") {
+        if(currentLoginFirma === "Merkez Depo") {
             document.getElementById('merkezOzelPanel').classList.remove('hidden');
             document.getElementById('subeOzelPanel').classList.add('hidden');
             document.getElementById('btnYeniStokKartEkle').classList.remove('hidden');
@@ -936,11 +932,11 @@ function goHome() {
             document.getElementById('btnYeniStokKartEkle').classList.add('hidden');
             document.getElementById('cariEklemeFormuAlani').classList.add('hidden');
         }
-        
         guncelleBildirimRozetleri();
+        // ----------------------------------
 
-        if (loader) loader.classList.add('hidden');
-    }, 800);
+        loader.classList.add('hidden'); // İşlem bitince animasyonu kapat
+    }, 800); 
             }
     
 
@@ -1194,8 +1190,7 @@ function listeleMerkezGuncelSiparis() {
     document.getElementById('guncelSiparisListesi').innerHTML = h || "<p>Güncel sipariş talebi bulunmuyor.</p>";
 }
 
-function openMerkezSiparisDetayModal(id) {
-    let emir = db_depo_emirleri_evrak.find(e => e.id === id);
+function openMerkezSiparisDetayModal(id) {let emir = db_depo_emirleri_evrak.find(e => e.id === id);
     if(!emir) return;
     
     document.getElementById('mSipDetayBaslik').innerText = `${emir.kaynak} - ${emir.evrakNo}`;
@@ -1519,8 +1514,7 @@ function sendDepoSevk() {
     goHome();
 }
 
-function listeleMerkezGelenSevkiyat() {
-    let sevkler = db_depo_emirleri_evrak.filter(e => e.hedef === "Merkez Depo" && e.tip === "DEPO_SEVK" && e.durum === "BEKLEMEDE");
+function listeleMerkezGelenSevkiyat() {let sevkler = db_depo_emirleri_evrak.filter(e => e.hedef === "Merkez Depo" && e.tip === "DEPO_SEVK" && e.durum === "BEKLEMEDE");
     let h = "";
     
     sevkler.forEach((sv) => {
@@ -1803,8 +1797,7 @@ function satirSil(index) {
     islemSatirlariKontrol();
 }
 
-function cariListeleHepsini() {
-    let h = "";
+function cariListeleHepsini() {let h = "";
     db_cari.sort().forEach((c, i) => {
         h += `<div class="card" onclick="cariDetayAc('${c}')">
                 <b>${c}</b>`;
