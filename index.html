@@ -920,12 +920,12 @@ function guncelleBildirimRozetleri() {
 
 function goHome() {
     let loader = document.getElementById('loadingOverlay');
-    loader.classList.remove('hidden'); // Animasyonu başlat
+    if (loader) loader.classList.remove('hidden');
 
     setTimeout(() => {
-        // --- SENİN ESKİ MANTIĞIN BURADA ---
         openPage('homePage');
-        if(currentLoginFirma === "Merkez Depo") {
+        
+        if (currentLoginFirma === "Merkez Depo") {
             document.getElementById('merkezOzelPanel').classList.remove('hidden');
             document.getElementById('subeOzelPanel').classList.add('hidden');
             document.getElementById('btnYeniStokKartEkle').classList.remove('hidden');
@@ -936,11 +936,11 @@ function goHome() {
             document.getElementById('btnYeniStokKartEkle').classList.add('hidden');
             document.getElementById('cariEklemeFormuAlani').classList.add('hidden');
         }
+        
         guncelleBildirimRozetleri();
-        // ----------------------------------
 
-        loader.classList.add('hidden'); // İşlem bitince animasyonu kapat
-    }, 800); 
+        if (loader) loader.classList.add('hidden');
+    }, 800);
             }
     
 
