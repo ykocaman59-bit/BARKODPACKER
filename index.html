@@ -97,7 +97,38 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+   <div id="loadingOverlay" class="hidden">
+        <div class="logo-box" style="text-align: center; color: white;">
+            <h1>BARKOD<span style="color: #ff9900;">PACKER</span></h1>
+            <div class="bars" style="display: flex; height: 30px; gap: 4px; justify-content: center;">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    ```
 
+### 2. CSS Kısmı (Style Etiketlerinin Arasına)
+` <style>` bölümünün en sonuna şunu ekle. Bu, çizgileri hareket ettirecek:
+
+```css
+#loadingOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #4a86f7;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 99999; /* En üstte durması için */
+}
+.bar { width: 6px; height: 30px; background: white; animation: dance 1s infinite alternate; }
+@keyframes dance { from { transform: scaleY(0.2); } to { transform: scaleY(1); } }
+.bar:nth-child(2) { animation-delay: 0.2s; }
+.bar:nth-child(3) { animation-delay: 0.4s; }
+.bar:nth-child(4) { animation-delay: 0.6s; }
+.bar:nth-child(5) { animation-delay: 0.8s; }
+.hidden { display: none !important; }
 <div id="offlineOverlay" class="hidden">
     <div class="splash-text">BARKOD<span>PACKER</span></div>
     <div class="lines-container"><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div></div>
@@ -550,7 +581,14 @@ window.addEventListener('load', () => {
         checkAppRouting();
     }, 1500);
 });
+window.addEventListener('online', () => {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+});
 
+window.addEventListener('offline', () => {
+    document.getElementById('loadingOverlay').classList.remove('hidden');
+    showToast("İnternet bağlantısı kesildi!");
+});
 function firebaseVerileriniDinle() {
     // 1. Stokları Buluttan Dinle
     db.collection("stoklar").onSnapshot(snapshot => {
@@ -881,20 +919,30 @@ function guncelleBildirimRozetleri() {
 }
 
 function goHome() {
-    openPage('homePage');
-    if(currentLoginFirma === "Merkez Depo") {
-        document.getElementById('merkezOzelPanel').classList.remove('hidden');
-        document.getElementById('subeOzelPanel').classList.add('hidden');
-        document.getElementById('btnYeniStokKartEkle').classList.remove('hidden');
-        document.getElementById('cariEklemeFormuAlani').classList.remove('hidden');
-    } else {
-        document.getElementById('merkezOzelPanel').classList.add('hidden');
-        document.getElementById('subeOzelPanel').classList.remove('hidden');
-        document.getElementById('btnYeniStokKartEkle').classList.add('hidden');
-        document.getElementById('cariEklemeFormuAlani').classList.add('hidden');
-    }
-    guncelleBildirimRozetleri();
-}
+    let loader = document.getElementById('loadingOverlay');
+    loader.classList.remove('hidden'); // Animasyonu başlat
+
+    setTimeout(() => {
+        // --- SENİN ESKİ MANTIĞIN BURADA ---
+        openPage('homePage');
+        if(currentLoginFirma === "Merkez Depo") {
+            document.getElementById('merkezOzelPanel').classList.remove('hidden');
+            document.getElementById('subeOzelPanel').classList.add('hidden');
+            document.getElementById('btnYeniStokKartEkle').classList.remove('hidden');
+            document.getElementById('cariEklemeFormuAlani').classList.remove('hidden');
+        } else {
+            document.getElementById('merkezOzelPanel').classList.add('hidden');
+            document.getElementById('subeOzelPanel').classList.remove('hidden');
+            document.getElementById('btnYeniStokKartEkle').classList.add('hidden');
+            document.getElementById('cariEklemeFormuAlani').classList.add('hidden');
+        }
+        guncelleBildirimRozetleri();
+        // ----------------------------------
+
+        loader.classList.add('hidden'); // İşlem bitince animasyonu kapat
+    }, 800); 
+            }
+    
 
 function showToast(msg) {
     let x = document.getElementById("toast");
