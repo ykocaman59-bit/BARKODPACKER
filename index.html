@@ -782,15 +782,19 @@ async function login() {
         
         if (!bulunanSube) {
             return showToast("Hatalı kodlar! Şube Firebase'de bulunamadı.");
-        } else {
+                } else {
             let subeData = bulunanSube.data();
             currentLoginFirma = subeData.ad;
             localStorage.setItem("sys_logged_firma", currentLoginFirma);
             
+            // --- EKRANI GÜNCELLEYEN SATIR BURADA OLMALI ---
+            document.getElementById('navFirma').innerText = currentLoginFirma + " Şube Online";
+            
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('navBar').classList.remove('hidden');
             goHome();
-        }
+        } 
+        
     } else {
         // MERKEZ GİRİŞİ (Aynı, dokunma)
         let u = document.getElementById('mUserInp').value.trim();
