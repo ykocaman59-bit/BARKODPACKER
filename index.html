@@ -540,24 +540,43 @@ let appIsOnline = true;
 let currentSearchCriteria = "ad"; 
 
 window.addEventListener('load', () => {
+    // 1. Önce kurulum kontrolü yap
+    checkAppRouting();
+    
+    // 2. Eğer giriş yapılmışsa, verileri yükle
     let kaydedilenFirma = localStorage.getItem("sys_logged_firma");
     if (kaydedilenFirma) {
-        if (kaydedilenFirma === "Merkez Depo") {
-            document.getElementById('navFirma').innerText = "Merkez Depo Online";
-        } else {
-            // Şube için sadece "Online" ekliyoruz
-            document.getElementById('navFirma').innerText = kaydedilenFirma + " Online";
-        }
+        document.getElementById('navFirma').innerText = kaydedilenFirma + " Online";
+        initSubeStoklari();
+        firebaseVerileriniDinle();
     }
-
-    initSubeStoklari();
-    firebaseVerileriniDinle();
     
     setTimeout(() => {
         document.getElementById('offlineOverlay').classList.add('hidden');
-        checkAppRouting();
     }, 1500);
 });
+
+// YÖNLENDİRME KONTROLÜ
+function checkAppRouting() {
+    let kayıtlıMod = localStorage.getItem("sys_config_mode");
+    
+    // Eğer mod kayıtlıysa setup ekranını kapat, login'i aç
+    if (kayıtlıMod) {
+        document.getElementById('setupPage').classList.add('hidden');
+        document.getElementById('loginPage').classList.remove('hidden');
+    } else {
+        // Kayıtlı mod yoksa seçim ekranını göster
+        document.getElementById('setupPage').classList.remove('hidden');
+        document.getElementById('loginPage').classList.add('hidden');
+    }
+}
+
+// SIFIRLAMA
+function sifirlaVeCik() {
+    localStorage.clear(); 
+    location.reload(); 
+}
+    
     
     
 
@@ -786,15 +805,16 @@ async function login() {
         });
         
         if (!bulunanSube) {
-            return showToast("Hatalı kodlar! Şube Firebase'de bulunamadı.");
+            return showToast("Hatalı kodlar!");
         } else {
             let subeData = bulunanSube.data();
-            currentLoginFirma = subeData.ad; 
-            localStorage.setItem("sys_logged_firma", currentLoginFirma);
+            // Kalıcı kayıtlar:
+            localStorage.setItem("sys_config_mode", "Şube");
+            localStorage.setItem("sys_logged_firma", subeData.ad);
+            localStorage.setItem("sube_k1", k1); // Şifreleri de kaydediyoruz
+            localStorage.setItem("sube_k2", k2);
             
-            // "Sultanbeyli Online" şeklinde yazar
-            document.getElementById('navFirma').innerText = currentLoginFirma + " Online";
-            
+            document.getElementById('navFirma').innerText = subeData.ad + " Online";
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('navBar').classList.remove('hidden');
             goHome();
@@ -803,11 +823,11 @@ async function login() {
         let u = document.getElementById('mUserInp').value.trim();
         let p = document.getElementById('mPassInp').value.trim();
         if(u === "admin" && p === "14531453") {
-            currentLoginFirma = "Merkez Depo";
-            localStorage.setItem("sys_logged_firma", currentLoginFirma);
+            // Merkez için kalıcı kayıt:
+            localStorage.setItem("sys_config_mode", "Merkez");
+            localStorage.setItem("sys_logged_firma", "Merkez Depo");
             
             document.getElementById('navFirma').innerText = "Merkez Depo Online";
-            
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('navBar').classList.remove('hidden');
             goHome();
@@ -816,6 +836,7 @@ async function login() {
         }
     }
 }
+    
     
     
     
