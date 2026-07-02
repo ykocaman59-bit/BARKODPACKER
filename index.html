@@ -540,13 +540,13 @@ let appIsOnline = true;
 let currentSearchCriteria = "ad"; 
 
 window.addEventListener('load', () => {
-    // Sayfa açıldığında kayıtlı firma ismini geri yükle
     let kaydedilenFirma = localStorage.getItem("sys_logged_firma");
     if (kaydedilenFirma) {
         if (kaydedilenFirma === "Merkez Depo") {
             document.getElementById('navFirma').innerText = "Merkez Depo Online";
         } else {
-            document.getElementById('navFirma').innerText = kaydedilenFirma + " Şube Online";
+            // Şube için sadece "Online" ekliyoruz
+            document.getElementById('navFirma').innerText = kaydedilenFirma + " Online";
         }
     }
 
@@ -558,6 +558,7 @@ window.addEventListener('load', () => {
         checkAppRouting();
     }, 1500);
 });
+    
     
 
 function firebaseVerileriniDinle() {
@@ -819,6 +820,7 @@ async function login() {
     
     
     
+    
 function logout() { 
     localStorage.removeItem("sys_logged_firma");
     currentLoginFirma = "";
@@ -829,6 +831,7 @@ function logout() {
     document.getElementById('navBar').classList.add('hidden');
     checkAppRouting(); 
 }
+    
     
 
 function firmaSilConfirm() {
