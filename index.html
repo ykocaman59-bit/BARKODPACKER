@@ -815,6 +815,9 @@ async function login() {
             localStorage.setItem("sys_logged_firma", currentLoginFirma);
             
             
+            // "Sultanbeyli Online" şeklinde yazar
+            document.getElementById('navFirma').innerText = currentLoginFirma + " Online";
+            
             
             document.getElementById('loginPage').classList.add('hidden');
             document.getElementById('navBar').classList.remove('hidden');
