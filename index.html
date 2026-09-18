@@ -1417,8 +1417,15 @@ function toggleSearchCriteria() {const btn = document.getElementById('btnSearchC
 }
 
 function filterSevkUrunList() {
-    let query = document.getElementById('sevkUrunSearchInp').value.toLowerCase();
+    let query = document.getElementById('sevkUrunSearchInp').value.toLowerCase().trim();
     let uHtml = "";
+    
+    // Eğer arama kutusu boşsa, ürünleri hiç listeleme ve boş dön
+    if (!query) {
+        document.getElementById('sevkUrunSelect').innerHTML = `<option value="">Önce arama yapın...</option>`;
+        return;
+    }
+
     let siraliStok = [...db_stok].sort((a, b) => a.ad.localeCompare(b.ad, 'tr'));
     
     siraliStok.forEach(s => {
@@ -1431,9 +1438,10 @@ function filterSevkUrunList() {
             uHtml += `<option value="${s.barkod}">${s.ad} (Eldeki: ${eldekiAdet})</option>`;
         }
     });
+    
     document.getElementById('sevkUrunSelect').innerHTML = uHtml || `<option value="">Eşleşen Ürün Yok</option>`;
 }
-
+    
 function openDepoSevkPage() {
     let fHtml = "";
     db_subeler_obj.forEach(f => {
@@ -1483,6 +1491,12 @@ function sendDepoSevk() {
         db.collection("depo_emirleri").doc(docId.toString()).set(direktSevkEvrak);
         
         merkezSiparisEvrakOnaylaAksiyon(direktSevkEvrak.id);
+        
+        // Alanları sıfırla
+        document.getElementById('sevkUrunSearchInp').value = "";
+        document.getElementById('sevkAdetInp').value = "";
+        filterSevkUrunList();
+        
         goHome();
         return;
     }
@@ -1510,10 +1524,15 @@ function sendDepoSevk() {
     db.collection("depo_emirleri").doc(docId.toString()).set(transferEvrak);
     
     showToast("Sevk irsaliyesi yola çıktı, hedef onayı bekleniyor.");
+    
+    // Transfer bitince inputları ve arama alanını sıfırla
+    document.getElementById('sevkUrunSearchInp').value = "";
     document.getElementById('sevkAdetInp').value = "";
+    filterSevkUrunList();
+    
     goHome();
 }
-
+    
 function listeleMerkezGelenSevkiyat() {
     let sevkler = db_depo_emirleri_evrak.filter(e => e.hedef === "Merkez Depo" && e.tip === "DEPO_SEVK" && e.durum === "BEKLEMEDE");
     let h = "";
