@@ -1473,6 +1473,11 @@ function sendDepoSevk() {
     
     let u = db_stok.find(x => x.barkod === barkod);
     
+    // 👇 BU ÜÇ SATIRI TAM BURAYA (KONTROLLERDEN GEÇTİKTEN HEMEN SONRA) EKLIYORUZ
+    document.getElementById('sevkUrunSearchInp').value = "";
+    document.getElementById('sevkAdetInp').value = "";
+    filterSevkUrunList();
+
     if(currentLoginFirma === "Merkez Depo") {
         let docId = Date.now();
         let randomNo = Math.floor(100000 + Math.random() * 900000);
@@ -1491,18 +1496,12 @@ function sendDepoSevk() {
         db.collection("depo_emirleri").doc(docId.toString()).set(direktSevkEvrak);
         
         merkezSiparisEvrakOnaylaAksiyon(direktSevkEvrak.id);
-        
-        // Alanları sıfırla
-        document.getElementById('sevkUrunSearchInp').value = "";
-        document.getElementById('sevkAdetInp').value = "";
-        filterSevkUrunList();
-        
         goHome();
         return;
     }
     
     db_sube_stoklari[currentLoginFirma][barkod] -= adet;
-    db.collection("sube_stoklari").doc(currentLoginFirma).set(db_sube_stoklari[currentLoginFirma]);
+    db.collection("sube_stoklari")[currentLoginFirma].set(db_sube_stoklari[currentLoginFirma]); // (veya mevcut set kodun)
     
     let docId = Date.now();
     let randomNo = Math.floor(100000 + Math.random() * 900000);
@@ -1524,12 +1523,6 @@ function sendDepoSevk() {
     db.collection("depo_emirleri").doc(docId.toString()).set(transferEvrak);
     
     showToast("Sevk irsaliyesi yola çıktı, hedef onayı bekleniyor.");
-    
-    // Transfer bitince inputları ve arama alanını sıfırla
-    document.getElementById('sevkUrunSearchInp').value = "";
-    document.getElementById('sevkAdetInp').value = "";
-    filterSevkUrunList();
-    
     goHome();
 }
     
