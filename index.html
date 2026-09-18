@@ -1440,7 +1440,7 @@ function filterSevkUrunList() {
     });
     
     document.getElementById('sevkUrunSelect').innerHTML = uHtml || `<option value="">Eşleşen Ürün Yok</option>`;
-}
+                                                                               }
     
 function openDepoSevkPage() {
     let fHtml = "";
@@ -1473,7 +1473,7 @@ function sendDepoSevk() {
     
     let u = db_stok.find(x => x.barkod === barkod);
     
-    // Alanları sıfırla
+    // 👇 BU ÜÇ SATIRI TAM BURAYA (KONTROLLERDEN GEÇTİKTEN HEMEN SONRA) EKLIYORUZ
     document.getElementById('sevkUrunSearchInp').value = "";
     document.getElementById('sevkAdetInp').value = "";
     filterSevkUrunList();
@@ -1501,9 +1501,7 @@ function sendDepoSevk() {
     }
     
     db_sube_stoklari[currentLoginFirma][barkod] -= adet;
-    
-    // DOĞRU YAZIM BURASI (.doc(currentLoginFirma) eklendi)
-    db.collection("sube_stoklari").doc(currentLoginFirma).set(db_sube_stoklari[currentLoginFirma]);
+    db.collection("sube_stoklari")[currentLoginFirma].set(db_sube_stoklari[currentLoginFirma]); // (veya mevcut set kodun)
     
     let docId = Date.now();
     let randomNo = Math.floor(100000 + Math.random() * 900000);
@@ -1527,7 +1525,6 @@ function sendDepoSevk() {
     showToast("Sevk irsaliyesi yola çıktı, hedef onayı bekleniyor.");
     goHome();
 }
-    
     
 function listeleMerkezGelenSevkiyat() {
     let sevkler = db_depo_emirleri_evrak.filter(e => e.hedef === "Merkez Depo" && e.tip === "DEPO_SEVK" && e.durum === "BEKLEMEDE");
