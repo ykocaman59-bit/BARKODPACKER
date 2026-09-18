@@ -1249,6 +1249,9 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
         k.adet = inputVal;
     }
     
+    // Ürünün gideceği doğru şubeyi belirliyoruz (Hedef şube)
+    let hedefSube = emir.hedef || emir.kaynak;
+    
     emir.kalemler.forEach(k => {
         let merkezUrun = db_stok.find(x => x.barkod === k.barkod);
         if(merkezUrun) {
@@ -1256,24 +1259,26 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
             db.collection("stoklar").doc(k.barkod).update({ stok: merkezUrun.stok }).catch(e => console.log("Firebase hatası:", e));
         }
         
-        let hedonSube = emir.kaynak;
-        if(!db_sube_stoklari[hedonSube]) db_sube_stoklari[hedonSube] = {};
-        db_sube_stoklari[hedonSube][k.barkod] = (db_sube_stoklari[hedonSube][k.barkod] || 0) + k.adet;
+        if(!db_sube_stoklari[hedefSube]) db_sube_stoklari[hedefSube] = {};
+        db_sube_stoklari[hedefSube][k.barkod] = (db_sube_stoklari[hedefSube][k.barkod] || 0) + k.adet;
     });
     
-    emir.durum = "ONAYLANDI";localStorage.setItem("db_stok", JSON.stringify(db_stok));
+    emir.durum = "ONAYLANDI";
+    localStorage.setItem("db_stok", JSON.stringify(db_stok));
     localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
     localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
     
-    // Bulut Güncellemeleri
+    // Bulut Güncellemeleri (Doğru şubeye Firebase kaydı)
     db.collection("depo_emirleri").doc(id.toString()).set(emir);
-    db.collection("sube_stoklari").doc(emir.kaynak).set(db_sube_stoklari[emir.kaynak]);
+    if(hedefSube && db_sube_stoklari[hedefSube]) {
+        db.collection("sube_stoklari").doc(hedefSube).set(db_sube_stoklari[hedefSube]);
+    }
     
     document.getElementById('merkezSiparisDetayModal').style.display = 'none';
     showToast(`${emir.evrakNo} nolu işlem tamamlandı, stoklar şubeye işlendi.`);
     listeleMerkezGuncelSiparis();
 }
-
+    
 function initSubeDepoSiparisleriSayfasi() {
     let bugun = new Date().toISOString().split('T')[0];
     document.getElementById('subeDepoFilterBasTar').value = bugun;
