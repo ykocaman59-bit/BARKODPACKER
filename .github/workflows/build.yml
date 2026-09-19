@@ -159,7 +159,7 @@ jobs:
         }
         EOF
 
-        # gradle-wrapper.properties (Kesinlikle Gradle 7.5 sürümünü zorla)
+        # gradle-wrapper.properties dosyasını doğrudan kendimiz yazıyoruz (Sistem gradle komutuna gerek kalmıyor)
         mkdir -p gradle/wrapper
         cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
         distributionBase=GRADLE_USER_HOME
@@ -171,23 +171,18 @@ jobs:
         zipStorePath=wrapper/dists
         EOF
 
-        # gradle.properties
-        cat << 'EOF' > gradle.properties
-        org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
-        android.useAndroidX=true
-        android.enableJetifier=true
-        EOF
+        # gradlew çalıştırılabilir dosyasını doğrudan internetten indirip yerleştiriyoruz
+        curl -s https://raw.githubusercontent.com/gradle/gradle/v7.5/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
+        curl -s https://raw.githubusercontent.com/gradle/gradle/v7.5/gradlew -o gradlew
+        curl -s https://raw.githubusercontent.com/gradle/gradle/v7.5/gradlew.bat -o gradlew.bat
+        chmod +x gradlew
 
         # Logoyu PNG formatına dönüştürüp ikon olarak ekle
         sudo apt-get update && sudo apt-get install -y librsvg2-bin
         rsvg-convert -w 192 -h 192 icon.svg -o app/src/main/res/mipmap-hdpi/ic_launcher.png
         cp app/src/main/res/mipmap-hdpi/ic_launcher.png app/src/main/res/mipmap-hdpi/ic_launcher_round.png
 
-        # Doğrudan Gradle 7.5 wrapper jar dosyasını indirip aktif et
-        gradle wrapper --gradle-version 7.5
-        chmod +x gradlew
-        
-        # Sistem gradle komutu yerine lokal gradlew ile derle
+        # Kesinlikle Gradle 7.5 ile derlemeyi başlat
         ./gradlew assembleDebug --no-daemon
 
         # APK dosyasını doğrudan BarkodPacker.apk olarak kopyala
