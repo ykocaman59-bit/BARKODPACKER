@@ -2,7 +2,7 @@ name: Android APK Build
 
 on:
   push:
-    branches: [ main, master ] # Hangi dalda (branch) tetikleneceğini belirler
+    branches: [ main, master ]
 
 jobs:
   build:
@@ -12,27 +12,23 @@ jobs:
     - name: Repo Kodlarını İndir
       uses: actions/checkout@v4
 
-    - name: Node.js Ortamını Kur
-      uses: actions/setup-node@v4
-      with:
-        node-version: 18
-
-    - name: Bağımlılıkları Yükle ve Projeyi Derle
-      run: |
-        npm install
-        npx cap copy android
-
-    - name: Java (JDK) Ortamını Kur (Android Derlemesi İçin)
+    - name: Java (JDK) Ortamını Kur
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Android APK'yı Derle (Gradle)
+    - name: Android Ortamını Hazırla ve Derle
       run: |
-        cd android
-        chmod +x gradlew
-        ./gradlew assembleDebug
+        # Eğer android klasörü repoda varsa doğrudan derler
+        if [ -d "android" ]; then
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+        else
+          echo "Android klasörü bulunamadı!"
+          exit 1
+        fi
 
     - name: Üretilen APK Dosyasını Kaydet (Artifacts)
       uses: actions/upload-artifact@v4
