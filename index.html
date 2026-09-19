@@ -1249,8 +1249,8 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
         k.adet = inputVal;
     }
     
-    // Ürünün gideceği doğru şubeyi belirliyoruz (Hedef şube)
-    let hedefSube = emir.hedef || emir.kaynak;
+    // 👉 BURASI DÜZELTİLDİ: Siparişi veren veya malın gideceği gerçek şube doğru tespit ediliyor
+    let hedefSube = (emir.kaynak === "Merkez Depo") ? emir.hedef : emir.kaynak;
     
     emir.kalemler.forEach(k => {
         // 1. Merkezden düş
@@ -1260,7 +1260,7 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
             db.collection("stoklar").doc(k.barkod).update({ stok: merkezUrun.stok }).catch(e => console.log("Merkez stok güncelleme hatası:", e));
         }
         
-        // 2. Şube stok objesini hazırla ve artır
+        // 2. Doğru şubenin stok havuzunu artır
         if(!db_sube_stoklari[hedefSube]) {
             db_sube_stoklari[hedefSube] = {};
         }
@@ -1277,7 +1277,7 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
     // 3. Bulut Güncellemeleri (Firebase Kayıtları)
     db.collection("depo_emirleri").doc(id.toString()).set(emir);
     
-    // Şube stoklarını Firebase'e doğru şekilde set ediyoruz
+    // Şube stoklarını Firebase'e doğru şube adı ile kaydediyoruz
     if(hedefSube && db_sube_stoklari[hedefSube]) {
         db.collection("sube_stoklari").doc(hedefSube).set(db_sube_stoklari[hedefSube])
           .then(() => console.log(`${hedefSube} şube stokları Firebase'e başarıyla işlendi.`))
@@ -1288,7 +1288,7 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
     let modal = document.getElementById('merkezSiparisDetayModal');
     if(modal) modal.style.display = 'none';
     
-    showToast(`${emir.evrakNo} nolu işlem tamamlandı, stoklar şubeye işlendi.`);
+    showToast(`${emir.evrakNo} nolu işlem tamamlandı, stoklar ${hedefSube} şubesine işlendi.`);
     
     if(typeof listeleMerkezGuncelSiparis === 'function') {
         listeleMerkezGuncelSiparis();
