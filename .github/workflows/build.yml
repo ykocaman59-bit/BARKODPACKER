@@ -18,6 +18,9 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Gradle Kurulumu
+      uses: gradle/actions/setup-gradle@v3
+
     - name: Saf Android Gradle Projesini Oluştur ve Derle
       run: |
         # Dizin yapısını oluştur
@@ -159,18 +162,6 @@ jobs:
         }
         EOF
 
-        # gradle-wrapper.properties (Stabil Gradle 7.5 sürümüne sabitlendi)
-        mkdir -p gradle/wrapper
-        cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
-        distributionBase=GRADLE_USER_HOME
-        distributionPath=wrapper/dists
-        distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip
-        networkTimeout=10000
-        validateDistributionUrl=true
-        zipStoreBase=GRADLE_USER_HOME
-        zipStorePath=wrapper/dists
-        EOF
-
         # gradle.properties
         cat << 'EOF' > gradle.properties
         org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
@@ -183,7 +174,9 @@ jobs:
         rsvg-convert -w 192 -h 192 icon.svg -o app/src/main/res/mipmap-hdpi/ic_launcher.png
         cp app/src/main/res/mipmap-hdpi/ic_launcher.png app/src/main/res/mipmap-hdpi/ic_launcher_round.png
 
-        # Doğrudan oluşturduğumuz wrapper ile derle
+        # Gradle wrapper'ı otomatik üret ve projeyi derle
+        gradle wrapper --gradle-version 7.5
+        chmod +x gradlew
         ./gradlew assembleDebug
 
         # APK dosyasını doğrudan BarkodPacker.apk olarak kopyala
