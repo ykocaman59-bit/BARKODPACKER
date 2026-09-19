@@ -30,7 +30,7 @@ jobs:
         # HTML dosyasını assets klasörüne kopyala
         cp index.html app/src/main/assets/index.html
 
-        # AndroidManifest.xml (Modern Gradle sürümüne uygun olarak package özniteliği kaldırıldı)
+        # AndroidManifest.xml
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android">
@@ -99,7 +99,7 @@ jobs:
         }
         EOF
 
-        # Kök build.gradle
+        # Kök build.gradle (Stabil AGP 7.4.2)
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -107,7 +107,7 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:8.2.2'
+                classpath 'com.android.tools.build:gradle:7.4.2'
             }
         }
         allprojects {
@@ -134,12 +134,12 @@ jobs:
         }
         android {
             namespace 'com.barkodpacker.app'
-            compileSdk 34
+            compileSdk 33
 
             defaultConfig {
                 applicationId "com.barkodpacker.app"
                 minSdk 24
-                targetSdk 34
+                targetSdk 33
                 versionCode 1
                 versionName "1.0.0"
             }
@@ -149,14 +149,26 @@ jobs:
                 }
             }
             compileOptions {
-                sourceCompatibility JavaVersion.VERSION_17
-                targetCompatibility JavaVersion.VERSION_17
+                sourceCompatibility JavaVersion.VERSION_11
+                targetCompatibility JavaVersion.VERSION_11
             }
         }
         dependencies {
             implementation 'androidx.appcompat:appcompat:1.6.1'
             implementation 'com.google.android.material:material:1.9.0'
         }
+        EOF
+
+        # gradle-wrapper.properties (Stabil Gradle 7.5 sürümüne sabitlendi)
+        mkdir -p gradle/wrapper
+        cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
+        distributionBase=GRADLE_USER_HOME
+        distributionPath=wrapper/dists
+        distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip
+        networkTimeout=10000
+        validateDistributionUrl=true
+        zipStoreBase=GRADLE_USER_HOME
+        zipStorePath=wrapper/dists
         EOF
 
         # gradle.properties
@@ -171,8 +183,7 @@ jobs:
         rsvg-convert -w 192 -h 192 icon.svg -o app/src/main/res/mipmap-hdpi/ic_launcher.png
         cp app/src/main/res/mipmap-hdpi/ic_launcher.png app/src/main/res/mipmap-hdpi/ic_launcher_round.png
 
-        # Gradle wrapper oluştur ve APK'yı derle
-        gradle wrapper
+        # Doğrudan oluşturduğumuz wrapper ile derle
         ./gradlew assembleDebug
 
         # APK dosyasını doğrudan BarkodPacker.apk olarak kopyala
