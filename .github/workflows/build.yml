@@ -30,18 +30,30 @@ jobs:
         # HTML dosyalarını kopyala
         rm -rf www/*
         cp -r ../index.html www/
-        
-        # Eğer depoda icon.png varsa ikon olarak ayarla
-        if [ -f "../icon.png" ]; then
-          mkdir -p res/icon/android
-          cp ../icon.png res/icon/android/icon.png
-        fi
+
+        # config.xml içine uygulama adını ve ayarlarını yaz
+        cat << 'EOF' > config.xml
+        <?xml version='1.0' encoding='utf-8'?>
+        <widget id="com.barkodpacker.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
+            <name>BarkodPacker</name>
+            <description>Barkod ve Stok Yönetim Sistemi</description>
+            <author email="dev@barkodpacker.app" href="https://github.com">BarkodPacker Team</author>
+            <content src="index.html" />
+            <access origin="*" />
+            <allow-intent href="http://*/*" />
+            <allow-intent href="https://*/*" />
+            <platform name="android">
+                <allow-intent href="market:*" />
+            </platform>
+        </widget>
+        EOF
 
         cordova build android --debug
 
-    - name: APK Dosyasını Kaydet
+    - name: APK Dosyasını Yeniden Adlandır ve Kaydet
       uses: actions/upload-artifact@v4
       with:
-        name: BarkodPacker-APK
+        name: BarkodPacker
         path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+        compression-level: 0
         
