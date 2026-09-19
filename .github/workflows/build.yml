@@ -18,6 +18,11 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Gradle Kurulumu (7.5)
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '7.5'
+
     - name: Saf Android Gradle Projesini Oluştur ve Derle
       run: |
         # Dizin yapısını oluştur
@@ -166,29 +171,13 @@ jobs:
         android.enableJetifier=true
         EOF
 
-        # Gradle 7.5 Wrapper dosyalarını doğrudan resmi kaynaktan indirip kuruyoruz (Sistem gradle komutu asla çağrılmıyor)
-        mkdir -p gradle/wrapper
-        cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
-        distributionBase=GRADLE_USER_HOME
-        distributionPath=wrapper/dists
-        distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip
-        networkTimeout=10000
-        validateDistributionUrl=true
-        zipStoreBase=GRADLE_USER_HOME
-        zipStorePath=wrapper/dists
-        EOF
-
-        curl -sL https://raw.githubusercontent.com/gradle/gradle/v7.5/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-        curl -sL https://raw.githubusercontent.com/gradle/gradle/v7.5/gradlew -o gradlew
-        chmod +x gradlew
-
         # Logoyu PNG formatına dönüştürüp ikon olarak ekle
         sudo apt-get update && sudo apt-get install -y librsvg2-bin
         rsvg-convert -w 192 -h 192 icon.svg -o app/src/main/res/mipmap-hdpi/ic_launcher.png
         cp app/src/main/res/mipmap-hdpi/ic_launcher.png app/src/main/res/mipmap-hdpi/ic_launcher_round.png
 
-        # Kesinlikle indirilen Gradle 7.5 wrapper ile derle
-        ./gradlew assembleDebug --no-daemon
+        # Kesinlikle gradlew kullanmadan, setup-gradle tarafından kurulan doğrudan 'gradle' komutunu çalıştır
+        gradle assembleDebug --no-daemon
 
         # APK dosyasını doğrudan BarkodPacker.apk olarak kopyala
         cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/BarkodPacker.apk
@@ -200,3 +189,4 @@ jobs:
         path: app/build/outputs/apk/debug/BarkodPacker.apk
         if-no-files-found: error
         retention-days: 1
+        
