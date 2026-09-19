@@ -1,4 +1,4 @@
-name: HTML to APK Builder
+name: Pure Android WebView APK Builder
 
 on:
   push:
@@ -12,63 +12,187 @@ jobs:
     - name: Repo Kodlarını İndir
       uses: actions/checkout@v4
 
-    - name: Node.js Ortamını Kur
-      uses: actions/setup-node@v4
+    - name: Java (JDK) Ortamını Kur
+      uses: actions/setup-java@v4
       with:
-        node-version: 18
+        distribution: 'temurin'
+        java-version: '17'
 
-    - name: Görsel Dönüştürücü ve Cordova Araçlarını Yükle
+    - name: Saf Android Gradle Projesini Oluştur
       run: |
-        sudo apt-get update
-        sudo apt-get install -y librsvg2-bin
-        npm install -g cordova
+        # Android projesi iskeletini dizin yapısıyla kuruyoruz
+        mkdir -p app/src/main/java/com/barkodpacker/app
+        mkdir -p app/src/main/res/layout
+        mkdir -p app/src/main/res/values
+        mkdir -p app/src/main/res/mipmap-hdpi
+        mkdir -p app/src/main/assets
+        mkdir -p .github/gradle/wrapper
 
-    - name: Projeyi Oluştur ve Yapılandır
-      run: |
-        cordova create myApp com.barkodpacker.app BarkodPacker
-        cd myApp
-        cordova platform add android
-        
-        # HTML dosyalarını kopyala
-        rm -rf www/*
-        cp -r ../index.html www/
+        # HTML dosyamızı Android assets klasörüne kopyalıyoruz
+        cp index.html app/src/main/assets/index.html
 
-        # SVG ikonunu uygulama ikonu için PNG'ye dönüştür
-        mkdir -p res/icon/android
-        rsvg-convert -w 512 -h 512 ../icon.svg -o res/icon/android/icon.png
+        # AndroidManifest.xml (İzinler ve Uygulama Adı)
+        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        <?xml version="1.0" encoding="utf-8"?>
+        <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+            package="com.barkodpacker.app">
 
-        # config.xml yazımı
-        cat << 'EOF' > config.xml
-        <?xml version='1.0' encoding='utf-8'?>
-        <widget id="com.barkodpacker.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
-            <name>BarkodPacker</name>
-            <description>Barkod ve Stok Yönetim Sistemi</description>
-            <author email="dev@barkodpacker.app" href="https://github.com">BarkodPacker Team</author>
-            <content src="index.html" />
-            <access origin="*" />
-            <allow-intent href="http://*/*" />
-            <allow-intent href="https://*/*" />
-            <platform name="android">
-                <allow-intent href="market:*" />
-                <icon src="res/icon/android/icon.png" />
-            </platform>
-        </widget>
+            <uses-permission android:name="android.permission.INTERNET" />
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+            <application
+                android:allowBackup="true"
+                android:icon="@mipmap/ic_launcher"
+                android:label="BarkodPacker"
+                android:roundIcon="@mipmap/ic_launcher_round"
+                android:supportsRtl="true"
+                android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+                
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true"
+                    android:configChanges="orientation|screenSize|keyboardHidden">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
         EOF
 
-        cordova build android --debug
+        # MainActivity.java (HTML dosyasını saf WebView içinde açan kod)
+        cat << 'EOF' > app/src/main/java/com/barkodpacker/app/MainActivity.java
+        package com.barkodpacker.app;
 
-        # Robot resminin (varsayılan splash screen) yerini kendi logomuzla değiştir veya ortadan kaldır
-        find platforms/android/ -name "screen.png" -exec cp ../icon.png {} \;
-        find platforms/android/ -name "splash*.png" -exec cp ../icon.png {} \;
+        import android.os.Bundle;
+        import android.webkit.WebSettings;
+        import android.webkit.WebView;
+        import android.webkit.WebViewClient;
+        import androidx.appcompat.app.AppCompatActivity;
 
-        # APK dosyasını doğrudan BarkodPacker.apk olarak adlandır
-        cp platforms/android/app/build/outputs/apk/debug/app-debug.apk platforms/android/app/build/outputs/apk/debug/BarkodPacker.apk
+        public class MainActivity extends AppCompatActivity {
+            private WebView webView;
+
+            @Override
+            protected void onCreate(Bundle savedInstanceState) {
+                super.onCreate(savedInstanceState);
+                
+                webView = new WebView(this);
+                WebSettings webSettings = webView.getSettings();
+                webSettings.setJavaScriptEnabled(true);
+                webSettings.setDomStorageEnabled(true);
+                webSettings.setDatabaseEnabled(true);
+                
+                webView.setWebViewClient(new WebViewClient());
+                webView.loadUrl("file:///android_asset/index.html");
+                
+                setContentView(webView);
+            }
+
+            @Override
+            public void onBackPressed() {
+                if (webView.canGoBack()) {
+                    webView.goBack();
+                } else {
+                    super.onBackPressed();
+                }
+            }
+        }
+        EOF
+
+        # Gradle Yapılandırma Dosyaları
+        cat << 'EOF' > build.gradle
+        buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
+            dependencies {
+                classpath 'com.android.tools.build:gradle:8.1.0'
+            }
+        }
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        task clean(type: Delete) {
+            delete rootProject.buildDir
+        }
+        EOF
+
+        cat << 'EOF' > settings.gradle
+        pluginManagement {
+            repositories {
+                google()
+                mavenCentral()
+                gradlePluginPortal()
+            }
+        }
+        dependencyResolutionManagement {
+            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+            repositories {
+                google()
+                mavenCentral()
+            }
+        }
+        rootProject.name = "BarkodPacker"
+        include ':app'
+        EOF
+
+        cat << 'EOF' > app/build.gradle
+        plugins {
+            id 'com.android.application'
+        }
+        android {
+            namespace 'com.barkodpacker.app'
+            compileSdk 34
+
+            defaultConfig {
+                applicationId "com.barkodpacker.app"
+                minSdk 24
+                targetSdk 34
+                versionCode 1
+                versionName "1.0.0"
+            }
+            buildTypes {
+                release {
+                    minifyEnabled false
+                }
+            }
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_17
+                targetCompatibility JavaVersion.VERSION_17
+            }
+        }
+        dependencies {
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.9.0'
+        }
+        EOF
+
+        cat << 'EOF' > gradle.properties
+        org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+        android.useAndroidX=true
+        android.enableJetifier=true
+        EOF
+
+        # Görsel dönüştürme aracı ile logoyu ikon olarak ekleyelim
+        sudo apt-get update && sudo apt-get install -y librsvg2-bin
+        rsvg-convert -w 192 -h 192 icon.svg -o app/src/main/res/mipmap-hdpi/ic_launcher.png
+        cp app/src/main/res/mipmap-hdpi/ic_launcher.png app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+
+        # Gradle wrapper dosyalarını oluştur ve APK'yı derle
+        gradle wrapper
+        ./gradlew assembleDebug
 
     - name: APK Dosyasını Kaydet
       uses: actions/upload-artifact@v4
       with:
         name: BarkodPacker
-        path: myApp/platforms/android/app/build/outputs/apk/debug/BarkodPacker.apk
+        path: app/build/outputs/apk/debug/app-debug.apk/BarkodPacker.apk
         if-no-files-found: error
         retention-days: 1
         
