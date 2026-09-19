@@ -100,11 +100,21 @@ jobs:
         }
         EOF
 
-        # Kök build.gradle (Depo tanımları kaldırıldı, sadece pluginVersionControl bırakıldı)
+        # Kök build.gradle (Depolar allprojects içine eklendi)
         cat << 'EOF' > build.gradle
         buildscript {
+            repositories {
+                google()
+                mavenCentral()
+            }
             dependencies {
                 classpath 'com.android.tools.build:gradle:8.1.0'
+            }
+        }
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
             }
         }
         task clean(type: Delete) {
@@ -112,22 +122,8 @@ jobs:
         }
         EOF
 
-        # settings.gradle (Depolar burada merkezi olarak tanımlandı)
+        # settings.gradle
         cat << 'EOF' > settings.gradle
-        pluginManagement {
-            repositories {
-                google()
-                mavenCentral()
-                gradlePluginPortal()
-            }
-        }
-        dependencyResolutionManagement {
-            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-            repositories {
-                google()
-                mavenCentral()
-            }
-        }
         rootProject.name = "BarkodPacker"
         include ':app'
         EOF
