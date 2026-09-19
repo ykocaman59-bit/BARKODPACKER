@@ -1253,30 +1253,46 @@ function merkezSiparisEvrakOnaylaAksiyon(id) {
     let hedefSube = emir.hedef || emir.kaynak;
     
     emir.kalemler.forEach(k => {
+        // 1. Merkezden düş
         let merkezUrun = db_stok.find(x => x.barkod === k.barkod);
         if(merkezUrun) {
             merkezUrun.stok -= k.adet;
-            db.collection("stoklar").doc(k.barkod).update({ stok: merkezUrun.stok }).catch(e => console.log("Firebase hatası:", e));
+            db.collection("stoklar").doc(k.barkod).update({ stok: merkezUrun.stok }).catch(e => console.log("Merkez stok güncelleme hatası:", e));
         }
         
-        if(!db_sube_stoklari[hedefSube]) db_sube_stoklari[hedefSube] = {};
+        // 2. Şube stok objesini hazırla ve artır
+        if(!db_sube_stoklari[hedefSube]) {
+            db_sube_stoklari[hedefSube] = {};
+        }
         db_sube_stoklari[hedefSube][k.barkod] = (db_sube_stoklari[hedefSube][k.barkod] || 0) + k.adet;
     });
     
     emir.durum = "ONAYLANDI";
+    
+    // Yerel hafızayı güncelle
     localStorage.setItem("db_stok", JSON.stringify(db_stok));
     localStorage.setItem("db_sube_stoklari", JSON.stringify(db_sube_stoklari));
     localStorage.setItem("db_depo_emirleri_evrak", JSON.stringify(db_depo_emirleri_evrak));
     
-    // Bulut Güncellemeleri (Doğru şubeye Firebase kaydı)
+    // 3. Bulut Güncellemeleri (Firebase Kayıtları)
     db.collection("depo_emirleri").doc(id.toString()).set(emir);
+    
+    // Şube stoklarını Firebase'e doğru şekilde set ediyoruz
     if(hedefSube && db_sube_stoklari[hedefSube]) {
-        db.collection("sube_stoklari").doc(hedefSube).set(db_sube_stoklari[hedefSube]);
+        db.collection("sube_stoklari").doc(hedefSube).set(db_sube_stoklari[hedefSube])
+          .then(() => console.log(`${hedefSube} şube stokları Firebase'e başarıyla işlendi.`))
+          .catch(err => console.log("Şube stok Firebase kayıt hatası:", err));
     }
     
-    document.getElementById('merkezSiparisDetayModal').style.display = 'none';
+    // Arayüzü kapat ve yenile
+    let modal = document.getElementById('merkezSiparisDetayModal');
+    if(modal) modal.style.display = 'none';
+    
     showToast(`${emir.evrakNo} nolu işlem tamamlandı, stoklar şubeye işlendi.`);
-    listeleMerkezGuncelSiparis();
+    
+    if(typeof listeleMerkezGuncelSiparis === 'function') {
+        listeleMerkezGuncelSiparis();
+    }
 }
     
 function initSubeDepoSiparisleriSayfasi() {
