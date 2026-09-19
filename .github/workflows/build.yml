@@ -33,13 +33,11 @@ jobs:
         rm -rf www/*
         cp -r ../index.html www/
 
-        # SVG ikonunu uygulama ikonu ve açılış ekranı (splash) için PNG'ye dönüştür
+        # SVG ikonunu uygulama ikonu için PNG'ye dönüştür
         mkdir -p res/icon/android
-        mkdir -p res/screen/android
         rsvg-convert -w 512 -h 512 ../icon.svg -o res/icon/android/icon.png
-        rsvg-convert -w 1024 -h 1024 ../icon.svg -o res/screen/android/screen.png
 
-        # config.xml içine uygulama adını, ikonunu ve açılış ekranı ayarlarını yaz
+        # config.xml içine uygulama adını, ikonunu ve açılış ekranını KAPATAN ayarları yaz
         cat << 'EOF' > config.xml
         <?xml version='1.0' encoding='utf-8'?>
         <widget id="com.barkodpacker.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
@@ -51,28 +49,13 @@ jobs:
             <allow-intent href="http://*/*" />
             <allow-intent href="https://*/*" />
             
-            <!-- Açılış ekranı (Splash Screen) Süre Ayarları -->
-            <preference name="SplashScreen" value="screen" />
-            <preference name="SplashScreenDelay" value="2000" />
-            <preference name="FadeSplashScreen" value="true" />
-            <preference name="FadeSplashScreenDuration" value="500" />
-            <preference name="ShowSplashScreenSpinner" value="false" />
+            <!-- Açılış ekranını tamamen devre dışı bırak -->
+            <preference name="SplashScreen" value="none" />
+            <preference name="SplashScreenDelay" value="0" />
 
             <platform name="android">
                 <allow-intent href="market:*" />
                 <icon src="res/icon/android/icon.png" />
-                <splash src="res/screen/android/screen.png" density="land-hdpi"/>
-                <splash src="res/screen/android/screen.png" density="land-ldpi"/>
-                <splash src="res/screen/android/screen.png" density="land-mdpi"/>
-                <splash src="res/screen/android/screen.png" density="land-xhdpi"/>
-                <splash src="res/screen/android/screen.png" density="land-xxhdpi"/>
-                <splash src="res/screen/android/screen.png" density="land-xxxhdpi"/>
-                <splash src="res/screen/android/screen.png" density="port-hdpi"/>
-                <splash src="res/screen/android/screen.png" density="port-ldpi"/>
-                <splash src="res/screen/android/screen.png" density="port-mdpi"/>
-                <splash src="res/screen/android/screen.png" density="port-xhdpi"/>
-                <splash src="res/screen/android/screen.png" density="port-xxhdpi"/>
-                <splash src="res/screen/android/screen.png" density="port-xxxhdpi"/>
             </platform>
         </widget>
         EOF
