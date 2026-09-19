@@ -17,8 +17,10 @@ jobs:
       with:
         node-version: 18
 
-    - name: Cordova ve Paketleme Araçlarını Yükle
+    - name: Görsel Dönüştürücü ve Cordova Araçlarını Yükle
       run: |
+        sudo apt-get update
+        sudo apt-get install -y librsvg2-bin
         npm install -g cordova
 
     - name: Projeyi Oluştur ve Yapılandır
@@ -31,11 +33,9 @@ jobs:
         rm -rf www/*
         cp -r ../index.html www/
 
-        # Eğer repo'da icon.png varsa ikon klasörüne kopyala ve config.xml'e ekle
-        if [ -f "../icon.png" ]; then
-          mkdir -p res/icon/android
-          cp ../icon.png res/icon/android/icon.png
-        fi
+        # SVG ikonunu PNG formatına dönüştür ve ilgili klasöre koy
+        mkdir -p res/icon/android
+        rsvg-convert -w 512 -h 512 ../icon.svg -o res/icon/android/icon.png
 
         # config.xml içine uygulama adını, ikonunu ve ayarlarını yaz
         cat << 'EOF' > config.xml
@@ -57,7 +57,7 @@ jobs:
 
         cordova build android --debug
 
-        # Çıkan dosyanın adını doğrudan BarkodPacker.apk olarak kopyala
+        # APK dosyasını doğrudan BarkodPacker.apk olarak adlandır
         cp platforms/android/app/build/outputs/apk/debug/app-debug.apk platforms/android/app/build/outputs/apk/debug/BarkodPacker.apk
 
     - name: APK Dosyasını Kaydet
