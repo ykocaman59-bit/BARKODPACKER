@@ -1473,7 +1473,7 @@ function sendDepoSevk() {
     
     let u = db_stok.find(x => x.barkod === barkod);
     
-    // 👇 BU ÜÇ SATIRI TAM BURAYA (KONTROLLERDEN GEÇTİKTEN HEMEN SONRA) EKLIYORUZ
+    // Arama ve Adet kutularını sıfırla
     document.getElementById('sevkUrunSearchInp').value = "";
     document.getElementById('sevkAdetInp').value = "";
     filterSevkUrunList();
@@ -1500,8 +1500,9 @@ function sendDepoSevk() {
         return;
     }
     
+    // Şubeden stok düşme ve doğru Firebase .doc() yazımı
     db_sube_stoklari[currentLoginFirma][barkod] -= adet;
-    db.collection("sube_stoklari")[currentLoginFirma].set(db_sube_stoklari[currentLoginFirma]); // (veya mevcut set kodun)
+    db.collection("sube_stoklari").doc(currentLoginFirma).set(db_sube_stoklari[currentLoginFirma]);
     
     let docId = Date.now();
     let randomNo = Math.floor(100000 + Math.random() * 900000);
@@ -1522,9 +1523,10 @@ function sendDepoSevk() {
     
     db.collection("depo_emirleri").doc(docId.toString()).set(transferEvrak);
     
-    showToast("Sevk irsaliyesi yola çıktı, hedef onayı bekleniyor.");
+    showToast("Sevk irsaliyesi yola çıktı, merkez onayı bekleniyor.");
     goHome();
 }
+    
     
 function listeleMerkezGelenSevkiyat() {
     let sevkler = db_depo_emirleri_evrak.filter(e => e.hedef === "Merkez Depo" && e.tip === "DEPO_SEVK" && e.durum === "BEKLEMEDE");
