@@ -18,20 +18,19 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
-    - name: Saf Android Gradle Projesini Oluştur
+    - name: Saf Android Gradle Projesini Oluştur ve Derle
       run: |
-        # Android projesi iskeletini dizin yapısıyla kuruyoruz
+        # Dizin yapısını oluştur
         mkdir -p app/src/main/java/com/barkodpacker/app
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/values
         mkdir -p app/src/main/res/mipmap-hdpi
         mkdir -p app/src/main/assets
-        mkdir -p .github/gradle/wrapper
 
-        # HTML dosyamızı Android assets klasörüne kopyalıyoruz
+        # HTML dosyasını assets klasörüne kopyala
         cp index.html app/src/main/assets/index.html
 
-        # AndroidManifest.xml (İzinler ve Uygulama Adı)
+        # AndroidManifest.xml
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <?xml version="1.0" encoding="utf-8"?>
         <manifest xmlns:android="http://schemas.android.com/apk/res/android"
@@ -61,7 +60,7 @@ jobs:
         </manifest>
         EOF
 
-        # MainActivity.java (HTML dosyasını saf WebView içinde açan kod)
+        # MainActivity.java
         cat << 'EOF' > app/src/main/java/com/barkodpacker/app/MainActivity.java
         package com.barkodpacker.app;
 
@@ -101,21 +100,11 @@ jobs:
         }
         EOF
 
-        # Gradle Yapılandırma Dosyaları
+        # Kök build.gradle (Depo tanımları kaldırıldı, sadece pluginVersionControl bırakıldı)
         cat << 'EOF' > build.gradle
         buildscript {
-            repositories {
-                google()
-                mavenCentral()
-            }
             dependencies {
                 classpath 'com.android.tools.build:gradle:8.1.0'
-            }
-        }
-        allprojects {
-            repositories {
-                google()
-                mavenCentral()
             }
         }
         task clean(type: Delete) {
@@ -123,6 +112,7 @@ jobs:
         }
         EOF
 
+        # settings.gradle (Depolar burada merkezi olarak tanımlandı)
         cat << 'EOF' > settings.gradle
         pluginManagement {
             repositories {
@@ -142,6 +132,7 @@ jobs:
         include ':app'
         EOF
 
+        # app/build.gradle
         cat << 'EOF' > app/build.gradle
         plugins {
             id 'com.android.application'
@@ -173,26 +164,30 @@ jobs:
         }
         EOF
 
+        # gradle.properties
         cat << 'EOF' > gradle.properties
         org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
         android.useAndroidX=true
         android.enableJetifier=true
         EOF
 
-        # Görsel dönüştürme aracı ile logoyu ikon olarak ekleyelim
+        # Logoyu PNG formatına dönüştürüp ikon olarak ekle
         sudo apt-get update && sudo apt-get install -y librsvg2-bin
         rsvg-convert -w 192 -h 192 icon.svg -o app/src/main/res/mipmap-hdpi/ic_launcher.png
         cp app/src/main/res/mipmap-hdpi/ic_launcher.png app/src/main/res/mipmap-hdpi/ic_launcher_round.png
 
-        # Gradle wrapper dosyalarını oluştur ve APK'yı derle
+        # Gradle wrapper oluştur ve APK'yı derle
         gradle wrapper
         ./gradlew assembleDebug
+
+        # APK dosyasını doğrudan BarkodPacker.apk olarak kopyala
+        cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/BarkodPacker.apk
 
     - name: APK Dosyasını Kaydet
       uses: actions/upload-artifact@v4
       with:
         name: BarkodPacker
-        path: app/build/outputs/apk/debug/app-debug.apk/BarkodPacker.apk
+        path: app/build/outputs/apk/debug/BarkodPacker.apk
         if-no-files-found: error
         retention-days: 1
         
