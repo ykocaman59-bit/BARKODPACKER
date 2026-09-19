@@ -21,24 +21,27 @@ jobs:
       run: |
         npm install -g cordova
 
-    - name: Geçici Cordova Projesi Oluştur ve HTML'leri Ekle
+    - name: Geçici Cordova Projesi Oluştur ve Özelleştir
       run: |
         cordova create myApp com.barkodpacker.app BarkodPacker
         cd myApp
         cordova platform add android
         
-        # Ana repodaki index.html ve diğer dosyaları cordova www klasörüne kopyala
+        # HTML dosyalarını kopyala
         rm -rf www/*
         cp -r ../index.html www/
-        # Eğer varsa css, js klasörlerini de kopyalayabilirsin, örn:
-        # cp -r ../css www/ 2>/dev/null || true
-        # cp -r ../js www/ 2>/dev/null || true
+        
+        # Eğer repo'da icon.svg varsa simge olarak ayarla
+        if [ -f "../icon.svg" ]; then
+          mkdir -p res/icon/android
+          cp ../icon.svg res/icon/android/icon.svg
+        fi
 
         cordova build android --debug
 
-    - name: Üretilen APK Dosyasını Kaydet (Artifacts)
+    - name: Üretilen APK Dosyasını Yeniden Adlandır ve Kaydet
       uses: actions/upload-artifact@v4
       with:
-        name: html-debug-apk
+        name: BarkodPacker
         path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
         
