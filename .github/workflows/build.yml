@@ -1,0 +1,42 @@
+name: Android APK Build
+
+on:
+  push:
+    branches: [ main, master ] # Hangi dalda (branch) tetikleneceğini belirler
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Repo Kodlarını İndir
+      uses: actions/checkout@v4
+
+    - name: Node.js Ortamını Kur
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+
+    - name: Bağımlılıkları Yükle ve Projeyi Derle
+      run: |
+        npm install
+        npx cap copy android
+
+    - name: Java (JDK) Ortamını Kur (Android Derlemesi İçin)
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Android APK'yı Derle (Gradle)
+      run: |
+        cd android
+        chmod +x gradlew
+        ./gradlew assembleDebug
+
+    - name: Üretilen APK Dosyasını Kaydet (Artifacts)
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        
