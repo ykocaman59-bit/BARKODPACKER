@@ -18,6 +18,9 @@ jobs:
         distribution: 'temurin'
         java-version: '17'
 
+    - name: Gradle Kurulumu ve Önbellek
+      uses: gradle/actions/setup-gradle@v3
+
     - name: Saf Android Gradle Projesini Oluştur ve Derle
       run: |
         # Dizin yapısını oluştur
@@ -159,26 +162,15 @@ jobs:
         }
         EOF
 
-        # gradle-wrapper.properties
-        mkdir -p gradle/wrapper
-        cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
-        distributionBase=GRADLE_USER_HOME
-        distributionPath=wrapper/dists
-        distributionUrl=https\://services.gradle.org/distributions/gradle-7.5-bin.zip
-        networkTimeout=10000
-        validateDistributionUrl=true
-        zipStoreBase=GRADLE_USER_HOME
-        zipStorePath=wrapper/dists
+        # gradle.properties
+        cat << 'EOF' > gradle.properties
+        org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
+        android.useAndroidX=true
+        android.enableJetifier=true
         EOF
 
-        # gradlew dosyalarını indir ve tr (dosya biçimi) dönüştürücüsü ile Linux uyumlu hale getir
-        curl -s https://raw.githubusercontent.com/gradle/gradle/v7.5/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-        curl -s https://raw.githubusercontent.com/gradle/gradle/v7.5/gradlew -o gradlew
-        curl -s https://raw.githubusercontent.com/gradle/gradle/v7.5/gradlew.bat -o gradlew.bat
-        
-        # Windows satır sonu karakterlerini (CRLF -> LF) temizle ve çalıştırma izni ver
-        sed -i -e 's/\r$//' gradlew
-        chmod +x gradlew
+        # Resmi gradle wrapper komutu ile dosyaları eksiksiz ve hatasız üret
+        gradle wrapper --gradle-version 7.5
 
         # Logoyu PNG formatına dönüştürüp ikon olarak ekle
         sudo apt-get update && sudo apt-get install -y librsvg2-bin
