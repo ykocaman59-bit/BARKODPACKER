@@ -21,7 +21,7 @@ jobs:
       run: |
         npm install -g cordova
 
-    - name: Geçici Cordova Projesi Oluştur ve Özelleştir
+    - name: Projeyi Oluştur ve Yapılandır
       run: |
         cordova create myApp com.barkodpacker.app BarkodPacker
         cd myApp
@@ -31,17 +31,17 @@ jobs:
         rm -rf www/*
         cp -r ../index.html www/
         
-        # Eğer repo'da icon.svg varsa simge olarak ayarla
-        if [ -f "../icon.svg" ]; then
+        # Eğer depoda icon.png varsa ikon olarak ayarla
+        if [ -f "../icon.png" ]; then
           mkdir -p res/icon/android
-          cp ../icon.svg res/icon/android/icon.svg
+          cp ../icon.png res/icon/android/icon.png
         fi
 
         cordova build android --debug
 
-    - name: Üretilen APK Dosyasını Yeniden Adlandır ve Kaydet
+    - name: APK Dosyasını Kaydet
       uses: actions/upload-artifact@v4
       with:
-        name: BarkodPacker
+        name: BarkodPacker-APK
         path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
         
