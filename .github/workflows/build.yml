@@ -159,7 +159,7 @@ jobs:
         }
         EOF
 
-        # gradle-wrapper.properties dosyasını doğrudan kendimiz yazıyoruz (Sistem gradle komutuna gerek kalmıyor)
+        # gradle-wrapper.properties
         mkdir -p gradle/wrapper
         cat << 'EOF' > gradle/wrapper/gradle-wrapper.properties
         distributionBase=GRADLE_USER_HOME
@@ -171,10 +171,13 @@ jobs:
         zipStorePath=wrapper/dists
         EOF
 
-        # gradlew çalıştırılabilir dosyasını doğrudan internetten indirip yerleştiriyoruz
+        # gradlew dosyalarını indir ve tr (dosya biçimi) dönüştürücüsü ile Linux uyumlu hale getir
         curl -s https://raw.githubusercontent.com/gradle/gradle/v7.5/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
         curl -s https://raw.githubusercontent.com/gradle/gradle/v7.5/gradlew -o gradlew
         curl -s https://raw.githubusercontent.com/gradle/gradle/v7.5/gradlew.bat -o gradlew.bat
+        
+        # Windows satır sonu karakterlerini (CRLF -> LF) temizle ve çalıştırma izni ver
+        sed -i -e 's/\r$//' gradlew
         chmod +x gradlew
 
         # Logoyu PNG formatına dönüştürüp ikon olarak ekle
@@ -182,7 +185,7 @@ jobs:
         rsvg-convert -w 192 -h 192 icon.svg -o app/src/main/res/mipmap-hdpi/ic_launcher.png
         cp app/src/main/res/mipmap-hdpi/ic_launcher.png app/src/main/res/mipmap-hdpi/ic_launcher_round.png
 
-        # Kesinlikle Gradle 7.5 ile derlemeyi başlat
+        # Projeyi derle
         ./gradlew assembleDebug --no-daemon
 
         # APK dosyasını doğrudan BarkodPacker.apk olarak kopyala
