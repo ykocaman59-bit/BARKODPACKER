@@ -1,4 +1,4 @@
-name: Android APK Build
+name: HTML to APK Builder
 
 on:
   push:
@@ -12,27 +12,33 @@ jobs:
     - name: Repo Kodlarını İndir
       uses: actions/checkout@v4
 
-    - name: Java (JDK) Ortamını Kur
-      uses: actions/setup-java@v4
+    - name: Node.js Ortamını Kur
+      uses: actions/setup-node@v4
       with:
-        distribution: 'temurin'
-        java-version: '17'
+        node-version: 18
 
-    - name: Android Ortamını Hazırla ve Derle
+    - name: Cordova ve Paketleme Araçlarını Yükle
       run: |
-        # Eğer android klasörü repoda varsa doğrudan derler
-        if [ -d "android" ]; then
-          cd android
-          chmod +x gradlew
-          ./gradlew assembleDebug
-        else
-          echo "Android klasörü bulunamadı!"
-          exit 1
-        fi
+        npm install -g cordova
+
+    - name: Geçici Cordova Projesi Oluştur ve HTML'leri Ekle
+      run: |
+        cordova create myApp com.barkodpacker.app BarkodPacker
+        cd myApp
+        cordova platform add android
+        
+        # Ana repodaki index.html ve diğer dosyaları cordova www klasörüne kopyala
+        rm -rf www/*
+        cp -r ../index.html www/
+        # Eğer varsa css, js klasörlerini de kopyalayabilirsin, örn:
+        # cp -r ../css www/ 2>/dev/null || true
+        # cp -r ../js www/ 2>/dev/null || true
+
+        cordova build android --debug
 
     - name: Üretilen APK Dosyasını Kaydet (Artifacts)
       uses: actions/upload-artifact@v4
       with:
-        name: app-debug-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
+        name: html-debug-apk
+        path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
         
