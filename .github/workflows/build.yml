@@ -37,7 +37,7 @@ jobs:
         mkdir -p res/icon/android
         rsvg-convert -w 512 -h 512 ../icon.svg -o res/icon/android/icon.png
 
-        # config.xml içine uygulama adını, ikonunu ve açılış ekranını KAPATAN ayarları yaz
+        # config.xml yazımı
         cat << 'EOF' > config.xml
         <?xml version='1.0' encoding='utf-8'?>
         <widget id="com.barkodpacker.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
@@ -48,11 +48,6 @@ jobs:
             <access origin="*" />
             <allow-intent href="http://*/*" />
             <allow-intent href="https://*/*" />
-            
-            <!-- Açılış ekranını tamamen devre dışı bırak -->
-            <preference name="SplashScreen" value="none" />
-            <preference name="SplashScreenDelay" value="0" />
-
             <platform name="android">
                 <allow-intent href="market:*" />
                 <icon src="res/icon/android/icon.png" />
@@ -61,6 +56,10 @@ jobs:
         EOF
 
         cordova build android --debug
+
+        # Robot resminin (varsayılan splash screen) yerini kendi logomuzla değiştir veya ortadan kaldır
+        find platforms/android/ -name "screen.png" -exec cp ../icon.png {} \;
+        find platforms/android/ -name "splash*.png" -exec cp ../icon.png {} \;
 
         # APK dosyasını doğrudan BarkodPacker.apk olarak adlandır
         cp platforms/android/app/build/outputs/apk/debug/app-debug.apk platforms/android/app/build/outputs/apk/debug/BarkodPacker.apk
