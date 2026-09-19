@@ -100,7 +100,7 @@ jobs:
         }
         EOF
 
-        # Kök build.gradle (Modern eklenti sürümü)
+        # Kök build.gradle
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -160,12 +160,11 @@ jobs:
         }
         EOF
 
-        # gradle.properties (Gradle 8+ uyumlu JVM parametreleri)
+        # gradle.properties (Sorunlu önbellek parametresi temizlendi)
         cat << 'EOF' > gradle.properties
-        org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8 -XX:+UseParallelGC
+        org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
         android.useAndroidX=true
         android.enableJetifier=true
-        org.gradle.unsafe.configuration-cache=true
         EOF
 
         # Logoyu PNG formatına dönüştürüp ikon olarak ekle
