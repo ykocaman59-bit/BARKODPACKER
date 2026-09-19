@@ -31,7 +31,13 @@ jobs:
         rm -rf www/*
         cp -r ../index.html www/
 
-        # config.xml içine uygulama adını ve ayarlarını yaz
+        # Eğer repo'da icon.png varsa ikon klasörüne kopyala ve config.xml'e ekle
+        if [ -f "../icon.png" ]; then
+          mkdir -p res/icon/android
+          cp ../icon.png res/icon/android/icon.png
+        fi
+
+        # config.xml içine uygulama adını, ikonunu ve ayarlarını yaz
         cat << 'EOF' > config.xml
         <?xml version='1.0' encoding='utf-8'?>
         <widget id="com.barkodpacker.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
@@ -44,16 +50,21 @@ jobs:
             <allow-intent href="https://*/*" />
             <platform name="android">
                 <allow-intent href="market:*" />
+                <icon src="res/icon/android/icon.png" />
             </platform>
         </widget>
         EOF
 
         cordova build android --debug
 
-    - name: APK Dosyasını Yeniden Adlandır ve Kaydet
+        # Çıkan dosyanın adını doğrudan BarkodPacker.apk olarak kopyala
+        cp platforms/android/app/build/outputs/apk/debug/app-debug.apk platforms/android/app/build/outputs/apk/debug/BarkodPacker.apk
+
+    - name: APK Dosyasını Kaydet
       uses: actions/upload-artifact@v4
       with:
         name: BarkodPacker
-        path: myApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
-        compression-level: 0
+        path: myApp/platforms/android/app/build/outputs/apk/debug/BarkodPacker.apk
+        if-no-files-found: error
+        retention-days: 1
         
